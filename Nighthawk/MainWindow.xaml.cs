@@ -14,6 +14,23 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SharpPcap;
 
+/**
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Copyright (C) 2010  Klemen Bratec
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
 namespace Nighthawk
 {
     public partial class MainWindow : Window
@@ -29,8 +46,8 @@ namespace Nighthawk
         private Color TextEnabledColor = Color.FromRgb(92, 180, 90);
 
         // sniffer colos
-        public Color ColorSnifferHTML = Colors.Blue;
-        public Color ColorSnifferHTTPAuth = Colors.Red;
+        public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
+        public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);
 
         // device info
         private DeviceInfo deviceInfo;
@@ -62,13 +79,12 @@ namespace Nighthawk
         private void Window_Closed(object sender, EventArgs e)
         {
             // stop everything
-            Nighthawk.Sniffer.Stop();
-            Nighthawk.ARPTools.StopSpoofing();
-
             Nighthawk.Device.StopCaptureTimeout = TimeSpan.FromMilliseconds(200);
-
             Nighthawk.Device.StopCapture();
             Nighthawk.Device.Close();
+
+            Nighthawk.Sniffer.Stop();
+            Nighthawk.ARPTools.StopSpoofing();
 
             Application.Current.Shutdown();
         }
@@ -169,9 +185,8 @@ namespace Nighthawk
                 }
                 else
                 {
-                    MessageBox.Show(
-                        "Please select desired targets.",
-                        "Nighthawk message", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    MessageBox.Show("Please select desired targets.", "Nighthawk warning",
+                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
             }
             else
@@ -204,7 +219,7 @@ namespace Nighthawk
                 // check for ARP spoofing
                 if (!Nighthawk.ARPTools.SpoofingStarted)
                 {
-                    MessageBox.Show("SSL stripping will only for remote computers.", "Nighthawk notice",
+                    MessageBox.Show("SSL stripping will only work for remote computers.", "Nighthawk notice",
                                     MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 

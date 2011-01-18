@@ -32,27 +32,27 @@
 									<DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
-							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,35.56,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left">
+							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,62.56,0,43" Width="116" HorizontalAlignment="Left">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartSniffer" Color="#FFFFB9B9" BlurRadius="0" RenderingBias="Quality" Direction="3960" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
-							<Button x:Name="BStartSSLstrip" IsEnabled="True" Content="Start SSL stripping" Margin="5,63,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" BorderThickness="1" Click="BStartSSLstrip_Click">
+							<Button x:Name="BStartSSLstrip" IsEnabled="True" Content="Start SSL stripping" Margin="5,36,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" BorderThickness="1" Click="BStartSSLstrip_Click" d:LayoutOverrides="VerticalAlignment">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartSSLstrip" BlurRadius="0" ShadowDepth="10" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360"/>
 								</Button.Effect>
 							</Button>
 							<CheckBox x:Name="CHExcludeLocalIP" Content="Exclude local IP" Margin="6,89,11.333,0" Height="19" VerticalAlignment="Top" IsChecked="True"/>
-							<TextBlock Margin="6,106.254,21,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF727272" FontSize="8" Height="21.306"><Run Language="sl-si" Text="Excludes your local IP address from sniffer and SSL stripping."/></TextBlock>
+							<TextBlock Margin="6,106.254,21,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF727272" FontSize="8" Height="21.306"><Run Language="sl-si" Text="Excludes your local IP address from sniffer."/></TextBlock>
 						</Grid>
 					</GroupBox>
 					<TextBlock Grid.Column="1" Margin="8,18,8,0" TextWrapping="Wrap" Text="ARP target(s) 1:" VerticalAlignment="Top" FontWeight="Bold"/>
-					<ListView x:Name="LArpTargets1List" Margin="8,40,8,8" Grid.Column="1" Grid.RowSpan="2" SelectionMode="Multiple">
+					<ListView x:Name="LArpTargets1List" Margin="8,40,8,8" Grid.Column="1" Grid.RowSpan="2" SelectionMode="Extended">
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="IP address" Width="90" DisplayMemberBinding="{Binding Path=IP}"/>
-								<GridViewColumn Header="MAC" Width="120" DisplayMemberBinding="{Binding Path=MAC}"/>
-								<GridViewColumn Header="Hostname" Width="100" DisplayMemberBinding="{Binding Path=Hostname}"/>
+								<GridViewColumn Header="MAC" Width="110" DisplayMemberBinding="{Binding Path=MAC}"/>
+								<GridViewColumn Header="Hostname" Width="115" DisplayMemberBinding="{Binding Path=Hostname}"/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -61,8 +61,8 @@
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="IP address" Width="90" DisplayMemberBinding="{Binding Path=IP}"/>
-								<GridViewColumn Header="MAC" Width="120" DisplayMemberBinding="{Binding Path=MAC}"/>
-								<GridViewColumn Header="Hostname" Width="100" DisplayMemberBinding="{Binding Path=Hostname}"/>
+								<GridViewColumn Header="MAC" Width="110" DisplayMemberBinding="{Binding Path=MAC}"/>
+								<GridViewColumn Header="Hostname" Width="115" DisplayMemberBinding="{Binding Path=Hostname}"/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -76,9 +76,9 @@
                     </Grid.ColumnDefinitions>
                     <GroupBox Header="Legend" Margin="8" Grid.Column="0" >
                         <Grid Margin="0">
-                            <Rectangle Fill="Red" Height="15" Margin="5,11.085,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+                            <Rectangle Fill="#FFA70000" Height="15" Margin="5,11.085,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
                             <TextBlock Height="16.085" Margin="24,10,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTTP auth (401)"/></TextBlock>
-                            <Rectangle Fill="Blue" Height="15" Margin="5,31.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+                            <Rectangle Fill="#FF000097" Height="15" Margin="5,31.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
                             <TextBlock Height="16.085" Margin="24,31.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTML forms"/></TextBlock>
                         </Grid>
                     </GroupBox>
@@ -113,7 +113,7 @@
 		<Image Source="Graphics\Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="8,5,0,0" HorizontalAlignment="Left" Height="75" VerticalAlignment="Top" Width="73" Stretch="Uniform" />
 		<TextBlock Height="73" Margin="97,8,300,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run FontSize="26.667" Language="sl-si" Text="Nighthawk"/><LineBreak/><Run Foreground="#FF8F8F8F" Language="sl-si" Text="&quot;Appear weak when you are strong, and strong when you are weak.&quot; "/><Run Foreground="#FFC4C4C4" Language="sl-si" Text="Sun Tzu"/><LineBreak/><Run Language="sl-si"/></TextBlock>
 		<TextBlock HorizontalAlignment="Right" Height="45.075" Margin="0,21.334,133.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76" TextAlignment="Right" Foreground="#FF333333"><Run Language="sl-si" Text="ARP spoofing:"/><LineBreak/><Run Language="sl-si" Text="SSL stripping:"/><LineBreak/><Run Language="sl-si" Text="Sniffer:"/></TextBlock>
-		<Path Data="M661.33333,21.334 L661.33333,94.076413" Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="52.076" Margin="0,17,221.308,0" Stretch="Fill" Stroke="#FF7A7A7A" VerticalAlignment="Top" Width="2" StrokeEndLineCap="Round" StrokeThickness="2"/>
+		<Path Data="M661.33333,21.334 L661.33333,94.076413" Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="52.076" Margin="0,17,221.308,0" Stretch="Fill" Stroke="Silver" VerticalAlignment="Top" Width="2" StrokeEndLineCap="Round" StrokeThickness="2"/>
 		<Path Data="M662.333,21.334 L876.26605,21.334" HorizontalAlignment="Right" Height="3.334" Margin="0,18,8,0" Stretch="Fill" VerticalAlignment="Top" Width="214.933" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeThickness="2">
 			<Path.Stroke>
 				<LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
@@ -125,7 +125,7 @@
 							<TranslateTransform/>
 						</TransformGroup>
 					</LinearGradientBrush.RelativeTransform>
-					<GradientStop Color="#FF7A7A7A" Offset="0"/>
+					<GradientStop Color="Silver" Offset="0"/>
 					<GradientStop Color="#FFE5E5E5" Offset="1"/>
 				</LinearGradientBrush>
 			</Path.Stroke>

