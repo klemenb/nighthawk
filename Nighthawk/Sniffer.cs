@@ -72,7 +72,9 @@ namespace Nighthawk
             "email",
             "mail",
             "account",
-            "user-name"
+            "user-name",
+            "ime",
+            "uporabni"
         };
 
         // field names - password
@@ -80,7 +82,8 @@ namespace Nighthawk
         {
             "pass",
             "password",
-            "key"
+            "key",
+            "geslo"
         };
 
         // constructor
