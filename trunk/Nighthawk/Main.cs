@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -13,6 +14,23 @@ using System.Windows.Media;
 using SharpPcap;
 using PacketDotNet;
 
+/**
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Copyright (C) 2010  Klemen Bratec
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
 namespace Nighthawk
 {
     public class Main
@@ -51,9 +69,28 @@ namespace Nighthawk
             // clear DeviceInfo list
             DeviceInfoList.Clear();
 
+            // try to check for WinPcap???
+            var error = false;
+
+            try
+            {
+                var instance = LivePcapDeviceList.Instance;
+                if (instance == null) error = true;
+            } catch {
+                error = true;
+            }
+
+            if(error) {
+                MessageBox.Show("WinPcap not installed or no devices detected!", "Nighthawk error",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+
+                return new List<string>();
+            }
+            //
+
             foreach (var device in LivePcapDeviceList.Instance)
             {
-                // get IPv4 address
+                // get IPv4 address, subnet mask and broadcast address
                 var address = "No IPv4";
                 var subnet = "";
                 var broadcast = "";
@@ -94,13 +131,10 @@ namespace Nighthawk
             Sniffer.OnSnifferResult += new SnifferResultHandler(sniffer_OnSnifferResult);
             ARPTools.OnArpResponse += new ArpResponseEventHandler(ARPTools_OnArpResponse);
             ARPTools.OnArpScanComplete += new ArpScanEventHandler(ARPTools_OnArpScanComplete);
+            ARPTools.HostnameResolved += new HostnameResolvedHandler(ARPTools_HostnameResolved);
 
             // open device
             Device.Open(DeviceMode.Promiscuous, 1);
-
-            // Device.NonBlockingMode = true;
-
-            // set filters
             Device.Filter = "(arp || ip)";
 
             // bind capture event
@@ -119,8 +153,6 @@ namespace Nighthawk
             // check only ethernet packets
             if (packet is EthernetPacket)
             {
-                packet = (EthernetPacket) packet;
-
                 // decode packet as TCP, ARP, IP
                 var tcp = TcpPacket.GetEncapsulated(packet);
                 var arp = ARPPacket.GetEncapsulated(packet);
@@ -129,12 +161,11 @@ namespace Nighthawk
                 // TCP packet
                 if (tcp != null)
                 {
-                    // if HTTP packet (port 80 - 99% probability of being HTTP) and IPv4
+                    // if we are likely to have a HTTP packet
                     if ((tcp.SourcePort == 80 || tcp.DestinationPort == 80) && ip.SourceAddress.AddressFamily == AddressFamily.InterNetwork)
                     {
                         if (Sniffer.Started)
                         {
-                            // add packet to queue
                             lock (Sniffer.PacketQueue)
                             {
                                 Sniffer.PacketQueue.Add(tcp);
@@ -151,10 +182,8 @@ namespace Nighthawk
                 // ARP packet
                 if (arp != null)
                 {
-                    // if ARP tools activated
                     if (ARPTools.ScanStarted)
                     {
-                        // add ARP to queue
                         lock (ARPTools.PacketQueue)
                         {
                             ARPTools.PacketQueue.Add(arp);
@@ -162,13 +191,12 @@ namespace Nighthawk
                     }
                 }
 
-                // IP packet (routing)
+                // IP packet (for routing)
                 if (ip != null)
                 {
-                    // if spoofing is active and is IPv4
+                    // only route when IPv4 packet and ARP spoofing active
                     if (ARPTools.SpoofingStarted && ip.SourceAddress.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        // add packet to routing queue
                         lock (ARPTools.PacketRoutingQueue)
                         {
                             ARPTools.PacketRoutingQueue.Add(packet);
@@ -187,7 +215,6 @@ namespace Nighthawk
             // update GUI text
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
-                // create element
                 var resultText = new Run(data);
 
                 // assign color
@@ -200,13 +227,13 @@ namespace Nighthawk
                     resultText.Foreground = new SolidColorBrush(Window.ColorSnifferHTTPAuth);
                 }
 
-                // style
+                // change paragraph style
                 var thickness = new Thickness(0, 0, 0, 5);
                 var paragraph = new Paragraph(resultText);
 
                 paragraph.Margin = thickness;
 
-                // don't repeat same entries
+                // don't repeat entries
                 if(lastResultText != data)
                 {
                     lastResultText = data;
@@ -243,6 +270,21 @@ namespace Nighthawk
                 }
             }));
         }
+
+
+        // hostname resolved
+        private void ARPTools_HostnameResolved(IPAddress ip, string hostname)
+        {
+            if (ARPTools.ResolveHostnames)
+            {
+                // update GUI
+                Window.Dispatcher.BeginInvoke(new UI(delegate
+                {
+                    var target = Window.ARPTargetList.Where(t => t.IP == ip.ToString()).First();
+                    target.Hostname = hostname;
+                }));
+            }
+        }
     }
 
     // observable collection for ARP targets
@@ -259,12 +301,14 @@ namespace Nighthawk
         }
     }
 
-    public class ARPTarget
+    public class ARPTarget : INotifyPropertyChanged
     {
         private string _IP;
         private string _MAC;
         private PhysicalAddress _PMAC;
         private string _Hostname;
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         public string IP
         {
@@ -287,7 +331,22 @@ namespace Nighthawk
         public string Hostname
         {
             get { return _Hostname; }
-            set { _Hostname = value; }
+            set
+            {
+                _Hostname = value;
+                OnPropertyChanged("Hostname");
+            }
+        }
+
+        // OnPropertyChanged
+        protected void OnPropertyChanged(string name)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+
+            if (handler != null)
+            {
+                handler(this, new PropertyChangedEventArgs(name));
+            }
         }
     }
 

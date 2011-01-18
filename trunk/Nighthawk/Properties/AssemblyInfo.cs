@@ -8,7 +8,7 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Nighthawk")]
-[assembly: AssemblyDescription("ARP spoof, SSL strip and simple password sniffer for Windows")]
+[assembly: AssemblyDescription("ARP spoofing and password sniffing for Windows")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Klemen Bratec")]
 [assembly: AssemblyProduct("Nighthawk")]

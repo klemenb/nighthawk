@@ -7,7 +7,7 @@ using System.Net.NetworkInformation;
 
 namespace Nighthawk
 {
-    /* Some helper functions */
+    /* Some helper functions - mainly from "http://stackoverflow.com/" */
     class Network
     {
         // convert subnet mask to CIDR notation
@@ -61,8 +61,19 @@ namespace Nighthawk
         // IP to long
         public static long IPToLong(string addr)
         {
-            return (long)(uint)System.Net.IPAddress.NetworkToHostOrder(
-                (int)System.Net.IPAddress.Parse(addr).Address);
+            string[] ipBytes;
+            double num = 0;
+
+            if (!string.IsNullOrEmpty(addr))
+                {
+                    ipBytes = addr.Split('.');
+                for (int i = ipBytes.Length - 1; i >= 0; i--)
+                {
+                    num += ((int.Parse(ipBytes[i]) % 256) * Math.Pow(256, (3 - i)));
+                }
+            }
+
+            return (long)num;
         }
 
         // long to IP
