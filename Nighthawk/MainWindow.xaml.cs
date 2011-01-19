@@ -49,6 +49,8 @@ namespace Nighthawk
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
         public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);
 
+        public Color ColorSSLStrip = Color.FromRgb(60, 60, 60);
+
         // device info
         private DeviceInfo deviceInfo;
         
@@ -60,6 +62,9 @@ namespace Nighthawk
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Nighthawk = new Main(this);
+
+            // load OUI database
+            Nighthawk.LoadOUI();
 
             // fill interfaces
             CInterface.ItemsSource = Nighthawk.GetInterfaces();
@@ -79,9 +84,7 @@ namespace Nighthawk
         private void Window_Closed(object sender, EventArgs e)
         {
             // stop everything
-            Nighthawk.Device.StopCaptureTimeout = TimeSpan.FromMilliseconds(200);
-            Nighthawk.Device.StopCapture();
-            Nighthawk.Device.Close();
+            Nighthawk.StopDevice();
 
             Nighthawk.Sniffer.Stop();
             Nighthawk.ARPTools.StopSpoofing();
@@ -113,9 +116,24 @@ namespace Nighthawk
         // "Scan network"
         private void BScanNetwork_Click(object sender, RoutedEventArgs e)
         {
+            // check for bad interface
+            if (Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0") 
+            {
+                MessageBox.Show("Invalid interface! Please select another one from the list.", "Nighthawk - ARP network scan",
+                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                return;
+            }
+
             // start device
             if (!Nighthawk.Started)
             {
+                Nighthawk.StartDevice(CInterface.SelectedIndex);
+            }
+            // restart device
+            else
+            {
+                Nighthawk.StopDevice();
                 Nighthawk.StartDevice(CInterface.SelectedIndex);
             }
 
@@ -145,7 +163,7 @@ namespace Nighthawk
                 }
 
                 // start sniffer
-                Nighthawk.Sniffer.Start((bool)CHExcludeLocalIP.IsChecked, deviceInfo != null ? deviceInfo : Nighthawk.DeviceInfoList[CInterface.SelectedIndex]);
+                Nighthawk.Sniffer.Start((bool)CHExcludeSnifferLocalIP.IsChecked, deviceInfo != null ? deviceInfo : Nighthawk.DeviceInfoList[CInterface.SelectedIndex]);
 
                 // update button text, color
                 BStartSniffer.Content = "Stop sniffer";
@@ -185,7 +203,7 @@ namespace Nighthawk
                 }
                 else
                 {
-                    MessageBox.Show("Please select desired targets.", "Nighthawk warning",
+                    MessageBox.Show("Please select desired targets.", "Nighthawk - ARP spoofing",
                         MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
             }
@@ -193,10 +211,7 @@ namespace Nighthawk
             {
                 // stop spoofing
                 Nighthawk.ARPTools.StopSpoofing();
-                
-                // stop ssl strip
-                // Nighthawk.SSLStrip.Stop();
-
+               
                 // update button text, color
                 BStartARP.Content = "Start ARP spoofing";
                 SHStartARP.Color = DisabledColor;
@@ -219,12 +234,14 @@ namespace Nighthawk
                 // check for ARP spoofing
                 if (!Nighthawk.ARPTools.SpoofingStarted)
                 {
-                    MessageBox.Show("SSL stripping will only work for remote computers.", "Nighthawk notice",
-                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("SSL stripping requires active ARP spoofing to function properly.", "Nighthawk - SSL stripping",
+                                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                    return;
                 }
 
                 // start SSL strip
-                Nighthawk.SSLStrip.Start((bool)CHExcludeLocalIP.IsChecked, deviceInfo != null ? deviceInfo : Nighthawk.DeviceInfoList[CInterface.SelectedIndex], Nighthawk.ARPTools);
+                Nighthawk.SSLStrip.Start((bool)CHExcludeSSLLocalIP.IsChecked, deviceInfo != null ? deviceInfo : Nighthawk.DeviceInfoList[CInterface.SelectedIndex], Nighthawk.ARPTools);
 
                 // update button text, color
                 BStartSSLstrip.Content = "Stop SSL stripping";

