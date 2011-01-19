@@ -44,7 +44,7 @@ namespace Nighthawk
         private static Regex regexIsHTTP = new Regex(@"HTTP\/1\.", RegexOptions.Compiled | RegexOptions.Singleline);
         
         // encoding converter (for bytes -> string conversion)
-        private static ASCIIEncoding encoding = new ASCIIEncoding();
+        private static UTF8Encoding encoding = new UTF8Encoding();
 
         // constructor
         public HttpPacket(TcpPacket packet)
@@ -61,13 +61,19 @@ namespace Nighthawk
             // fill header
             Header = new HttpHeader(parts[0]);
 
+            var postParts = HasPOST(packet);
+
             // get POST parameters (key=value)
-            if (parts[0].Substring(0, 4) == "POST")
+            if (postParts || parts[0].Substring(0, 4) == "POST")
             {
                 // split params
-                if (parts.Length > 1)
+                if (postParts || parts.Length > 1)
                 {
-                    var postLine = parts[1];
+                    var postLine = data;
+                    
+                    // modify data for basic parsing
+                    if (!postParts) postLine = parts[0];
+
                     var postParams = postLine.Split('&');
 
                     // fill List<>
@@ -80,10 +86,10 @@ namespace Nighthawk
                             if (splitParam.Length == 2)
                             {
                                 PostParams.Add(new string[]
-                                                   {
-                                                       splitParam[0] != null ? splitParam[0] : string.Empty,
-                                                       splitParam[1] != null ? splitParam[1] : string.Empty
-                                                   });
+                                {
+                                    splitParam[0] != null ? splitParam[0] : string.Empty,
+                                    splitParam[1] != null ? splitParam[1] : string.Empty
+                                });
                             }
                         }
                     }
@@ -99,6 +105,26 @@ namespace Nighthawk
             {
                 // check for HTTP
                 if (SimpleRegex.GetMatches(regexIsHTTP, encoding.GetString(packet.PayloadData)).Count > 0) return true;
+            }
+
+            return false;
+        }
+
+        // check if packet might contain traces of POST data (if client sent separate packets)
+        public static bool HasPOST(TcpPacket packet)
+        {
+            // check for null payload
+            if (packet.PayloadData != null)
+            {
+                // check for "key=value" pairs
+                var split = encoding.GetString(packet.PayloadData).Split('&');
+
+                if (split.Length > 0)
+                {
+                    var keys = split[0].Split('=');
+
+                    if (keys.Length > 0) return true;
+                }
             }
 
             return false;
@@ -135,7 +161,7 @@ namespace Nighthawk
             if (header == string.Empty) return;
 
             // determine type
-            if (header.Substring(0, 3) == "GET" || header.Substring(0, 4) == "POST")
+            if (header.Length > 4 && (header.Substring(0, 3) == "GET" || header.Substring(0, 4) == "POST"))
             {
                 Type = PacketType.Request;
             }

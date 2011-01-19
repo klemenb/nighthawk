@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -40,6 +41,7 @@ namespace Nighthawk
 
         // list of devices (DeviceInfo)
         public List<DeviceInfo> DeviceInfoList = new List<DeviceInfo>();
+        private DeviceInfo deviceInfo;
 
         // GUI
         public MainWindow Window;
@@ -49,11 +51,15 @@ namespace Nighthawk
         public ARPTools ARPTools;
         public SSLStrip SSLStrip;
 
+        // OUI's
+        public Dictionary<string, string> Vendors = new Dictionary<string, string>();
+
         // device status
         public bool Started = false;
 
         // last paragraph
         private string lastResultText = string.Empty;
+        private string lastSSLText = string.Empty;
 
         // constructor
         public Main(MainWindow window)
@@ -74,7 +80,7 @@ namespace Nighthawk
 
             try
             {
-                var instance = LivePcapDeviceList.Instance;
+                var instance = LivePcapDeviceList.Instance[0];
                 if (instance == null) error = true;
             } catch {
                 error = true;
@@ -91,7 +97,7 @@ namespace Nighthawk
             foreach (var device in LivePcapDeviceList.Instance)
             {
                 // get IPv4 address, subnet mask and broadcast address
-                var address = "No IPv4";
+                var address = "";
                 var subnet = "";
                 var broadcast = "";
 
@@ -107,9 +113,10 @@ namespace Nighthawk
                         }
                     }
                 }
+
                 
-                DeviceInfoList.Add(new DeviceInfo {CIDR = (int)Network.MaskToCIDR(subnet), IP = address, Mask = subnet, Broadcast = broadcast});
-                devices.Add(" IP: " + address + "/" + Network.MaskToCIDR(subnet) + "  " + device.Description);   
+                DeviceInfoList.Add(new DeviceInfo { CIDR = (int)Network.MaskToCIDR(subnet), IP = address, Mask = subnet, Broadcast = broadcast });
+                devices.Add(" IP: " + address + "/" + Network.MaskToCIDR(subnet) + "  " + device.Description);
             }
 
             return devices;
@@ -120,7 +127,8 @@ namespace Nighthawk
         {
             Started = true;
 
-            Device = LivePcapDeviceList.Instance[deviceIndex];
+            deviceInfo = DeviceInfoList[deviceIndex];
+            Device = LivePcapDeviceList.Instance[deviceIndex];            
 
             // initialize modules
             Sniffer = new Sniffer(Device);
@@ -132,6 +140,7 @@ namespace Nighthawk
             ARPTools.OnArpResponse += new ArpResponseEventHandler(ARPTools_OnArpResponse);
             ARPTools.OnArpScanComplete += new ArpScanEventHandler(ARPTools_OnArpScanComplete);
             ARPTools.HostnameResolved += new HostnameResolvedHandler(ARPTools_HostnameResolved);
+            SSLStrip.OnSSLStripped += new SSLStrip.SSLStripHandler(SSLStrip_OnSSLStripped);
 
             // open device
             Device.Open(DeviceMode.Promiscuous, 1);
@@ -142,6 +151,44 @@ namespace Nighthawk
 
             // start
             Device.StartCapture();
+        }
+
+        // stop listening on a device
+        public void StopDevice()
+        {
+            Started = false;
+
+            Device.StopCaptureTimeout = TimeSpan.FromMilliseconds(200);
+            Device.StopCapture();
+            Device.Close();
+        }
+
+        // OUI database loader
+        public void LoadOUI()
+        {
+            string[] dbLines = File.ReadAllLines("OUI.txt");
+
+            // parse every line and fill "Vendors"
+            foreach (var line in dbLines)
+            {
+                if (!line.StartsWith("#") && line.Length > 5)
+                {
+                    var macSegment = line.Substring(0, 8).Replace("-", "");
+                    var vendor = line.Substring(18, line.Length - 18);
+
+                    if(!Vendors.ContainsKey(macSegment)) Vendors.Add(macSegment, vendor);
+                }
+            }
+        }
+
+        // check for Vendor
+        private string GetVendorFromMAC(string mac)
+        {
+            var macSegment = mac.Substring(0, 6);
+
+            if (Vendors.ContainsKey(macSegment)) return Vendors[macSegment];
+            
+            return "";
         }
 
         // packet arrival event
@@ -248,9 +295,13 @@ namespace Nighthawk
             // update GUI
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
-                var item = new ARPTarget { Hostname = hostname, IP = ip.ToString(), MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac};
+                var item = new ARPTarget { Hostname = hostname, IP = ip.ToString(), MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac, Vendor = GetVendorFromMAC(mac.ToString())};
 
-                if(!Window.ARPTargetList.ContainsIP(item.IP)) Window.ARPTargetList.Add(item);
+                // exclude local IP
+                if (ip.ToString() != deviceInfo.IP)
+                {
+                    if (!Window.ARPTargetList.ContainsIP(item.IP)) Window.ARPTargetList.Add(item);
+                }
             }));
         }
 
@@ -280,10 +331,58 @@ namespace Nighthawk
                 // update GUI
                 Window.Dispatcher.BeginInvoke(new UI(delegate
                 {
-                    var target = Window.ARPTargetList.Where(t => t.IP == ip.ToString()).First();
-                    target.Hostname = hostname;
+                    // check for local IP
+                    if (ip.ToString() != deviceInfo.IP)
+                    {
+                        var target = Window.ARPTargetList.Where(t => t.IP == ip.ToString()).First();
+                        target.Hostname = hostname;
+                    }
                 }));
             }
+        }
+
+        // SSL stripped
+        private void SSLStrip_OnSSLStripped(string sourceIP, string destIP, List<string> changed)
+        {
+            // update GUI text
+            Window.Dispatcher.BeginInvoke(new UI(delegate
+            {
+                // determine what has changed
+                var changedText = string.Empty;
+
+                foreach(var change in changed)
+                {
+                    if(change != changed.Last())
+                    {
+                        changedText += change + ", ";
+                    } else {
+                        changedText += change;
+                    }
+                }
+
+                // build output string
+                var text = "SSL stripped ("+ sourceIP +" -> "+ destIP +"): "+ changedText;
+                var resultText = new Run(text);
+                resultText.Foreground = new SolidColorBrush(Window.ColorSSLStrip);
+
+                // change paragraph style
+                var thickness = new Thickness(0, 0, 0, 5);
+                var paragraph = new Paragraph(resultText);
+
+                paragraph.Margin = thickness;
+
+                // don't repeat entries
+                if (lastSSLText != text)
+                {
+                    lastSSLText = text;
+
+                    if(Window.TSSLText.Document.Blocks.Count > 0) {
+                        Window.TSSLText.Document.Blocks.InsertBefore(Window.TSSLText.Document.Blocks.First(), paragraph);
+                    } else {
+                        Window.TSSLText.Document.Blocks.Add(paragraph);
+                    }
+                }
+            }));
         }
     }
 
@@ -307,6 +406,7 @@ namespace Nighthawk
         private string _MAC;
         private PhysicalAddress _PMAC;
         private string _Hostname;
+        private string _Vendor;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -328,6 +428,12 @@ namespace Nighthawk
             set { _PMAC = value; }
         }
 
+        public string Vendor
+        {
+            get { return _Vendor; }
+            set { _Vendor = value; }
+        }
+
         public string Hostname
         {
             get { return _Hostname; }
@@ -338,7 +444,6 @@ namespace Nighthawk
             }
         }
 
-        // OnPropertyChanged
         protected void OnPropertyChanged(string name)
         {
             PropertyChangedEventHandler handler = PropertyChanged;

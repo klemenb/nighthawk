@@ -151,7 +151,7 @@ namespace Nighthawk
                         }
 
                         // parse HTTP packet
-                        if (HttpPacket.IsHTTP(packet))
+                        if (HttpPacket.IsHTTP(packet) || HttpPacket.HasPOST(packet))
                         {
                             var http = new HttpPacket(packet);
 
@@ -220,7 +220,7 @@ namespace Nighthawk
                 // create output
                 if (user != string.Empty && password != string.Empty)
                 {
-                    data = "Host: " + packet.Header.Host + " | User: »" + Uri.UnescapeDataString(user) + "« | Password: »" + Uri.UnescapeDataString(password) +
+                    data = "Host: " + (packet.Header.Host != string.Empty ? packet.Header.Host : "/") + " | User: »" + Uri.UnescapeDataString(user) + "« | Password: »" + Uri.UnescapeDataString(password) +
                             "« (GET)";
 
                     Result(data, SnifferResult.HTML);
@@ -250,7 +250,7 @@ namespace Nighthawk
                 // create output
                 if (user != string.Empty && password != string.Empty)
                 {
-                    data = "Host: " + packet.Header.Host + " | User: »" + Uri.UnescapeDataString(user) + "« | Password: »" + Uri.UnescapeDataString(password) +
+                    data = "Host: " + (packet.Header.Host != string.Empty ? packet.Header.Host : "/") + " | User: »" + Uri.UnescapeDataString(user) + "« | Password: »" + Uri.UnescapeDataString(password) +
                             "« (POST)";
 
                     Result(data, SnifferResult.HTML);

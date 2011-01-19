@@ -2,67 +2,68 @@
 		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Nighthawk.MainWindow"
-		Title="Nighthawk 0.1" Height="500" Width="900" MinHeight="500" MinWidth="900" Icon="Graphics\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed">
+		Title="Nighthawk 0.2" Height="600" Width="90" MinHeight="600" MinWidth="900" Icon="Graphics\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed">
 	<Grid>
 		<TabControl Margin="8,85,8,18">
-			<TabItem Header="ARP spoofing">
+			<TabItem Header="Network">
 				<Grid Background="WhiteSmoke" Margin="0">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="0.2*" MaxWidth="172" />	
-						<ColumnDefinition Width="0.4*" />
-						<ColumnDefinition Width="0.4*" />		
+						<ColumnDefinition Width="0.8*" />		
 					</Grid.ColumnDefinitions>
 					<Grid.RowDefinitions>
-						<RowDefinition Height="163.52" />	
-						<RowDefinition />	
+						<RowDefinition Height="0.5*" />	
+						<RowDefinition Height="0.5*" />	
 					</Grid.RowDefinitions>
-					<GroupBox Margin="8,8,8,5" Grid.Row="0" Header="Scan options" >
+					<GroupBox Margin="8,8,8,0" Grid.Row="0" Header="ARP tools" VerticalAlignment="Top" Height="152" >
 						<Grid Margin="0">
-							<TextBlock Margin="5,4,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="Interface:"/></TextBlock>
-							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="5,50,5,58.56" IsChecked="False"/>
-							<ComboBox x:Name="CInterface" Height="22" Text="TextBox" VerticalAlignment="Top" Margin="5,23,5,0" BorderThickness="1"/>
-							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,71,0,0" Width="116" HorizontalAlignment="Left"/>
-							<TextBlock Margin="6,96.004,21,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF727272" FontSize="8" Height="38.46"><Run Language="sl-si" Text="Scan uses ARP request/replies to create a list of hosts on your local network."/></TextBlock>
-						</Grid>
-					</GroupBox>
-					<GroupBox Header="Spoofing/SSL/Sniffer" Margin="8,5,8,8" Grid.Row="1" MaxHeight="151" VerticalAlignment="Top" >
-						<Grid Margin="0">
-                            <Button x:Name="BStartARP" Click="BStartARP_Click" IsEnabled="False" Content="Start ARP spoofing" Margin="5,7.56,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
+							<TextBlock Margin="5,4,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Normal"><Run Language="sl-si" Text="Interface:"/></TextBlock>
+							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="6,50,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal"/>
+							<ComboBox x:Name="CInterface" Height="22" Text="TextBox" VerticalAlignment="Top" Margin="5,23,5,0" BorderThickness="1" FontWeight="Normal"/>
+							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,72,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal"/>
+							<Button x:Name="BStartARP" Click="BStartARP_Click" IsEnabled="False" Content="Start ARP spoofing" Margin="5,102,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
-							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,62.56,0,43" Width="116" HorizontalAlignment="Left">
+						</Grid>
+					</GroupBox>
+					<GroupBox Header="Experimental tools" Margin="8,170,8,0" MaxHeight="151" Height="134" Grid.RowSpan="2" VerticalAlignment="Top" >
+						<Grid Margin="0">
+							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,63,0,0" Width="116" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Normal">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartSniffer" Color="#FFFFB9B9" BlurRadius="0" RenderingBias="Quality" Direction="3960" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
-							<Button x:Name="BStartSSLstrip" IsEnabled="True" Content="Start SSL stripping" Margin="5,36,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" BorderThickness="1" Click="BStartSSLstrip_Click" d:LayoutOverrides="VerticalAlignment">
+							<Button x:Name="BStartSSLstrip" IsEnabled="True" Content="Start SSL stripping" Margin="5,9,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" BorderThickness="1" Click="BStartSSLstrip_Click" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartSSLstrip" BlurRadius="0" ShadowDepth="10" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360"/>
 								</Button.Effect>
 							</Button>
-							<CheckBox x:Name="CHExcludeLocalIP" Content="Exclude local IP" Margin="6,89,11.333,0" Height="19" VerticalAlignment="Top" IsChecked="True"/>
-							<TextBlock Margin="6,106.254,21,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF727272" FontSize="8" Height="21.306"><Run Language="sl-si" Text="Excludes your local IP address from sniffer."/></TextBlock>
+							<CheckBox x:Name="CHExcludeSSLLocalIP" Content="Exclude local IP" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal"/>
+							<CheckBox x:Name="CHExcludeSnifferLocalIP" Content="Exclude local IP" Margin="6,88.5,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" FontWeight="Normal"/>
+							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,0,6,54.54" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Bottom"/>
 						</Grid>
 					</GroupBox>
-					<TextBlock Grid.Column="1" Margin="8,18,8,0" TextWrapping="Wrap" Text="ARP target(s) 1:" VerticalAlignment="Top" FontWeight="Bold"/>
-					<ListView x:Name="LArpTargets1List" Margin="8,40,8,8" Grid.Column="1" Grid.RowSpan="2" SelectionMode="Extended">
+					<TextBlock Grid.Column="1" Grid.Row="0" Margin="9,18,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold"><Run Text="ARP target"/><Run Language="sl-si" Text="(s) 1:"/></TextBlock>
+					<ListView x:Name="LArpTargets1List" Margin="8,40,8,8" Grid.Column="1" Grid.RowSpan="1" Grid.Row="0" SelectionMode="Multiple">
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="IP address" Width="90" DisplayMemberBinding="{Binding Path=IP}"/>
 								<GridViewColumn Header="MAC" Width="110" DisplayMemberBinding="{Binding Path=MAC}"/>
-								<GridViewColumn Header="Hostname" Width="115" DisplayMemberBinding="{Binding Path=Hostname}"/>
+                                <GridViewColumn Header="Vendor (OUI)" Width="200" DisplayMemberBinding="{Binding Path=Vendor}"/>
+								<GridViewColumn Header="Hostname" Width="220" DisplayMemberBinding="{Binding Path=Hostname}"/>
 							</GridView>
 						</ListView.View>
 					</ListView>
-					<TextBlock Grid.Column="2" Margin="8,18,8,0" TextWrapping="Wrap" Text="ARP target 2:" VerticalAlignment="Top" FontWeight="Bold"/>
-					<ListView x:Name="LArpTargets2List" Margin="8,40,8,8" Grid.Column="2" Grid.RowSpan="2" SelectionMode="Single">
+					<TextBlock Grid.Column="2" Grid.Row="1" Margin="9,8,8,0" TextWrapping="Wrap" Text="ARP target 2:" VerticalAlignment="Top" FontWeight="Bold"/>
+					<ListView x:Name="LArpTargets2List" Margin="8,30,8,8" Grid.Column="1" Grid.RowSpan="1" Grid.Row="1" SelectionMode="Single">
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="IP address" Width="90" DisplayMemberBinding="{Binding Path=IP}"/>
 								<GridViewColumn Header="MAC" Width="110" DisplayMemberBinding="{Binding Path=MAC}"/>
-								<GridViewColumn Header="Hostname" Width="115" DisplayMemberBinding="{Binding Path=Hostname}"/>
+                                <GridViewColumn Header="Vendor (OUI)" Width="200" DisplayMemberBinding="{Binding Path=Vendor}"/>
+								<GridViewColumn Header="Hostname" Width="220" DisplayMemberBinding="{Binding Path=Hostname}"/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -74,20 +75,31 @@
                         <ColumnDefinition Width="0.2*" MaxWidth="172" />
                         <ColumnDefinition Width="0.8*" />
                     </Grid.ColumnDefinitions>
-                    <GroupBox Header="Legend" Margin="8" Grid.Column="0" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="0.6*"></RowDefinition>
+                        <RowDefinition Height="0.4*"></RowDefinition>
+                    </Grid.RowDefinitions>
+                    <GroupBox Header="Legend" Margin="8" Grid.Column="0" Grid.RowSpan="2" >
                         <Grid Margin="0">
                             <Rectangle Fill="#FFA70000" Height="15" Margin="5,11.085,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
                             <TextBlock Height="16.085" Margin="24,10,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTTP auth (401)"/></TextBlock>
                             <Rectangle Fill="#FF000097" Height="15" Margin="5,31.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
                             <TextBlock Height="16.085" Margin="24,31.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTML forms"/></TextBlock>
+                            <Rectangle Fill="#FF3C3C3C" Height="15" Margin="5,62.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+                            <TextBlock Height="16.085" Margin="24,62.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL strippping"/></TextBlock>
+                            <Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Height="0.5" Margin="5,54,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" VerticalAlignment="Top" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5"/>
                         </Grid>
                     </GroupBox>
-                    <RichTextBox x:Name="TSnifferText" Grid.Column="1" Margin="8,40,8,8" Foreground="Red" IsReadOnly="True" >
+                    <RichTextBox x:Name="TSnifferText" Grid.Column="1" Margin="8,40,8,8" Foreground="Red" IsReadOnly="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <FlowDocument>
 
                         </FlowDocument>
                     </RichTextBox>
-                    <TextBlock Grid.Column="1" Margin="8,15,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold"><Run Language="sl-si" Text="Sniffer output:"/></TextBlock>
+                    <TextBlock Grid.Column="1" Margin="9,18,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold" Text="Sniffer output:"/>
+                    <RichTextBox x:Name="TSSLText" Grid.Column="1" Margin="8,26,8,8" Foreground="Red" IsReadOnly="True" ScrollViewer.VerticalScrollBarVisibility="Auto" Grid.Row="1" BorderThickness="1">
+                    	<FlowDocument/>
+                    </RichTextBox>
+                    <TextBlock Grid.Column="1" Margin="9,4,8,16" TextWrapping="Wrap" FontWeight="Bold" Grid.Row="1" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL stripping "/><Run Text="output:"/><Run Language="sl-si" Text=" "/><Run Foreground="#FF7A7A7A" Language="sl-si" Text="(last line on top)"/></TextBlock>
                 </Grid>
             </TabItem>
             <TabItem Header="Connections" IsEnabled="False" Visibility="Hidden">
@@ -111,10 +123,10 @@
 			</TabItem>			
 		</TabControl>
 		<Image Source="Graphics\Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="8,5,0,0" HorizontalAlignment="Left" Height="75" VerticalAlignment="Top" Width="73" Stretch="Uniform" />
-		<TextBlock Height="73" Margin="97,8,300,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run FontSize="26.667" Language="sl-si" Text="Nighthawk"/><LineBreak/><Run Foreground="#FF8F8F8F" Language="sl-si" Text="&quot;Appear weak when you are strong, and strong when you are weak.&quot; "/><Run Foreground="#FFC4C4C4" Language="sl-si" Text="Sun Tzu"/><LineBreak/><Run Language="sl-si"/></TextBlock>
-		<TextBlock HorizontalAlignment="Right" Height="45.075" Margin="0,21.334,133.333,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76" TextAlignment="Right" Foreground="#FF333333"><Run Language="sl-si" Text="ARP spoofing:"/><LineBreak/><Run Language="sl-si" Text="SSL stripping:"/><LineBreak/><Run Language="sl-si" Text="Sniffer:"/></TextBlock>
-		<Path Data="M661.33333,21.334 L661.33333,94.076413" Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="52.076" Margin="0,17,221.308,0" Stretch="Fill" Stroke="Silver" VerticalAlignment="Top" Width="2" StrokeEndLineCap="Round" StrokeThickness="2"/>
-		<Path Data="M662.333,21.334 L876.26605,21.334" HorizontalAlignment="Right" Height="3.334" Margin="0,18,8,0" Stretch="Fill" VerticalAlignment="Top" Width="214.933" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeThickness="2">
+		<TextBlock Height="42.166" Margin="97,8,300,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="29.333" FontWeight="SemiBold"><Run Language="sl-si" Text="Nighthawk"/></TextBlock>
+		<TextBlock HorizontalAlignment="Right" Height="45.075" Margin="0,21.334,68,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="76" TextAlignment="Right" Foreground="#FF333333"><Run Language="sl-si" Text="ARP spoofing:"/><LineBreak/><Run Language="sl-si" Text="SSL stripping:"/><LineBreak/><Run Language="sl-si" Text="Sniffer:"/></TextBlock>
+		<Path Data="M661.33333,21.334 L661.33333,94.076413" Fill="#FFF4F4F5" HorizontalAlignment="Right" Height="52.076" Margin="0,18.332,155.25,0" Stretch="Fill" Stroke="#FF959595" VerticalAlignment="Top" Width="2" StrokeEndLineCap="Round" StrokeThickness="2"/>
+		<Path Data="M662.333,21.334 L876.26605,21.334" HorizontalAlignment="Right" Height="2.055" Margin="0,17.891,8,0" Stretch="Fill" VerticalAlignment="Top" Width="149.254" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeThickness="2">
 			<Path.Stroke>
 				<LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
 					<LinearGradientBrush.RelativeTransform>
@@ -125,7 +137,7 @@
 							<TranslateTransform/>
 						</TransformGroup>
 					</LinearGradientBrush.RelativeTransform>
-					<GradientStop Color="Silver" Offset="0"/>
+					<GradientStop Color="#FF959595" Offset="0"/>
 					<GradientStop Color="#FFE5E5E5" Offset="1"/>
 				</LinearGradientBrush>
 			</Path.Stroke>
@@ -136,18 +148,19 @@
 				</LinearGradientBrush>
 			</Path.Fill>
 		</Path>
-		<TextBlock HorizontalAlignment="Right" Height="18.333" Margin="0,29.666,203.335,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="49.334" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="10.667" Foreground="#FFC6C6C6">
+		<TextBlock HorizontalAlignment="Right" Height="18.333" Margin="0,28,135,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="57.158" RenderTransformOrigin="0.5,0.5" FontWeight="Bold" FontSize="10.667" Foreground="#FF959595">
 			<TextBlock.RenderTransform>
 				<TransformGroup>
-					<ScaleTransform/>
+					<ScaleTransform ScaleY="1.159" ScaleX="0.863"/>
 					<SkewTransform/>
 					<RotateTransform Angle="-90"/>
 					<TranslateTransform/>
 				</TransformGroup>
 			</TextBlock.RenderTransform><Run Language="sl-si" Text="STATUS"/></TextBlock>
-		<TextBlock x:Name="TArpStatusText" HorizontalAlignment="Right" Height="12.166" Margin="0,22.834,28,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102.833" Foreground="#FFFF5B5B" FontSize="10.667"><Run Language="sl-si" Text="disabled"/></TextBlock>
-		<TextBlock x:Name="TSSLStatusText" HorizontalAlignment="Right" Height="12.166" Margin="0,38,28,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102.833" Foreground="#FFFF5B5B" FontSize="10.667"><Run Language="sl-si" Text="disabled"/></TextBlock>
-		<TextBlock x:Name="TSnifferStatusText" HorizontalAlignment="Right" Height="12.166" Margin="0,54.243,28,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="102.833" Foreground="#FFFF5B5B" FontSize="10.667"><Run Language="sl-si" Text="disabled"/></TextBlock>
+		<TextBlock x:Name="TArpStatusText" HorizontalAlignment="Right" Height="12.166" Margin="0,22.834,17,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="46.792" Foreground="#FFFF5B5B" FontSize="10.667"><Run Language="sl-si" Text="disabled"/></TextBlock>
+		<TextBlock x:Name="TSSLStatusText" HorizontalAlignment="Right" Height="12.166" Margin="0,38,17,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="46.792" Foreground="#FFFF5B5B" FontSize="10.667"><Run Language="sl-si" Text="disabled"/></TextBlock>
+		<TextBlock x:Name="TSnifferStatusText" HorizontalAlignment="Right" Height="12.166" Margin="0,54.243,17,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="46.792" Foreground="#FFFF5B5B" FontSize="10.667"><Run Language="sl-si" Text="disabled"/></TextBlock>
 		<TextBlock Height="14" Margin="8,0,8,2.334" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="#FF727272" FontSize="10.667"><Run Language="sl-si" Text="This software may be used only for educational purposes and the author takes no responsibility for improper usage or any damage or data loss that might occur during usage."/></TextBlock>
+		<TextBlock Height="22" Margin="99,50,288,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Foreground="#FF8F8F8F" Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Foreground="#FFC4C4C4" Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
 	</Grid>
 </Window>

@@ -122,7 +122,7 @@ namespace Nighthawk
             
             // timeout - wait for responses
             Timer waitTimer = new Timer(new TimerCallback(Timer_WaitOver));
-            waitTimer.Change((resolveHostnames ? 3000 : 3000), Timeout.Infinite);
+            waitTimer.Change(3000, Timeout.Infinite);
         }
 
         // timer callback
@@ -149,8 +149,14 @@ namespace Nighthawk
             IPtoMACTargets1 = new Dictionary<string, PhysicalAddress>();
             SpoofingTargets1.ForEach(delegate(ARPTarget t) { IPtoMACTargets1.Add(t.IP, t.PMAC); });
             
+            // add our own computer to targets - routing
+            IPtoMACTargets1.Add(deviceInfo.IP, device.Interface.MacAddress);
+            
             // change status
             SpoofingStarted = true;
+
+            // clear packet caches
+            PacketQueue.Clear();
 
             // create ARP sender worker
             workerSender = new Thread(new ThreadStart(WorkerSender));
@@ -168,11 +174,10 @@ namespace Nighthawk
         {
             SpoofingStarted = false;
 
-            // stop threads
+            // stop threads & re-ARP
+            ReArpTargets();
             workerSender.Abort();
             workerRouter.Abort();
-
-            // re-ARP targets
             ReArpTargets();
         }
 
