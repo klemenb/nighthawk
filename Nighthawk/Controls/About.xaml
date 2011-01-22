@@ -1,0 +1,26 @@
+﻿<Window
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+	x:Class="Nighthawk.About"
+	x:Name="Window"
+	Title="About Nighthawk"
+	Width="400" Height="240" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterOwner" Icon="/Nighthawk;component/Icons/HelpIcon.png" ShowInTaskbar="False">
+
+	<Grid x:Name="LayoutRoot">
+		<Rectangle Margin="0" VerticalAlignment="Bottom" Height="32" d:LayoutOverrides="VerticalAlignment">
+			<Rectangle.Fill>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<GradientStop Color="#FFE2E2E2" Offset="1"/>
+					<GradientStop Color="White"/>
+					<GradientStop Color="#FFE2E2E2" Offset="0.01"/>
+				</LinearGradientBrush>
+			</Rectangle.Fill>
+		</Rectangle>
+		<TextBlock Height="42.166" Margin="45,8,0,0" TextWrapping="Wrap" FontSize="24" FontFamily="Segoe UI Semibold" VerticalAlignment="Top"><Run Language="sl-si" Text="Nighthawk"/></TextBlock>
+		<TextBlock Height="131" Margin="8,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="DarkGray" FontSize="10.667"><Run Foreground="#FF707070" Text="ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows"/><LineBreak/><Run Foreground="#FF707070"/><LineBreak/><Run Foreground="#FFADADAD" Text="Copyright © 2010 - Klemen Bratec"/><LineBreak/><Run Foreground="#FFADADAD" Text="This software is released under the terms of the GNU General Public License (v3)."/><LineBreak/><Run Foreground="#FFADADAD"/><LineBreak/><Run Foreground="#FFADADAD" Text="Parts from other open source projects:"/><LineBreak/><Run Foreground="#FFADADAD" Text="- Tango Icon Library (http://tango.freedesktop.org/Tango_Icon_Library)"/><LineBreak/><Run Foreground="#FFADADAD" Text="- SharpPcap (http://sourceforge.net/projects/sharppcap/)"/></TextBlock>
+		<Image Margin="8,8,0,0" RenderOptions.BitmapScalingMode="Fant" Source="/Nighthawk;component/Graphics/Nighthawk.png" Stretch="Fill" Width="32" Height="32" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+		<TextBlock Height="18.367" Margin="168.332,20.966,144.335,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF707070"><Run Language="sl-si" Text="0.3 (alpha)"/></TextBlock>
+		<Button Content="OK" HorizontalAlignment="Right" Height="22" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="80" Click="Button_Click" />
+	</Grid>
+</Window>

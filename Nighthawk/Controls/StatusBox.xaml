@@ -1,0 +1,24 @@
+﻿<UserControl
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="Nighthawk.StatusBox"
+	x:Name="StatusBoxControl" Loaded="StatusBoxControl_Loaded" ToolTip="Disabled">
+	<UserControl.Resources>
+		<LinearGradientBrush x:Key="BrushEnabled" EndPoint="0.5,1" StartPoint="0.5,0">
+			<GradientStop Color="#FF313131" Offset="1"/>
+			<GradientStop Color="#FF545454"/>
+		</LinearGradientBrush>
+		<LinearGradientBrush x:Key="BrushDisabled" EndPoint="0.5,1" StartPoint="0.5,0">
+			<GradientStop Color="Gray" Offset="1"/>
+			<GradientStop Color="#FFB6B6B6"/>
+		</LinearGradientBrush>
+	</UserControl.Resources>
+
+	<Grid x:Name="LayoutRoot" Width="36" Height="16">
+		<Rectangle x:Name="RectangleBox" Margin="0" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeThickness="0.5" RadiusX="3" RadiusY="3" Fill="{StaticResource BrushDisabled}"/>
+		<TextBlock x:Name="TextField" Text="{Binding ElementName=StatusBoxControl, Path=Text}" TextWrapping="Wrap" Foreground="White" FontFamily="Segoe UI Semibold" TextAlignment="Center" Margin="0,1.5,0,0" FontSize="9.333"/>
+	</Grid>
+</UserControl>

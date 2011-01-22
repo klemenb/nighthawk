@@ -16,7 +16,7 @@ using SharpPcap;
 using PacketDotNet;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -50,15 +50,15 @@ namespace Nighthawk
         public Sniffer Sniffer;
         public ARPTools ARPTools;
         public SSLStrip SSLStrip;
+        public Scanner Scanner;
 
-        // OUI's
+        // vendors (MAC OUI)
         public Dictionary<string, string> Vendors = new Dictionary<string, string>();
 
         // device status
         public bool Started = false;
 
         // last paragraph
-        private string lastResultText = string.Empty;
         private string lastSSLText = string.Empty;
 
         // constructor
@@ -101,22 +101,31 @@ namespace Nighthawk
                 var subnet = "";
                 var broadcast = "";
 
+                var address6 = "";
+
                 foreach (var addr in device.Addresses)
                 {
                     if (addr.Addr.ipAddress != null)
                     {
+                        // IPv4
                         if (addr.Addr.ipAddress.AddressFamily == AddressFamily.InterNetwork)
                         {
                             address = addr.Addr.ipAddress.ToString();
                             subnet = addr.Netmask.ipAddress.ToString();
                             broadcast = addr.Broadaddr.ipAddress.ToString();
                         }
+
+                        if (addr.Addr.ipAddress.AddressFamily == AddressFamily.InterNetworkV6 && !addr.Addr.ipAddress.IsIPv6LinkLocal)
+                        {
+                            address6 = addr.Addr.ipAddress.ToString();
+                            //subnet6 = addr.Netmask.ipAddress.ToString();
+                            //broadcast6 = addr.Broadaddr.ipAddress.ToString();
+                        }
                     }
                 }
-
                 
-                DeviceInfoList.Add(new DeviceInfo { CIDR = (int)Network.MaskToCIDR(subnet), IP = address, Mask = subnet, Broadcast = broadcast });
-                devices.Add(" IP: " + address + "/" + Network.MaskToCIDR(subnet) + "  " + device.Description);
+                DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, Mask = subnet, Broadcast = broadcast });
+                devices.Add(device.Description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 : "") + ")");
             }
 
             return devices;
@@ -131,25 +140,22 @@ namespace Nighthawk
             Device = LivePcapDeviceList.Instance[deviceIndex];            
 
             // initialize modules
-            Sniffer = new Sniffer(Device);
-            ARPTools = new ARPTools(Device);
-            SSLStrip = new SSLStrip(Device);
+            Sniffer = new Sniffer(deviceInfo);
+            ARPTools = new ARPTools(deviceInfo);
+            SSLStrip = new SSLStrip(deviceInfo);
+            Scanner = new Scanner(deviceInfo);
 
             // module events
-            Sniffer.OnSnifferResult += new SnifferResultHandler(sniffer_OnSnifferResult);
-            ARPTools.OnArpResponse += new ArpResponseEventHandler(ARPTools_OnArpResponse);
-            ARPTools.OnArpScanComplete += new ArpScanEventHandler(ARPTools_OnArpScanComplete);
-            ARPTools.HostnameResolved += new HostnameResolvedHandler(ARPTools_HostnameResolved);
-            SSLStrip.OnSSLStripped += new SSLStrip.SSLStripHandler(SSLStrip_OnSSLStripped);
+            Sniffer.SnifferResult += new SnifferResultHandler(sniffer_OnSnifferResult);
+            Scanner.ScannerResponse += new ScannerResponseReceived(scanner_OnResponse);
+            Scanner.ScanComplete += new ScannerEventHandler(scanner_OnScanComplete);
+            Scanner.HostnameResolved += new ScannerHostnameResolvedHandler(scanner_HostnameResolved);
+            SSLStrip.SSLStripped += new SSLStrip.SSLStripHandler(SSLStrip_OnSSLStripped);
 
-            // open device
+            // open device, start capturing
             Device.Open(DeviceMode.Promiscuous, 1);
             Device.Filter = "(arp || ip)";
-
-            // bind capture event
             Device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
-
-            // start
             Device.StartCapture();
         }
 
@@ -209,7 +215,7 @@ namespace Nighthawk
                 if (tcp != null)
                 {
                     // if we are likely to have a HTTP packet
-                    if ((tcp.SourcePort == 80 || tcp.DestinationPort == 80) && ip.SourceAddress.AddressFamily == AddressFamily.InterNetwork)
+                    if ((tcp.SourcePort == 80 || tcp.DestinationPort == 80))
                     {
                         if (Sniffer.Started)
                         {
@@ -229,11 +235,11 @@ namespace Nighthawk
                 // ARP packet
                 if (arp != null)
                 {
-                    if (ARPTools.ScanStarted)
+                    if (Scanner.Started)
                     {
-                        lock (ARPTools.PacketQueue)
+                        lock (Scanner.PacketQueueARP)
                         {
-                            ARPTools.PacketQueue.Add(arp);
+                            Scanner.PacketQueueARP.Add(arp);
                         }
                     }
                 }
@@ -241,14 +247,23 @@ namespace Nighthawk
                 // IP packet (for routing)
                 if (ip != null)
                 {
-                    // only route when IPv4 packet and ARP spoofing active
+                    // only route IPv4 when ARP spoofing active
                     if (ARPTools.SpoofingStarted && ip.SourceAddress.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        lock (ARPTools.PacketRoutingQueue)
+                        lock (ARPTools.PacketQueueRouting)
                         {
-                            ARPTools.PacketRoutingQueue.Add(packet);
+                            ARPTools.PacketQueueRouting.Add(packet);
                         }
                     }
+
+                    // only route IPv6 when NDP spoofing active
+                    //if (NDPTools.SpoofingStarted && ip.SourceAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                    //{
+                    //    lock (NDPTools.PacketRoutingQueue)
+                    //    {
+                    //        NDPTools.PacketRoutingQueue.Add(packet);
+                    //    }
+                    //}
                 }
             }
         }
@@ -257,56 +272,52 @@ namespace Nighthawk
         private delegate void UI();
 
         // sniffer result (username/password sniffed)
-        private void sniffer_OnSnifferResult(string data, SnifferResult type)
+        private void sniffer_OnSnifferResult(string url, string username, string password, string aditional, SnifferResultType type)
         {
             // update GUI text
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
-                var resultText = new Run(data);
+                var brush = new SolidColorBrush();
 
-                // assign color
-                if (type == SnifferResult.HTML)
+                // brush color
+                if (type == SnifferResultType.HTML)
                 {
-                    resultText.Foreground = new SolidColorBrush(Window.ColorSnifferHTML);
+                    brush = new SolidColorBrush(Window.ColorSnifferHTML);
                 }
-                else if (type == SnifferResult.HTTPAuth)
+                else if (type == SnifferResultType.HTTPAuth)
                 {
-                    resultText.Foreground = new SolidColorBrush(Window.ColorSnifferHTTPAuth);
+                    brush = new SolidColorBrush(Window.ColorSnifferHTTPAuth);
                 }
 
-                // change paragraph style
-                var thickness = new Thickness(0, 0, 0, 5);
-                var paragraph = new Paragraph(resultText);
-
-                paragraph.Margin = thickness;
+                // create new result item
+                var result = new SnifferResult { URL = url, Username = username, Password = password, Aditional = aditional, Type = type, ShapeBrush = brush};
 
                 // don't repeat entries
-                if(lastResultText != data)
+                if (Window.SnifferResultList.Count == 0 || Window.SnifferResultList.Last() != result)
                 {
-                    lastResultText = data;
-                    Window.TSnifferText.Document.Blocks.Add(paragraph);
+                    Window.SnifferResultList.Add(result);
                 }
             }));
         }
 
-        // arp response (new target)
-        private void ARPTools_OnArpResponse(IPAddress ip, PhysicalAddress mac, string hostname)
+        // scanner response (new target)
+        private void scanner_OnResponse(string ip, bool ipv6, PhysicalAddress mac, string hostname)
         {
             // update GUI
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
-                var item = new ARPTarget { Hostname = hostname, IP = ip.ToString(), MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac, Vendor = GetVendorFromMAC(mac.ToString())};
+                var item = new Target { Hostname = hostname, IP = ip, MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac, Vendor = GetVendorFromMAC(mac.ToString())};
 
                 // exclude local IP
-                if (ip.ToString() != deviceInfo.IP)
+                if (ip != deviceInfo.IP)
                 {
-                    if (!Window.ARPTargetList.ContainsIP(item.IP)) Window.ARPTargetList.Add(item);
+                    if (!Window.TargetList.ContainsIP(item.IP)) Window.TargetList.Add(item);
                 }
             }));
         }
 
-        // arp scan completed
-        private void ARPTools_OnArpScanComplete()
+        // network scan completed
+        private void scanner_OnScanComplete()
         {
             // update GUI
             Window.Dispatcher.BeginInvoke(new UI(delegate
@@ -315,7 +326,7 @@ namespace Nighthawk
                 Window.BScanNetwork.Content = "Scan network";
 
                 // check for target count to enable ARP spoofing button
-                if (Window.ARPTargetList.Count > 0)
+                if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
                 }
@@ -324,17 +335,17 @@ namespace Nighthawk
 
 
         // hostname resolved
-        private void ARPTools_HostnameResolved(IPAddress ip, string hostname)
+        private void scanner_HostnameResolved(string ip, bool ipv6, string hostname)
         {
-            if (ARPTools.ResolveHostnames)
+            if (Scanner.ResolveHostnames)
             {
                 // update GUI
                 Window.Dispatcher.BeginInvoke(new UI(delegate
                 {
                     // check for local IP
-                    if (ip.ToString() != deviceInfo.IP)
+                    if (ip != deviceInfo.IP)
                     {
-                        var target = Window.ARPTargetList.Where(t => t.IP == ip.ToString()).First();
+                        var target = Window.TargetList.Where(t => t.IP == ip.ToString()).First();
                         target.Hostname = hostname;
                     }
                 }));
@@ -384,82 +395,5 @@ namespace Nighthawk
                 }
             }));
         }
-    }
-
-    // observable collection for ARP targets
-    public class ARPTargetList : ObservableCollection<ARPTarget>
-    {
-        public bool ContainsIP(string ip)
-        {
-            foreach(ARPTarget target in this)
-            {
-                if (target.IP == ip) return true;
-            }
-
-            return false;
-        }
-    }
-
-    public class ARPTarget : INotifyPropertyChanged
-    {
-        private string _IP;
-        private string _MAC;
-        private PhysicalAddress _PMAC;
-        private string _Hostname;
-        private string _Vendor;
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public string IP
-        {
-            get { return _IP; }
-            set { _IP = value; }
-        }
-
-        public string MAC
-        {
-            get { return _MAC; }
-            set { _MAC = value; }
-        }
-
-        public PhysicalAddress PMAC
-        {
-            get { return _PMAC; }
-            set { _PMAC = value; }
-        }
-
-        public string Vendor
-        {
-            get { return _Vendor; }
-            set { _Vendor = value; }
-        }
-
-        public string Hostname
-        {
-            get { return _Hostname; }
-            set
-            {
-                _Hostname = value;
-                OnPropertyChanged("Hostname");
-            }
-        }
-
-        protected void OnPropertyChanged(string name)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-
-            if (handler != null)
-            {
-                handler(this, new PropertyChangedEventArgs(name));
-            }
-        }
-    }
-
-    public class DeviceInfo
-    {
-        public string IP;
-        public string Mask;
-        public string Broadcast;
-        public int CIDR;
     }
 }

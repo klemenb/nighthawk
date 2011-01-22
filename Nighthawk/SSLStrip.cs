@@ -11,7 +11,7 @@ using PacketDotNet;
 using SharpPcap;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -54,25 +54,25 @@ namespace Nighthawk
         private static UTF8Encoding encodingUtf8 = new UTF8Encoding();
 
         // SSL stripped event
-        public event SSLStripHandler OnSSLStripped;
+        public event SSLStripHandler SSLStripped;
 
         private void Stripped(string sourceIP, string destIP, List<string> changed)
         {
-            if (OnSSLStripped != null) OnSSLStripped(sourceIP, destIP, changed);
+            if (SSLStripped != null) SSLStripped(sourceIP, destIP, changed);
         }
 
         // constructor
-        public SSLStrip(LivePcapDevice device)
+        public SSLStrip(DeviceInfo deviceInfo)
         {
             // store our network interface
-            this.device = device;
+            device = deviceInfo.Device;
+            this.deviceInfo = deviceInfo;
         }
 
         // start SSL strip
-        public void Start(bool excludeLocalIP, DeviceInfo deviceInfo, ARPTools arpTools)
+        public void Start(bool excludeLocalIP, ARPTools arpTools)
         {
             this.excludeLocalIP = excludeLocalIP;
-            this.deviceInfo = deviceInfo;
             this.arpTools = arpTools;
 
             Started = true;

