@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 using SharpPcap;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -36,14 +36,13 @@ namespace Nighthawk
     public partial class MainWindow : Window
     {
         public Main Nighthawk;
-        public ARPTargetList ARPTargetList = new ARPTargetList();
+
+        public TargetList TargetList = new TargetList();
+        public SnifferResultList SnifferResultList = new SnifferResultList();
 
         // colors
         private Color DisabledColor = Color.FromRgb(255, 185, 185);
         private Color EnabledColor = Color.FromRgb(169, 239, 168);
-
-        private Color TextDisabledColor = Color.FromRgb(255, 91, 91);
-        private Color TextEnabledColor = Color.FromRgb(92, 180, 90);
 
         // sniffer colos
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
@@ -73,12 +72,10 @@ namespace Nighthawk
             if ((CInterface.ItemsSource as List<string>).Count > 0) CInterface.SelectedIndex = 0;
 
             // set list sources
-            LArpTargets1List.ItemsSource = ARPTargetList;
-            LArpTargets2List.ItemsSource = ARPTargetList;
+            LArpTargets1List.ItemsSource = TargetList;
+            LArpTargets2List.ItemsSource = TargetList;
 
-            // set first combobox item
-            CConnectionsSourceIP.ItemsSource = new List<ARPTarget> {new ARPTarget {IP = "Scan your network..."}};
-            CConnectionsSourceIP.SelectedIndex = 0;
+            LSnifferResults.ItemsSource = SnifferResultList;
         }
         
         private void Window_Closed(object sender, EventArgs e)
@@ -93,22 +90,22 @@ namespace Nighthawk
         }
 
         // get ARP targets
-        private List<ARPTarget> GetTargets(ListView list)
+        private List<Target> GetTargets(ListView list)
         {
-            var targets = new List<ARPTarget>();
+            var targets = new List<Target>();
 
             foreach (var item in list.SelectedItems)
             {
-                if(item is ARPTarget) targets.Add((item as ARPTarget));
+                if(item is Target) targets.Add((item as Target));
             }
 
             return targets.Count > 0 ? targets : null;
         }
 
         // get ARP target
-        private ARPTarget GetTarget(ListView list)
+        private Target GetTarget(ListView list)
         {
-            return list.SelectedItem != null ? (list.SelectedItem as ARPTarget) : null;
+            return list.SelectedItem != null ? (list.SelectedItem as Target) : null;
         }
 
         /* Button handlers */
@@ -119,7 +116,7 @@ namespace Nighthawk
             // check for bad interface
             if (Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0") 
             {
-                MessageBox.Show("Invalid interface! Please select another one from the list.", "Nighthawk - ARP network scan",
+                MessageBox.Show("Invalid interface! Please select another one from the list.", "Nighthawk - network scan",
                         MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 return;
@@ -138,10 +135,10 @@ namespace Nighthawk
             }
 
             // clear collection
-            ARPTargetList.Clear();
+            TargetList.Clear();
 
             // start scanner
-            Nighthawk.ARPTools.ScanNetwork(Nighthawk.DeviceInfoList[CInterface.SelectedIndex], (bool)CHResolveHostnames.IsChecked);
+            Nighthawk.Scanner.ScanNetwork((bool)CHResolveHostnames.IsChecked);
 
             // set device info
             deviceInfo = Nighthawk.DeviceInfoList[CInterface.SelectedIndex];
@@ -163,13 +160,12 @@ namespace Nighthawk
                 }
 
                 // start sniffer
-                Nighthawk.Sniffer.Start((bool)CHExcludeSnifferLocalIP.IsChecked, deviceInfo != null ? deviceInfo : Nighthawk.DeviceInfoList[CInterface.SelectedIndex]);
+                Nighthawk.Sniffer.Start((bool)CHExcludeSnifferLocalIP.IsChecked);
 
                 // update button text, color
                 BStartSniffer.Content = "Stop sniffer";
                 SHStartSniffer.Color = EnabledColor;
-                TSnifferStatusText.Text = "enabled";
-                TSnifferStatusText.Foreground = new SolidColorBrush(TextEnabledColor);
+                SBSniffer.Enabled = true;
             }
             else
             {
@@ -179,8 +175,7 @@ namespace Nighthawk
                 // update button text, color
                 BStartSniffer.Content = "Start sniffer";
                 SHStartSniffer.Color = DisabledColor;
-                TSnifferStatusText.Text = "disabled";
-                TSnifferStatusText.Foreground = new SolidColorBrush(TextDisabledColor);
+                SBSniffer.Enabled = false;
             }
         }
 
@@ -198,12 +193,11 @@ namespace Nighthawk
                     // update button text, color
                     BStartARP.Content = "Stop ARP spoofing";
                     SHStartARP.Color = EnabledColor;
-                    TArpStatusText.Text = "enabled";
-                    TArpStatusText.Foreground = new SolidColorBrush(TextEnabledColor);
+                    SBArp.Enabled = true;
                 }
                 else
                 {
-                    MessageBox.Show("Please select desired targets.", "Nighthawk - ARP spoofing",
+                    MessageBox.Show("Please select desired targets.", "Nighthawk - ARP/NDP spoofing",
                         MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
             }
@@ -215,8 +209,7 @@ namespace Nighthawk
                 // update button text, color
                 BStartARP.Content = "Start ARP spoofing";
                 SHStartARP.Color = DisabledColor;
-                TArpStatusText.Text = "disabled";
-                TArpStatusText.Foreground = new SolidColorBrush(TextDisabledColor);
+                SBArp.Enabled = false;
             }
         }
 
@@ -241,13 +234,12 @@ namespace Nighthawk
                 }
 
                 // start SSL strip
-                Nighthawk.SSLStrip.Start((bool)CHExcludeSSLLocalIP.IsChecked, deviceInfo != null ? deviceInfo : Nighthawk.DeviceInfoList[CInterface.SelectedIndex], Nighthawk.ARPTools);
+                Nighthawk.SSLStrip.Start((bool)CHExcludeSSLLocalIP.IsChecked, Nighthawk.ARPTools);
 
                 // update button text, color
                 BStartSSLstrip.Content = "Stop SSL stripping";
                 SHStartSSLstrip.Color = EnabledColor;
-                TSSLStatusText.Text = "enabled";
-                TSSLStatusText.Foreground = new SolidColorBrush(TextEnabledColor);
+                SBSsl.Enabled = true;
             }
             else
             {
@@ -257,9 +249,17 @@ namespace Nighthawk
                 // update button text, color
                 BStartSSLstrip.Content = "Start SSL stripping";
                 SHStartSSLstrip.Color = DisabledColor;
-                TSSLStatusText.Text = "disabled";
-                TSSLStatusText.Foreground = new SolidColorBrush(TextDisabledColor);
+                SBSsl.Enabled = false;
             }
+        }
+
+        /* Menu events */
+
+        // Help -> About
+        private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
+        {
+            About window = new About();
+            window.Show();
         }
     }
 }
