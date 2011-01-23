@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Net;
@@ -35,8 +36,12 @@ namespace Nighthawk
         // get START/END ip
         public static long[] MaskToStartEnd(string ip, string subnetMask)
         {
+            return MaskToStartEnd(ip, MaskToCIDR(subnetMask));
+        }
+
+        public static long[] MaskToStartEnd(string ip, int bits)
+        {
             IPAddress ipAddr = IPAddress.Parse(ip);
-            int bits = MaskToCIDR(subnetMask);
 
             uint mask = ~(uint.MaxValue >> bits);
 
@@ -101,6 +106,74 @@ namespace Nighthawk
             }
 
             return output;
+        }
+
+        // HEX -> bytes
+        public static byte[] HexToByte(string hex)
+        {
+          hex = hex.Replace(" ", "");
+
+          int numberChars = hex.Length;
+          byte[] bytes = new byte[numberChars / 2];
+
+          for (int i = 0; i < numberChars; i += 2)
+          {
+              bytes[i/2] = Convert.ToByte(hex.Substring(i, 2), 16);
+          }
+            
+          return bytes;
+        }
+
+        // merge byte arrays
+        public static byte[] MergeArrays(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+
+            return ret;
+        }
+
+        // get IPv6 pseudo-header (adapted from: http://www.winsocketdotnetworkprogramming.com/clientserversocketnetworkcommunication8f_3.html)
+        public static byte[] GetPseudoHeader(IPAddress sourceIP, IPAddress destinationIP, int icmpv6Length, int nextHeader)
+        {
+            MemoryStream ms = new MemoryStream();
+            BinaryWriter bw = new BinaryWriter(ms);
+
+            byte[] icmpv6Packet, pseudoHeader, byteValue;
+            int offset = 0, payLoadLength;
+
+            // build the ICMPv6 packet first since its required in the pseudo header calculation
+            icmpv6Packet = new byte[icmpv6Length];
+            
+            // now build the pseudo header
+            pseudoHeader = new byte[40];
+
+            byteValue = sourceIP.GetAddressBytes();
+            Array.Copy(byteValue, 0, pseudoHeader, offset, byteValue.Length);
+            offset += byteValue.Length;
+
+            byteValue = destinationIP.GetAddressBytes();
+            Array.Copy(byteValue, 0, pseudoHeader, offset, byteValue.Length);
+            offset += byteValue.Length;
+
+            // Packet total length
+            payLoadLength = IPAddress.HostToNetworkOrder(4 + icmpv6Length);
+
+            byteValue = BitConverter.GetBytes(payLoadLength);
+            Array.Copy(byteValue, 0, pseudoHeader, offset, byteValue.Length);
+            offset += byteValue.Length;
+
+            // 3 bytes of zero padding
+            pseudoHeader[offset++] = (byte)0;
+            pseudoHeader[offset++] = (byte)0;
+            pseudoHeader[offset++] = (byte)0;
+            pseudoHeader[offset++] = (byte)nextHeader;
+
+            var test = BitConverter.ToString(pseudoHeader);
+
+            return pseudoHeader;
         }
     }
 }

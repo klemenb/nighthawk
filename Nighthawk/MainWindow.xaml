@@ -19,26 +19,24 @@
 				</LinearGradientBrush>
 			</Menu.Background>
 			<MenuItem Header="File">
-				<MenuItem Header="Save network list">
+				<MenuItem Header="Save network list" Click="MenuItemSaveNetwork_Click">
 					<MenuItem.Icon>		    			
 						<Image Source="Icons\SaveIconNetwork.png" Width="16" Height="16" /> 		
 					</MenuItem.Icon>
 				</MenuItem>
-				<MenuItem Header="Save sniffer results">
+                <MenuItem Header="Save sniffer results" Click="MenuItemSaveSniffer_Click">
 					<MenuItem.Icon>		    			
 						<Image Source="Icons\SaveIconSniffer.png" Width="16" Height="16" /> 		
 					</MenuItem.Icon>
 				</MenuItem>
 				<Separator />
-				<MenuItem Header="Exit">
+                <MenuItem Header="Exit" Click="MenuItemExit_Click">
 					<MenuItem.Icon>		    			
 						<Image Source="Icons\ExitIcon.png" Width="16" Height="16" /> 		
 					</MenuItem.Icon>
 				</MenuItem>
 			</MenuItem>
 			<MenuItem Header="Help">
-				<MenuItem Header="Usage help" IsEnabled="False">
-				</MenuItem>
 				<MenuItem Header="About" Click="MenuItemAbout_Click">
 					<MenuItem.Icon>		    			
 						<Image Source="Icons\HelpIcon.png" Width="16" Height="16" /> 		
@@ -72,15 +70,15 @@
 							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="6,35,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal"/>
 							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,9,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" d:LayoutOverrides="VerticalAlignment">
 								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+									<DropShadowEffect x:Name="SHStartScan" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
 							<Button x:Name="BStartARP" Click="BStartARP_Click" IsEnabled="False" Content="Start ARP spoofing" Margin="5,65,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
 								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartScan" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+                                    <DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
-							<Button x:Name="BStartNDP" Click="BStartARP_Click" IsEnabled="False" Content="Start NDP spoofing" Margin="5,94,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
+							<Button x:Name="BStartNDP" Click="BStartNDP_Click" IsEnabled="False" Content="Start NDP spoofing" Margin="5,94,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartNDP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
@@ -113,7 +111,7 @@
 								<GridViewColumn Header="IPv6 address" Width="150">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding IPv6}" TextAlignment="Center" Width="150"/>
+											<TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="150"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
@@ -131,7 +129,7 @@
 								<GridViewColumn Header="IPv6 address" Width="150">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding IPv6}" TextAlignment="Center" Width="150"/>
+                                            <TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="150"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
@@ -178,28 +176,28 @@
 								<GridViewColumn Header="URL" Width="160">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding URL}" TextAlignment="Center" Width="160"/>
+											<TextBlock Text="{Binding URL}" TextAlignment="Center" MinWidth="160"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
 								<GridViewColumn Header="Username" Width="110">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding Username}" TextAlignment="Center" Width="110"/>
+                                            <TextBlock Text="{Binding Username}" TextAlignment="Center" MinWidth="110"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
 								<GridViewColumn Header="Password" Width="110">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding Password}" TextAlignment="Center" Width="110"/>
+                                            <TextBlock Text="{Binding Password}" TextAlignment="Center" MinWidth="110"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
 								<GridViewColumn Header="Additional info" Width="200">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding Aditional}" TextAlignment="Center" Width="200"/>
+                                            <TextBlock Text="{Binding Aditional}" TextAlignment="Center" MinWidth="200"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>

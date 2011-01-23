@@ -40,5 +40,10 @@ namespace Nighthawk
 		{
 			Close();
 		}
+
+		private void Window_Loaded(object sender, RoutedEventArgs e)
+		{
+			VersionString.Text = MainWindow.GetWindowTitle(true);
+		}
 	}
 }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -12,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.Win32;
 using SharpPcap;
 
 /**
@@ -62,6 +65,8 @@ namespace Nighthawk
         {
             Nighthawk = new Main(this);
 
+            Title = "Nighthawk " + GetWindowTitle(false);
+
             // load OUI database
             Nighthawk.LoadOUI();
 
@@ -87,6 +92,16 @@ namespace Nighthawk
             Nighthawk.ARPTools.StopSpoofing();
 
             Application.Current.Shutdown();
+        }
+
+        // get current title (from AssemblyVersion)
+        public static string GetWindowTitle(bool revision)
+        {
+            var major = Assembly.GetExecutingAssembly().GetName().Version.Major.ToString();
+            var minor = Assembly.GetExecutingAssembly().GetName().Version.Minor.ToString();
+            var rev = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
+
+            return !revision ? major + "." + minor : major + "." + minor + " (" + rev + ")";
         }
 
         // get ARP targets
@@ -197,7 +212,7 @@ namespace Nighthawk
                 }
                 else
                 {
-                    MessageBox.Show("Please select desired targets.", "Nighthawk - ARP/NDP spoofing",
+                    MessageBox.Show("Please select desired targets.", "Nighthawk - ARP spoofing",
                         MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
             }
@@ -210,6 +225,31 @@ namespace Nighthawk
                 BStartARP.Content = "Start ARP spoofing";
                 SHStartARP.Color = DisabledColor;
                 SBArp.Enabled = false;
+            }
+        }
+
+        // "Start/Stop NDP spoofing"
+        private void BStartNDP_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Nighthawk.NDPTools.SpoofingStarted)
+            {
+                // start spoofing
+                Nighthawk.NDPTools.StartSpoofing();
+
+                // update button text, color
+                BStartNDP.Content = "Stop NDP spoofing";
+                SHStartNDP.Color = EnabledColor;
+                SBNdp.Enabled = true;
+            }
+            else
+            {
+                // stop spoofing
+                Nighthawk.NDPTools.StopSpoofing();
+
+                // update button text, color
+                BStartNDP.Content = "Start NDP spoofing";
+                SHStartNDP.Color = DisabledColor;
+                SBNdp.Enabled = false;
             }
         }
 
@@ -260,6 +300,116 @@ namespace Nighthawk
         {
             About window = new About();
             window.Show();
+        }
+        
+        // File -> Save network list
+        private void MenuItemSaveNetwork_Click(object sender, RoutedEventArgs e)
+        {
+            if (TargetList.Count > 0)
+            {
+                var fileData = new StringBuilder();
+
+                // create first line
+                fileData.AppendLine("IPv4 address;IPv6 address;MAC;Vendor;Hostname");
+
+                foreach (var item in TargetList)
+                {
+                    fileData.AppendLine(item.IP + ";" + item.IPv6 + ";" + item.MAC + ";" + item.Vendor + ";" + item.Hostname);
+                }
+
+                // show dialog
+                SaveFileDialog dialog = new SaveFileDialog();
+                dialog.Title = "Save network list";
+                dialog.FileName = "Network"; // Default file name
+                dialog.DefaultExt = ".csv"; // Default file extension
+                dialog.Filter = "CSV file |*.csv"; // Filter files by extension
+
+                Nullable<bool> result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    // try to save file
+                    try
+                    {
+                        FileStream file = File.Open(dialog.FileName, FileMode.OpenOrCreate, FileAccess.ReadWrite,
+                                              FileShare.None);
+
+                        var data = Encoding.Unicode.GetBytes(fileData.ToString());
+                        
+                        file.Write(data, 0, data.Length);
+                        
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Unable to save file. Please try again with a different location or filename", "Nighthawk - file error",
+                                    MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // File -> Save network list
+        private void MenuItemSaveSniffer_Click(object sender, RoutedEventArgs e)
+        {
+            if (SnifferResultList.Count > 0)
+            {
+                var fileData = new StringBuilder();
+
+                // create first line
+                fileData.AppendLine("Type;URL;Username;Password;Aditional");
+
+                foreach (var item in SnifferResultList)
+                {
+                    // get type
+                    var type = "";
+
+                    if (item.Type == SnifferResultType.HTML) type = "HTML";
+                    if (item.Type == SnifferResultType.HTTPAuth) type = "HTTP authentication";
+
+                    fileData.AppendLine(type  + ";" + item.URL + ";" + item.Username + ";" + item.Password + ";" +
+                                        item.Aditional);
+                }
+
+                // show dialog
+                SaveFileDialog dialog = new SaveFileDialog();
+                dialog.Title = "Save sniffer results";
+                dialog.FileName = "Sniffer";
+                dialog.DefaultExt = ".csv";
+                dialog.Filter = "CSV file |*.csv";
+
+                Nullable<bool> result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    // try to save file
+                    try
+                    {
+                        FileStream file = File.Open(dialog.FileName, FileMode.OpenOrCreate, FileAccess.ReadWrite,
+                                                    FileShare.None);
+
+                        var data = Encoding.Unicode.GetBytes(fileData.ToString());
+
+                        file.Write(data, 0, data.Length);
+
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Unable to save file. Please try again with a different location or filename",
+                                        "Nighthawk - file error",
+                                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+        }
+
+        // File -> Exit
+        private void MenuItemExit_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to exit the application?", "Nighthawk", MessageBoxButton.YesNo, MessageBoxImage.Information) == MessageBoxResult.Yes)
+            {
+                Close();
+                Application.Current.Shutdown();
+            }
         }
     }
 }
