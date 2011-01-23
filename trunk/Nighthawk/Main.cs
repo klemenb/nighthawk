@@ -49,6 +49,7 @@ namespace Nighthawk
         // modules
         public Sniffer Sniffer;
         public ARPTools ARPTools;
+        public NDPTools NDPTools;
         public SSLStrip SSLStrip;
         public Scanner Scanner;
 
@@ -102,6 +103,7 @@ namespace Nighthawk
                 var broadcast = "";
 
                 var address6 = "";
+                var linkLocal = "";
 
                 foreach (var addr in device.Addresses)
                 {
@@ -115,17 +117,23 @@ namespace Nighthawk
                             broadcast = addr.Broadaddr.ipAddress.ToString();
                         }
 
-                        if (addr.Addr.ipAddress.AddressFamily == AddressFamily.InterNetworkV6 && !addr.Addr.ipAddress.IsIPv6LinkLocal)
+                        // get last IPv6 AND link-local address
+                        if (addr.Addr.ipAddress.AddressFamily == AddressFamily.InterNetworkV6)
                         {
-                            address6 = addr.Addr.ipAddress.ToString();
-                            //subnet6 = addr.Netmask.ipAddress.ToString();
-                            //broadcast6 = addr.Broadaddr.ipAddress.ToString();
+                            if (!addr.Addr.ipAddress.IsIPv6LinkLocal)
+                            {
+                                address6 = addr.Addr.ipAddress.ToString();
+                            }
+                            else
+                            {
+                                linkLocal = addr.Addr.ipAddress.ToString();
+                            }
                         }
                     }
                 }
                 
-                DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, Mask = subnet, Broadcast = broadcast });
-                devices.Add(device.Description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 : "") + ")");
+                DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
+                devices.Add(device.Description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
             }
 
             return devices;
@@ -142,6 +150,7 @@ namespace Nighthawk
             // initialize modules
             Sniffer = new Sniffer(deviceInfo);
             ARPTools = new ARPTools(deviceInfo);
+            NDPTools = new NDPTools(deviceInfo);
             SSLStrip = new SSLStrip(deviceInfo);
             Scanner = new Scanner(deviceInfo);
 
@@ -154,7 +163,7 @@ namespace Nighthawk
 
             // open device, start capturing
             Device.Open(DeviceMode.Promiscuous, 1);
-            Device.Filter = "(arp || ip)";
+            // Device.Filter = "(arp || ip)";
             Device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
             Device.StartCapture();
         }
@@ -210,6 +219,7 @@ namespace Nighthawk
                 var tcp = TcpPacket.GetEncapsulated(packet);
                 var arp = ARPPacket.GetEncapsulated(packet);
                 var ip = IpPacket.GetEncapsulated(packet);
+                var icmpv6 = ICMPv6Packet.GetEncapsulated(packet);
 
                 // TCP packet
                 if (tcp != null)
@@ -240,6 +250,20 @@ namespace Nighthawk
                         lock (Scanner.PacketQueueARP)
                         {
                             Scanner.PacketQueueARP.Add(arp);
+                        }
+                    }
+                }
+
+                // ICMPv6 packet
+                if (icmpv6 != null)
+                {
+                    if (Scanner.Started)
+                    {
+                        lock (Scanner.PacketQueueNDP)
+                        {
+                            icmpv6.ParentPacket = ip;
+                            icmpv6.ParentPacket.ParentPacket = packet;
+                            Scanner.PacketQueueNDP.Add(icmpv6);
                         }
                     }
                 }
@@ -293,7 +317,7 @@ namespace Nighthawk
                 var result = new SnifferResult { URL = url, Username = username, Password = password, Aditional = aditional, Type = type, ShapeBrush = brush};
 
                 // don't repeat entries
-                if (Window.SnifferResultList.Count == 0 || Window.SnifferResultList.Last() != result)
+                if (Window.SnifferResultList.Count == 0 || (Window.SnifferResultList.Last().CompareString() != result.CompareString()))
                 {
                     Window.SnifferResultList.Add(result);
                 }
@@ -306,12 +330,31 @@ namespace Nighthawk
             // update GUI
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
-                var item = new Target { Hostname = hostname, IP = ip, MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac, Vendor = GetVendorFromMAC(mac.ToString())};
+                // check for existing MAC
+                var items = Window.TargetList.Where(o => o.MAC.Replace(":", "") == mac.ToString());
 
-                // exclude local IP
-                if (ip != deviceInfo.IP)
+                // add IP
+                if (items.Count() > 0)
                 {
-                    if (!Window.TargetList.ContainsIP(item.IP)) Window.TargetList.Add(item);
+                    var item = items.First();
+
+                    if (ipv6 && (item.IPv6 == string.Empty || item.IPv6 == "/"))
+                        item.IPv6 = ip;
+                    else if (!ipv6)
+                        item.IP = ip;
+                }
+                // add new item
+                else
+                {
+                    var item = new Target { Hostname = hostname, MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac, Vendor = GetVendorFromMAC(mac.ToString()) };
+
+                    if (ipv6)
+                        item.IPv6 = ip;
+                    else
+                        item.IP = ip;
+                   
+                    // exclude local IP
+                    if(ip != deviceInfo.IP && ip != deviceInfo.IPv6) Window.TargetList.Add(item);
                 }
             }));
         }
@@ -325,10 +368,11 @@ namespace Nighthawk
                 Window.BScanNetwork.IsEnabled = true;
                 Window.BScanNetwork.Content = "Scan network";
 
-                // check for target count to enable ARP spoofing button
+                // check for target count to enable ARP/NDP spoofing buttons
                 if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
+                    Window.BStartNDP.IsEnabled = true;
                 }
             }));
         }

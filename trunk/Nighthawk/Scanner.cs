@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using PacketDotNet;
+using PacketDotNet.Utils;
 using SharpPcap;
 
 /**
@@ -100,10 +104,13 @@ namespace Nighthawk
             workerARP.Name = "Scanner thread (ARP)";
             workerARP.Start();
 
-            // start worker to listen for NDP packets
-            workerNDP = new Thread(new ThreadStart(WorkerNDP));
-            workerNDP.Name = "Scanner thread (NDP)";
-            // workerNDP.Start();
+            // start worker to listen for NDP/ICMPv6 packets
+            workerNDP = new Thread(new ThreadStart(WorkerICMPv6));
+            workerNDP.Name = "Scanner thread (ICMPv6)";
+            workerNDP.Start();
+
+            // send IPv6 stuff
+            device.SendPacket(GenerateIpv6Ping());
 
             // loop through entire subnet, send ARP packets
             while (currentIP <= endIP)
@@ -126,7 +133,6 @@ namespace Nighthawk
 
             // stop threads
             workerARP.Abort();
-            workerNDP.Abort();
 
             // signal scan end, dispose timer
             ScanCompleted();
@@ -145,6 +151,34 @@ namespace Nighthawk
                                        IPAddress.Parse(deviceInfo.IP));
 
             ethernetPacket.PayloadPacket = arpPacket;
+
+            return ethernetPacket;
+        }
+
+        // create multicast ping packet
+        private EthernetPacket GenerateIpv6Ping()
+        {
+            // generate ethernet part - layer 1
+            var ethernetPacket = new EthernetPacket(device.Interface.MacAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
+                                                    EthernetPacketType.Arp);
+
+            // generate IP part - layer 2
+            var ipv6Packet = new IPv6Packet(IPAddress.Parse(deviceInfo.IPv6), IPAddress.Parse("ff02::1"));
+            ipv6Packet.NextHeader = IPProtocolType.ICMPV6;
+            ethernetPacket.PayloadPacket = ipv6Packet;
+            
+            // generate ICMPv6 part - layer 3
+            var icmpv6Packet = new ICMPv6Packet(new byte[40], 0);
+            
+            icmpv6Packet.Type = ICMPv6Types.EchoRequest;
+            icmpv6Packet.PayloadData = Encoding.ASCII.GetBytes("abcdefghijklmnopqrstuvwabcdefghi");
+            icmpv6Packet.UpdateCalculatedValues();
+            ipv6Packet.PayloadPacket = icmpv6Packet;
+
+            var pseudo = Network.GetPseudoHeader(ipv6Packet.SourceAddress, ipv6Packet.DestinationAddress,
+                                                 icmpv6Packet.Bytes.Length, 58);
+
+            icmpv6Packet.Checksum = (ushort)(ChecksumUtils.OnesComplementSum(pseudo.Concat(icmpv6Packet.Bytes).ToArray()) + 4);
 
             return ethernetPacket;
         }
@@ -188,6 +222,10 @@ namespace Nighthawk
                                 var resolver = new Thread(new ParameterizedThreadStart(WorkerResolver));
                                 resolver.Start(ip);
                             }
+
+                            // start ipv6 thread
+                            var ipv6Resolve = new Thread(new ParameterizedThreadStart(WorkerIPv6));
+                            ipv6Resolve.Start(mac);
                         }
                     }
 
@@ -201,9 +239,9 @@ namespace Nighthawk
 
             return;
         }
-
-        // worker function that parses NDP (specific ICMPv6) packets
-        public void WorkerNDP()
+        
+        // worker function that parses ICMPv6 ping reply
+        public void WorkerICMPv6()
         {
             // main loop
             while (Started)
@@ -224,23 +262,14 @@ namespace Nighthawk
                     // loop through packets
                     foreach (ICMPv6Packet packet in threadQueueNDP)
                     {
-                        // if NDP advertisement and scanner still active
-                        if ((int)packet.Type == 136 && Started)
+                        // if ping reply
+                        if (packet.Bytes.Count() > 0 && packet.Bytes[0] == 129)
                         {
                             // get IP, MAC
                             var ip = (packet.ParentPacket as IPv6Packet).SourceAddress;
                             var mac = (packet.ParentPacket.ParentPacket as EthernetPacket).SourceHwAddress;
-                            var hostname = ResolveHostnames ? "Resolving..." : String.Empty;
 
-                            Response(ip.ToString(), true, mac, hostname);
-
-                            // resolve hostname
-                            if (ResolveHostnames)
-                            {
-                                // start resolver thread
-                                var resolver = new Thread(new ParameterizedThreadStart(WorkerResolver));
-                                resolver.Start(ip);
-                            }
+                            Response(ip.ToString(), true, mac, "");
                         }
                     }
 
@@ -254,7 +283,16 @@ namespace Nighthawk
 
             return;
         }
-        
+
+        // worker for retrieving IPv6 addresses from cache
+        public void WorkerIPv6(object data)
+        {
+            var mac = (PhysicalAddress)data;
+            var ipv6 = GetIPv6Adress(mac);
+
+            Response(ipv6, true, mac, "");
+        }
+
         // worker function for resolving hostnames
         public void WorkerResolver(object data)
         {
@@ -271,6 +309,48 @@ namespace Nighthawk
 
             // invoke event
             Resolved(ip.ToString(), ip.AddressFamily == AddressFamily.InterNetworkV6, hostname);
+        }
+
+        // read IPv6 from ND cache
+        public string GetIPv6Adress(PhysicalAddress mac)
+        {
+            // check if vista/windows 7 - netsh
+            OperatingSystem system = Environment.OSVersion;
+
+            if (system.Version.Major > 5)
+            {
+                // format MAC
+                var macString = Network.FriendlyPhysicalAddress(mac).Replace(":", "-").ToLower();
+
+                // run command
+                Process p = new Process();
+                
+                p.StartInfo.CreateNoWindow = true;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+                p.StartInfo.FileName = "cmd";
+                p.StartInfo.Arguments = "/k netsh int ipv6 show neigh | findstr " + macString;
+                p.Start();
+                
+                var output = p.StandardOutput.ReadToEnd();
+
+                p.WaitForExit();
+
+                // split output lines
+                var lines = output.IndexOf("\r\n") != -1 ? Regex.Split(output, "\r\n") : new string[] {output};
+
+                // return IP from the first line
+                foreach (var line in lines)
+                {
+                    var split = line.Split(' ');
+                    return split[0].Trim() != string.Empty ? split[0].Trim() : "/";
+                }
+
+                return "/";
+            }
+
+            return "/";
         }
     }
 

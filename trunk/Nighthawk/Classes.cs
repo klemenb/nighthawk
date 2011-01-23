@@ -9,6 +9,23 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using SharpPcap;
 
+/**
+Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Copyright (C) 2010  Klemen Bratec
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**/
 namespace Nighthawk
 {
     // GUI - observable collection for targets
@@ -29,15 +46,16 @@ namespace Nighthawk
     public class Target : INotifyPropertyChanged
     {
         private string _Hostname;
-
-        public string IP { get; set; }
-        public string IPv6 { get; set; }
+        private string _IPv6;
+        private string _IP;
+        
         public string MAC { get; set; }
         public PhysicalAddress PMAC { get; set; }
         public string Vendor { get; set; }
 
         public Target()
         {
+            IP = "/";
             IPv6 = "/";
         }
 
@@ -50,6 +68,26 @@ namespace Nighthawk
             {
                 _Hostname = value;
                 OnPropertyChanged("Hostname");
+            }
+        }
+
+        public string IP
+        {
+            get { return _IP; }
+            set
+            {
+                _IP = value;
+                OnPropertyChanged("IP");
+            }
+        }
+
+        public string IPv6
+        {
+            get { return _IPv6; }
+            set
+            {
+                _IPv6 = value;
+                OnPropertyChanged("IPv6");
             }
         }
 
@@ -79,6 +117,11 @@ namespace Nighthawk
         public string Username { get; set; }
         public string Password { get; set; }
         public string Aditional { get; set; }
+
+        public string CompareString()
+        {
+            return ShapeBrush.Color.ToString() + URL + Username + Password + Aditional;
+        }
     }
 
     // device (interface) info class
@@ -87,6 +130,7 @@ namespace Nighthawk
         public LivePcapDevice Device;
         public string IP;
         public string IPv6;
+        public string LinkLocal;
         public string Mask;
         public string Broadcast;
         public int CIDR;
