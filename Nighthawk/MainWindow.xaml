@@ -62,7 +62,10 @@
 					</Grid.RowDefinitions>
 					<GroupBox Margin="8,4,8,0" Header="Interface selection" Grid.ColumnSpan="2" >
 						<Grid Margin="0">
-							<ComboBox x:Name="CInterface" Height="22" Text="TextBox" VerticalAlignment="Top" Margin="5,4,5,0" BorderThickness="1" FontWeight="Normal"/>
+							<ComboBox x:Name="CInterface" Height="22" Text="TextBox" VerticalAlignment="Top" Margin="5,4,38,0" BorderThickness="1" FontWeight="Normal"/>
+                            <Button x:Name="BInterfaceRefresh" HorizontalAlignment="Right" VerticalAlignment="Top" Height="22" Width="25" Margin="0,4,7,0" Click="BInterfaceRefresh_Click">
+                                <Image Source="Icons\RefreshIcon.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" ToolTip="Refresh interfaces" Height="16" Width="16" />
+                            </Button>
 						</Grid>
 					</GroupBox>
 					<GroupBox Margin="8,12,8,0" Grid.Row="1" Header="ARP/NDP tools" VerticalAlignment="Top" Height="146" >

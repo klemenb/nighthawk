@@ -99,9 +99,9 @@ namespace Nighthawk
         {
             var major = Assembly.GetExecutingAssembly().GetName().Version.Major.ToString();
             var minor = Assembly.GetExecutingAssembly().GetName().Version.Minor.ToString();
-            var rev = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
+            var build = Assembly.GetExecutingAssembly().GetName().Version.Build.ToString();
 
-            return !revision ? major + "." + minor : major + "." + minor + " (" + rev + ")";
+            return !revision ? major + "." + minor : major + "." + minor + " (" + build + ")";
         }
 
         // get ARP targets
@@ -290,6 +290,21 @@ namespace Nighthawk
                 BStartSSLstrip.Content = "Start SSL stripping";
                 SHStartSSLstrip.Color = DisabledColor;
                 SBSsl.Enabled = false;
+            }
+        }
+
+        // refresh interfaces
+        private void BInterfaceRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            // check for active tools
+            if (!Nighthawk.Started || (Nighthawk.Started && !Nighthawk.Scanner.Started && !Nighthawk.ARPTools.SpoofingStarted && !Nighthawk.NDPTools.SpoofingStarted && !Nighthawk.Sniffer.Started && !Nighthawk.SSLStrip.Started))
+            {
+                CInterface.ItemsSource = Nighthawk.GetInterfaces();
+            }
+            else
+            {
+                MessageBox.Show("Please stop any active tools or wait for an active scan to complete.", "Nighthawk - interfaces",
+                                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
         }
 

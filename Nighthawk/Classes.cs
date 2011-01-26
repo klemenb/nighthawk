@@ -43,7 +43,7 @@ namespace Nighthawk
     }
 
     // target class
-    public class Target : INotifyPropertyChanged
+    public class Target : INotifyPropertyChanged, IComparable
     {
         private string _Hostname;
         private string _IPv6;
@@ -55,8 +55,8 @@ namespace Nighthawk
 
         public Target()
         {
-            IP = "/";
-            IPv6 = "/";
+            _IP = "/";
+            _IPv6 = "/";
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -100,6 +100,22 @@ namespace Nighthawk
                 handler(this, new PropertyChangedEventArgs(name));
             }
         }
+
+        public int CompareTo(object o)
+        {
+            if ((o as Target).IP == "/") return -1;
+            if (this.IP == "/") return 1;
+
+            long num2 = Network.IPToLong((o as Target).IP);
+            long num1 = Network.IPToLong(this.IP);
+             
+            if (num1 > num2)
+                return 1;
+            else if (num1 < num2)
+                return -1;
+            else
+                return 0;
+        }       
     }
 
     // GUI - observable collection for sniffer results
@@ -135,5 +151,17 @@ namespace Nighthawk
         public string Broadcast;
         public int CIDR;
         public int CIDRv6;
+    }
+
+    public static class Extensions
+    {
+        // ObservableList sorting
+        public static void Sort<T>(this ObservableCollection<T> collection) where T : IComparable
+        {
+            List<T> sorted = collection.OrderBy(x => x).ToList();
+
+            for (int i = 0; i < sorted.Count(); i++)
+                collection.Move(collection.IndexOf(sorted[i]), i);
+        }
     }
 }

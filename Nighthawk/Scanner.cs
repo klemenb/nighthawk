@@ -303,7 +303,8 @@ namespace Nighthawk
 
             try
             {
-                hostname = Dns.GetHostEntry(ip).HostName;
+                // hostname = Dns.GetHostEntry(ip).HostName;
+                hostname = Dns.GetHostByAddress(ip).HostName;
             }
             catch { }
 
@@ -313,23 +314,25 @@ namespace Nighthawk
 
         // read IPv6 from ND cache
         public string GetIPv6Adress(PhysicalAddress mac)
-        {
-            // check if vista/windows 7 - netsh
+        {            
             OperatingSystem system = Environment.OSVersion;
 
+            // format MAC
+            var macString = Network.FriendlyPhysicalAddress(mac).Replace(":", "-").ToLower();
+
+            // prepare process
+            Process p = new Process();
+
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            p.StartInfo.FileName = "cmd";
+
+            // Vista, Windows 7 - "netsh"
             if (system.Version.Major > 5)
             {
-                // format MAC
-                var macString = Network.FriendlyPhysicalAddress(mac).Replace(":", "-").ToLower();
-
-                // run command
-                Process p = new Process();
-                
-                p.StartInfo.CreateNoWindow = true;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-                p.StartInfo.FileName = "cmd";
+                // set parameters
                 p.StartInfo.Arguments = "/k netsh int ipv6 show neigh | findstr " + macString;
                 p.Start();
                 
@@ -349,6 +352,35 @@ namespace Nighthawk
 
                 return "/";
             }
+            // Windows XP - "ipv6 nc"
+            else if (system.Version.Major == 5 && system.Version.Minor == 1)
+            {
+                // set parameters
+                p.StartInfo.Arguments = "/k ipv6 nc | findstr " + macString;
+                p.Start();
+
+                var output = p.StandardOutput.ReadToEnd();
+
+                p.WaitForExit();
+
+                // split output lines (also clean double spaces)
+                var lines = output.IndexOf("\r\n") != -1 ? Regex.Split(Regex.Replace(output, "  ", " "), "\r\n") : new string[] { Regex.Replace(output, "  ", " ") };
+
+                // split line on spaces, return IPv6
+                foreach (var line in lines)
+                {
+                    var split = line.Split(' ');
+
+                    if (split.Length > 1)
+                    {
+                        return split[1].Trim() != string.Empty ? split[1].Trim() : "/";
+                    }
+                }
+
+                return "/";
+            }
+
+            p.Close();            
 
             return "/";
         }

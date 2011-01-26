@@ -69,6 +69,7 @@ namespace Nighthawk
             "mail",
             "account",
             "user-name",
+            "log",
             "ime",
             "uporabni"
         };
@@ -79,6 +80,7 @@ namespace Nighthawk
             "pass",
             "password",
             "key",
+            "pwd",
             "geslo"
         };
 
@@ -198,11 +200,13 @@ namespace Nighthawk
                 foreach (string[] param in packet.Header.GetParams)
                 {
                     // check for field names - username
-                    if (fieldNamesUser.Where(s => param[0].IndexOf(s) != -1).Count() > 0)
+                    if (fieldNamesUser.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && user == string.Empty)
                     {
                         user = param[1];
                     }
-                    else if (fieldNamesPassword.Where(s => param[0].IndexOf(s) != -1).Count() > 0)
+                    
+                    // password
+                    if (fieldNamesPassword.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && password == string.Empty)
                     {
                         password = param[1];
                     }
@@ -225,11 +229,13 @@ namespace Nighthawk
                 foreach (string[] param in packet.PostParams)
                 {
                     // check for field names - username
-                    if (fieldNamesUser.Where(s => param[0].IndexOf(s) != -1).Count() > 0)
+                    if (fieldNamesUser.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && user == string.Empty)
                     {
                         user = param[1];
                     }
-                    else if (fieldNamesPassword.Where(s => param[0].IndexOf(s) != -1).Count() > 0)
+                    
+                    // password
+                    if (fieldNamesPassword.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && password == string.Empty)
                     {
                         password = param[1];
                     }
