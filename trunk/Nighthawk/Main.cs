@@ -131,9 +131,17 @@ namespace Nighthawk
                         }
                     }
                 }
-                
-                DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
-                devices.Add(device.Description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
+
+                if (address != string.Empty && address != "0.0.0.0")
+                {
+                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
+                    devices.Add(device.Description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
+                }
+                else
+                {
+                    DeviceInfoList.Add(new DeviceInfo { Device = device, IP = "0.0.0.0"});
+                    devices.Add(device.Description + " (IPv4: none" + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
+                }
             }
 
             return devices;
@@ -279,15 +287,6 @@ namespace Nighthawk
                             ARPTools.PacketQueueRouting.Add(packet);
                         }
                     }
-
-                    // only route IPv6 when NDP spoofing active
-                    //if (NDPTools.SpoofingStarted && ip.SourceAddress.AddressFamily == AddressFamily.InterNetworkV6)
-                    //{
-                    //    lock (NDPTools.PacketRoutingQueue)
-                    //    {
-                    //        NDPTools.PacketRoutingQueue.Add(packet);
-                    //    }
-                    //}
                 }
             }
         }
@@ -328,7 +327,7 @@ namespace Nighthawk
         private void scanner_OnResponse(string ip, bool ipv6, PhysicalAddress mac, string hostname)
         {
             // update GUI
-            Window.Dispatcher.BeginInvoke(new UI(delegate
+            Window.Dispatcher.Invoke(new UI(delegate
             {
                 // check for existing MAC
                 var items = Window.TargetList.Where(o => o.MAC.Replace(":", "") == mac.ToString());
@@ -354,7 +353,11 @@ namespace Nighthawk
                         item.IP = ip;
                    
                     // exclude local IP
-                    if(ip != deviceInfo.IP && ip != deviceInfo.IPv6) Window.TargetList.Add(item);
+                    if (ip != deviceInfo.IP && ip != deviceInfo.IPv6)
+                    {
+                        Window.TargetList.Add(item);
+                        Window.TargetList.Sort();
+                    }
                 }
             }));
         }
@@ -372,7 +375,7 @@ namespace Nighthawk
                 if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
-                    Window.BStartNDP.IsEnabled = true;
+                    // Window.BStartNDP.IsEnabled = true;
                 }
             }));
         }

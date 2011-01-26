@@ -133,6 +133,7 @@
     <Resource Include="Icons\AboutIcon.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Icons\RefreshIcon.png" />
     <Content Include="OUI.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -70,26 +70,32 @@ namespace Nighthawk
                 if (postParts || parts.Length > 1)
                 {
                     var postLine = data;
-                    
-                    // modify data for basic parsing
-                    if (!postParts) postLine = parts[0];
+
+                    // if we have headers in the packet
+                    if (parts.Length > 1)
+                    {
+                        postLine = parts[1];
+                    }
 
                     var postParams = postLine.Split('&');
 
                     // fill List<>
-                    foreach (var param in postParams)
+                    if (postParams.Length > 1)
                     {
-                        if (param.IndexOf('=') > 0)
+                        foreach (var param in postParams)
                         {
-                            var splitParam = param.Split('=');
-
-                            if (splitParam.Length == 2)
+                            if (param.IndexOf('=') > 0)
                             {
-                                PostParams.Add(new string[]
+                                var splitParam = param.Split('=');
+
+                                if (splitParam.Length == 2)
+                                {
+                                    PostParams.Add(new string[]
                                 {
                                     splitParam[0] != null ? splitParam[0] : string.Empty,
                                     splitParam[1] != null ? splitParam[1] : string.Empty
                                 });
+                                }
                             }
                         }
                     }
@@ -116,8 +122,17 @@ namespace Nighthawk
             // check for null payload
             if (packet.PayloadData != null)
             {
+                var data = encoding.GetString(packet.PayloadData);
+
+                // get rid of possible left-over headers
+                if (data.IndexOf("\r\n\r\n") != -1)
+                {
+                    var parts = Regex.Split(data, "\r\n\r\n");
+                    if(parts.Length > 1) data = parts[1];
+                }
+
                 // check for "key=value" pairs
-                var split = encoding.GetString(packet.PayloadData).Split('&');
+                var split = data.Split('&');
 
                 if (split.Length > 0)
                 {

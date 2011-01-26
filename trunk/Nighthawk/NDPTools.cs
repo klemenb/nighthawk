@@ -66,7 +66,7 @@ namespace Nighthawk
             // create NDP sender worker
             workerSender = new Thread(new ThreadStart(WorkerSender));
             workerSender.Name = "NDP sender thread";
-            // workerSender.Start(); - DISABLED UNTIL FIXED
+            workerSender.Start();
         }
 
         // stop spoofing
@@ -81,31 +81,8 @@ namespace Nighthawk
         // create RA packet
         private EthernetPacket GenerateRAPacket()
         {
-            // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(device.Interface.MacAddress, PhysicalAddress.Parse(""),
-                                                    EthernetPacketType.Arp);
-
-            // generate IP part - layer 2
-            var ipv6Packet = new IPv6Packet(IPAddress.Parse("fe80::54cd:1fcb:11f9:3d60"), IPAddress.Parse("fe80::a582:1c7b:6e27:1d09"));
-            ipv6Packet.NextHeader = IPProtocolType.ICMPV6;
-            ethernetPacket.PayloadPacket = ipv6Packet;
-
-            // generate ICMPv6 part - layer 3 (TYPE, CODE - CHECKUSM - FLAGS - TARGET)
-            var hex = "8800000030000000fe8000000000000054cd1fcb11f93d600201001a4d49ee4f";
-            var bytes = Network.HexToByte(hex);
-
-            var icmpv6Packet = new ICMPv6Packet(bytes, 0);
-
-            icmpv6Packet.UpdateCalculatedValues();
-            ipv6Packet.PayloadPacket = icmpv6Packet;
-
-            var pseudo = Network.GetPseudoHeader(ipv6Packet.SourceAddress, ipv6Packet.DestinationAddress,
-                                                 icmpv6Packet.Bytes.Length, 136);
-
-            icmpv6Packet.Checksum = (ushort)(ChecksumUtils.OnesComplementSum(pseudo.Concat(icmpv6Packet.Bytes).ToArray()) + 4);
-            icmpv6Packet.Checksum = 0x395c;
-
-            return ethernetPacket;
+            // future...
+            return (EthernetPacket)new object();
         }
 
         // worker function that sends ICMPv6 packets
