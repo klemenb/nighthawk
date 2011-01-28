@@ -10,7 +10,7 @@ using System.Windows;
 [assembly: AssemblyTitle("Nighthawk")]
 [assembly: AssemblyDescription("ARP spoofing and password sniffing for Windows")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Klemen Bratec")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Nighthawk")]
 [assembly: AssemblyCopyright("Copyright © Klemen Bratec, 2011")]
 [assembly: AssemblyTrademark("")]

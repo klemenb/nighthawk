@@ -14,7 +14,7 @@ using PacketDotNet.Utils;
 using SharpPcap;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -123,7 +123,7 @@ namespace Nighthawk
 
             // timeout - wait for responses
             var waitTimer = new Timer(new TimerCallback(Timer_WaitOver));
-            waitTimer.Change(3000, Timeout.Infinite);
+            waitTimer.Change(4000, Timeout.Infinite);
         }
 
         // scanner timer callback
@@ -132,7 +132,7 @@ namespace Nighthawk
             Started = false;
 
             // stop threads
-            workerARP.Abort();
+            workerARP.Join();
 
             // signal scan end, dispose timer
             ScanCompleted();
@@ -303,8 +303,8 @@ namespace Nighthawk
 
             try
             {
-                // hostname = Dns.GetHostEntry(ip).HostName;
-                hostname = Dns.GetHostByAddress(ip).HostName;
+                hostname = Dns.GetHostEntry(ip).HostName;
+                // hostname = Dns.GetHostByAddress(ip).HostName;
             }
             catch { }
 

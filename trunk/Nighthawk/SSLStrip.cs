@@ -11,7 +11,7 @@ using PacketDotNet;
 using SharpPcap;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -132,7 +132,7 @@ namespace Nighthawk
 
                     if (data.IndexOf("If-Modified-Since:") != -1)
                     {
-                        DateTime time = new DateTime(1990, 1, 1);
+                        DateTime time = new DateTime(2000, 1, 1);
                         
                         data = regexModified.Replace(data, "If-Modified-Since: "+ time.ToString("R") +"\r\n");
                         changed.Add("If-Modified-Since");

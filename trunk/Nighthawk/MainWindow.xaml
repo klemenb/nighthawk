@@ -44,8 +44,8 @@
 				</MenuItem>
 			</MenuItem>
 		</Menu>
-		<nighthawk:StatusBox x:Name="SBArp" Margin="0,112,283,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
-		<nighthawk:StatusBox x:Name="SBNdp" Margin="0,112,239,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="NDP" />
+		<nighthawk:StatusBox x:Name="SBArp" Margin="0,112,239,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
+		<nighthawk:StatusBox x:Name="SBNdp" Margin="0,112,239,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="NDP" Visibility="Collapsed" />
 		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,112,195,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
 		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,112,151,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
 		<TabControl Margin="8,110,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2">
@@ -68,7 +68,7 @@
                             </Button>
 						</Grid>
 					</GroupBox>
-					<GroupBox Margin="8,12,8,0" Grid.Row="1" Header="ARP/NDP tools" VerticalAlignment="Top" Height="146" >
+					<GroupBox Margin="8,12,8,0" Grid.Row="1" Header="ARP tools" VerticalAlignment="Top" Height="114" >
 						<Grid Margin="0">
 							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="6,35,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal"/>
 							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,9,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" d:LayoutOverrides="VerticalAlignment">
@@ -81,7 +81,7 @@
                                     <DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
-							<Button x:Name="BStartNDP" Click="BStartNDP_Click" IsEnabled="False" Content="Start NDP spoofing" Margin="5,94,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
+							<Button x:Name="BStartNDP" Click="BStartNDP_Click" IsEnabled="False" Content="Start NDP spoofing" Margin="5,94,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1" Visibility="Collapsed">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartNDP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
@@ -89,7 +89,7 @@
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,57,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
 						</Grid>
 					</GroupBox>
-					<GroupBox Header="Experimental tools" Margin="8,172,8,0" MaxHeight="151" Height="134" VerticalAlignment="Top" Grid.RowSpan="2" Grid.Row="1" >
+					<GroupBox Header="Experimental tools" Margin="8,138,8,0" MaxHeight="151" Height="134" VerticalAlignment="Top" Grid.Row="1" d:LayoutOverrides="VerticalAlignment" Grid.RowSpan="3" >
 						<Grid Margin="0">
 							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,63,0,0" Width="116" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Normal">
 								<Button.Effect>
