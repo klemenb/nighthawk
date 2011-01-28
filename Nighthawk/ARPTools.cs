@@ -9,7 +9,7 @@ using SharpPcap;
 using PacketDotNet;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -100,8 +100,8 @@ namespace Nighthawk
 
             // stop threads & re-ARP
             ReArpTargets();
-            workerSender.Abort();
-            workerRouter.Abort();
+            workerSender.Join();
+            workerRouter.Join();
             ReArpTargets();
         }
 

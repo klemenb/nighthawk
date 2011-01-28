@@ -18,7 +18,7 @@ using Microsoft.Win32;
 using SharpPcap;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -129,9 +129,18 @@ namespace Nighthawk
         private void BScanNetwork_Click(object sender, RoutedEventArgs e)
         {
             // check for bad interface
-            if (Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0") 
+            if (Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0")
             {
                 MessageBox.Show("Invalid interface! Please select another one from the list.", "Nighthawk - network scan",
+                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                return;
+            }
+            
+            // check for active arp spoofing
+            if (Nighthawk != null && Nighthawk.ARPTools != null && Nighthawk.ARPTools.SpoofingStarted)
+            {
+                MessageBox.Show("Please stop ARP spoofing before running another scan.", "Nighthawk - network scan",
                         MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 return;

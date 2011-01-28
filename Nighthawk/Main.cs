@@ -16,7 +16,7 @@ using SharpPcap;
 using PacketDotNet;
 
 /**
-Nighthawk - ARP/NDP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2010  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -153,7 +153,7 @@ namespace Nighthawk
             Started = true;
 
             deviceInfo = DeviceInfoList[deviceIndex];
-            Device = LivePcapDeviceList.Instance[deviceIndex];            
+            Device = LivePcapDeviceList.Instance[deviceIndex];    
 
             // initialize modules
             Sniffer = new Sniffer(deviceInfo);
@@ -171,7 +171,7 @@ namespace Nighthawk
 
             // open device, start capturing
             Device.Open(DeviceMode.Promiscuous, 1);
-            // Device.Filter = "(arp || ip)";
+            Device.Filter = "(arp || ip || ip6)";
             Device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
             Device.StartCapture();
         }
@@ -352,8 +352,8 @@ namespace Nighthawk
                     else
                         item.IP = ip;
                    
-                    // exclude local IP
-                    if (ip != deviceInfo.IP && ip != deviceInfo.IPv6)
+                    // exclude local MAC
+                    if (mac != deviceInfo.Device.Interface.MacAddress)
                     {
                         Window.TargetList.Add(item);
                         Window.TargetList.Sort();
@@ -371,7 +371,7 @@ namespace Nighthawk
                 Window.BScanNetwork.IsEnabled = true;
                 Window.BScanNetwork.Content = "Scan network";
 
-                // check for target count to enable ARP/NDP spoofing buttons
+                // check for target count to enable ARP spoofing buttons
                 if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
@@ -392,8 +392,8 @@ namespace Nighthawk
                     // check for local IP
                     if (ip != deviceInfo.IP)
                     {
-                        var target = Window.TargetList.Where(t => t.IP == ip.ToString()).First();
-                        target.Hostname = hostname;
+                        var target = Window.TargetList.Where(t => t.IP == ip.ToString());
+                        if(target.Count() > 0) target.First().Hostname = hostname;
                     }
                 }));
             }
