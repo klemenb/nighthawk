@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using SharpPcap;
+using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
@@ -143,12 +144,13 @@ namespace Nighthawk
     // device (interface) info class
     public class DeviceInfo
     {
-        public LivePcapDevice Device;
+        public WinPcapDevice Device;
         public string IP;
         public string IPv6;
         public string LinkLocal;
         public string Mask;
         public string Broadcast;
+        public PhysicalAddress PMAC;
         public int CIDR;
         public int CIDRv6;
     }

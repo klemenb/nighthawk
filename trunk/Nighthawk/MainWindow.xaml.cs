@@ -361,7 +361,7 @@ namespace Nighthawk
                         var data = Encoding.Unicode.GetBytes(fileData.ToString());
                         
                         file.Write(data, 0, data.Length);
-                        
+                        file.Close();
                     }
                     catch
                     {
@@ -414,7 +414,7 @@ namespace Nighthawk
                         var data = Encoding.Unicode.GetBytes(fileData.ToString());
 
                         file.Write(data, 0, data.Length);
-
+                        file.Close();
                     }
                     catch
                     {

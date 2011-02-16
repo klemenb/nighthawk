@@ -5,6 +5,7 @@ using System.Text;
 using System.Web;
 using System.Net;
 using SharpPcap;
+using SharpPcap.WinPcap;
 using PacketDotNet;
 using System.Threading;
 
@@ -31,7 +32,7 @@ namespace Nighthawk
     public class Sniffer
     {
         // current device
-        private LivePcapDevice device;
+        private WinPcapDevice device;
 
         // status
         public bool Started = false;
@@ -51,7 +52,7 @@ namespace Nighthawk
         private Thread worker;
 
         // collection of POST requests (hostname/url tracking on incomplete packets)
-        private List<SnifferPostRequest> PostRequests;
+        private List<SnifferPostRequest> postRequests;
 
         // events
         public event SnifferResultHandler SnifferResult;
@@ -106,7 +107,7 @@ namespace Nighthawk
             // change status
             Started = true;
 
-            PostRequests = new List<SnifferPostRequest>();
+            postRequests = new List<SnifferPostRequest>();
 
             // start a worker thread
             worker = new Thread(new ThreadStart(Worker));
@@ -167,7 +168,7 @@ namespace Nighthawk
                             // save hostnames
                             if (http.Header.Type == HttpHeader.PacketType.Request && http.Header.ReqType == HttpHeader.RequestType.POST)
                             {
-                                PostRequests.Add(new SnifferPostRequest {SourceAddress = sourceIP, DestinationAddress = destIP, Hostname = http.Header.Host});
+                                postRequests.Add(new SnifferPostRequest {SourceAddress = sourceIP, DestinationAddress = destIP, Hostname = http.Header.Host});
                             }
 
                             // check for any passwords
@@ -220,13 +221,13 @@ namespace Nighthawk
                 foreach (string[] param in packet.Header.GetParams)
                 {
                     // check for field names - username
-                    if (fieldNamesUser.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && user == string.Empty)
+                    if (fieldNamesUser.Where(s => param[0].Contains(s)).Count() > 0 && user == string.Empty)
                     {
                         user = param[1];
                     }
                     
                     // password
-                    if (fieldNamesPassword.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && password == string.Empty)
+                    if (fieldNamesPassword.Where(s => param[0].Contains(s)).Count() > 0 && password == string.Empty)
                     {
                         password = param[1];
                     }
@@ -250,13 +251,13 @@ namespace Nighthawk
                 foreach (string[] param in packet.PostParams)
                 {
                     // check for field names - username
-                    if (fieldNamesUser.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && user == string.Empty)
+                    if (fieldNamesUser.Where(s => param[0].Contains(s)).Count() > 0 && user == string.Empty)
                     {
                         user = param[1];
                     }
                     
                     // password
-                    if (fieldNamesPassword.Where(s => param[0].IndexOf(s) != -1).Count() > 0 && password == string.Empty)
+                    if (fieldNamesPassword.Where(s => param[0].Contains(s)).Count() > 0 && password == string.Empty)
                     {
                         password = param[1];
                     }
@@ -271,14 +272,14 @@ namespace Nighthawk
                     // get hostname/url
                     if (hostname == string.Empty)
                     {
-                        var posts = PostRequests.Where(r => (r.SourceAddress.ToString() == sourceIP.ToString() && r.DestinationAddress.ToString() == destIP.ToString()));
+                        var posts = postRequests.Where(r => (r.SourceAddress.ToString() == sourceIP.ToString() && r.DestinationAddress.ToString() == destIP.ToString()));
 
                         if (posts.Count() > 0)
                         {
                             hostname = posts.First().Hostname;
                             comment += " *";
 
-                            PostRequests.Remove(posts.First());
+                            postRequests.Remove(posts.First());
                         }
                     }
 
@@ -300,6 +301,7 @@ namespace Nighthawk
     {
         public IPAddress SourceAddress;
         public IPAddress DestinationAddress;
+        public uint SequenceNumber;
         public string Hostname;
     }
 
