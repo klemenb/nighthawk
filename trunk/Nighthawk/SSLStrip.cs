@@ -134,7 +134,6 @@ namespace Nighthawk
                         changed.Add("Accept-Encoding");
                     }
 
-
                     if (data.Contains("If-Modified-Since:"))
                     {
                         var time = new DateTime(2000, 1, 1);
@@ -147,7 +146,7 @@ namespace Nighthawk
                 else
                 {                    
                     // check for html tags
-                    if (!(data.Contains("<form") || data.Contains("<input") || data.Contains("<a ") || data.Contains("</a>") || data.Contains("</div>") || data.Contains("<meta") || data.Contains("javascript"))) return false;
+                    if (!(data.Contains("<form") || data.Contains("<input") || data.Contains("<a ") || data.Contains("</a>") || data.Contains("</div>") || data.Contains("<meta") || data.Contains("javascript"))) return true;
 
                     var cmatches = SimpleRegex.GetMatches(regexCType, data);
 
