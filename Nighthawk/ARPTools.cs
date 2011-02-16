@@ -6,6 +6,7 @@ using System.Text;
 using System.Net;
 using System.Threading;
 using SharpPcap;
+using SharpPcap.WinPcap;
 using PacketDotNet;
 
 /**
@@ -31,7 +32,7 @@ namespace Nighthawk
     public class ARPTools
     {
         // current device
-        private LivePcapDevice device;
+        private WinPcapDevice device;
 
         // status
         public bool SpoofingStarted = false;
@@ -74,7 +75,7 @@ namespace Nighthawk
             SpoofingTargets1.ForEach(delegate(Target t) { IPtoMACTargets1.Add(t.IP, t.PMAC); });
             
             // add our own computer to targets - used for routing
-            IPtoMACTargets1.Add(deviceInfo.IP, device.Interface.MacAddress);
+            IPtoMACTargets1.Add(deviceInfo.IP, deviceInfo.PMAC);
             
             // change status
             SpoofingStarted = true;
@@ -103,19 +104,25 @@ namespace Nighthawk
             workerSender.Join();
             workerRouter.Join();
             ReArpTargets();
+
+            threadQueue.Clear();
+            threadQueueRouting.Clear();
+
+            PacketQueue.Clear();
+            PacketQueueRouting.Clear();
         }
 
         // create ARP replay packet - source MAC to device MAC
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC)
         {
-            return GenerateARPReply(senderIP, targetIP, targetMAC, device.Interface.MacAddress);
+            return GenerateARPReply(senderIP, targetIP, targetMAC, deviceInfo.PMAC);
         }
 
         // create ARP replay packet
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC, PhysicalAddress sourceMAC)
         {
             // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(device.Interface.MacAddress, targetMAC,
+            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, targetMAC,
                                                     EthernetPacketType.Arp);
 
             // arp data - layer 2
@@ -196,12 +203,12 @@ namespace Nighthawk
                         var destinationIP = ip.DestinationAddress.ToString();
 
                         var ethernetPacket = (packet as EthernetPacket);
-
-                        // incoming packets
+                        
+                        // incoming packets)
                         if (IPtoMACTargets1.ContainsKey(destinationIP) && ethernetPacket.DestinationHwAddress.ToString() != IPtoMACTargets1[destinationIP].ToString())
                         {
                             // set real MAC
-                            ethernetPacket.SourceHwAddress = device.Interface.MacAddress;
+                            ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
                             ethernetPacket.DestinationHwAddress = IPtoMACTargets1[destinationIP];
 
                             try
@@ -215,10 +222,10 @@ namespace Nighthawk
                         if (IPtoMACTargets1.ContainsKey(sourceIP) && ethernetPacket.DestinationHwAddress.ToString() != SpoofingTarget2.PMAC.ToString())
                         {
                             // set real MAC
-                            ethernetPacket.SourceHwAddress = device.Interface.MacAddress;
+                            ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
                             ethernetPacket.DestinationHwAddress = SpoofingTarget2.PMAC;
 
-                            try
+                            try 
                             {
                                 device.SendPacket(packet);
                             }

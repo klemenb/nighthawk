@@ -11,8 +11,8 @@ using System.Windows;
 [assembly: AssemblyDescription("ARP spoofing and password sniffing for Windows")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Nighthawk")]
-[assembly: AssemblyCopyright("Copyright © Klemen Bratec, 2011")]
+[assembly: AssemblyProduct("")]
+[assembly: AssemblyCopyright("Open-source, GPL")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -51,5 +51,5 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.3.*")]
-[assembly: AssemblyFileVersion("0.3.*")]
+[assembly: AssemblyVersion("0.4.*")]
+[assembly: AssemblyFileVersion("0.4.0.0")]

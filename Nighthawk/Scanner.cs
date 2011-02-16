@@ -12,6 +12,7 @@ using System.Threading;
 using PacketDotNet;
 using PacketDotNet.Utils;
 using SharpPcap;
+using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
@@ -35,7 +36,7 @@ namespace Nighthawk
     public class Scanner
     {
         // current device
-        private LivePcapDevice device;
+        private WinPcapDevice device;
         private DeviceInfo deviceInfo;
 
         // status
@@ -88,7 +89,7 @@ namespace Nighthawk
         // scans network (ARP requests & NDP solicitation)
         public void ScanNetwork(bool resolveHostnames)
         {
-            this.ResolveHostnames = resolveHostnames;
+            ResolveHostnames = resolveHostnames;
 
             // get start/end IP
             long[] range = Network.MaskToStartEnd(deviceInfo.IP, deviceInfo.Mask);
@@ -143,11 +144,11 @@ namespace Nighthawk
         private EthernetPacket GenerateARPRequest(string destinationIP, DeviceInfo deviceInfo)
         {
             // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(device.Interface.MacAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
+            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, PhysicalAddress.Parse("FFFFFFFFFFFF"),
                                                     EthernetPacketType.Arp);
 
             // arp data - layer 2
-            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), device.Interface.MacAddress,
+            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), deviceInfo.PMAC,
                                        IPAddress.Parse(deviceInfo.IP));
 
             ethernetPacket.PayloadPacket = arpPacket;
@@ -159,7 +160,7 @@ namespace Nighthawk
         private EthernetPacket GenerateIpv6Ping()
         {
             // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(device.Interface.MacAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
+            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, PhysicalAddress.Parse("FFFFFFFFFFFF"),
                                                     EthernetPacketType.Arp);
 
             // generate IP part - layer 2
@@ -168,11 +169,10 @@ namespace Nighthawk
             ethernetPacket.PayloadPacket = ipv6Packet;
             
             // generate ICMPv6 part - layer 3
-            var icmpv6Packet = new ICMPv6Packet(new byte[40], 0);
+            var icmpv6Packet = new ICMPv6Packet(new ByteArraySegment(new byte[40]));
             
             icmpv6Packet.Type = ICMPv6Types.EchoRequest;
             icmpv6Packet.PayloadData = Encoding.ASCII.GetBytes("abcdefghijklmnopqrstuvwabcdefghi");
-            icmpv6Packet.UpdateCalculatedValues();
             ipv6Packet.PayloadPacket = icmpv6Packet;
 
             var pseudo = Network.GetPseudoHeader(ipv6Packet.SourceAddress, ipv6Packet.DestinationAddress,
@@ -341,7 +341,7 @@ namespace Nighthawk
                 p.WaitForExit();
 
                 // split output lines
-                var lines = output.IndexOf("\r\n") != -1 ? Regex.Split(output, "\r\n") : new string[] {output};
+                var lines = output.Contains("\r\n") ? Regex.Split(output, "\r\n") : new string[] {output};
 
                 // return IP from the first line
                 foreach (var line in lines)
@@ -364,7 +364,7 @@ namespace Nighthawk
                 p.WaitForExit();
 
                 // split output lines (also clean double spaces)
-                var lines = output.IndexOf("\r\n") != -1 ? Regex.Split(Regex.Replace(output, "  ", " "), "\r\n") : new string[] { Regex.Replace(output, "  ", " ") };
+                var lines = output.Contains("\r\n") ? Regex.Split(Regex.Replace(output, "  ", " "), "\r\n") : new string[] { Regex.Replace(output, "  ", " ") };
 
                 // split line on spaces, return IPv6
                 foreach (var line in lines)

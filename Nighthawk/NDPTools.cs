@@ -8,6 +8,7 @@ using System.Threading;
 using PacketDotNet;
 using PacketDotNet.Utils;
 using SharpPcap;
+using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
@@ -32,7 +33,7 @@ namespace Nighthawk
     public class NDPTools
     {
         // current device
-        private LivePcapDevice device;
+        private WinPcapDevice device;
         private DeviceInfo deviceInfo;
 
         // status

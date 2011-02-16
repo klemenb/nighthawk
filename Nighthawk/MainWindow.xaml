@@ -120,7 +120,7 @@
 								</GridViewColumn>
 								<GridViewColumn Header="MAC" Width="100" DisplayMemberBinding="{Binding MAC}"/>
 								<GridViewColumn Header="Vendor (OUI)" Width="170" DisplayMemberBinding="{Binding Vendor}"/>
-								<GridViewColumn Header="Hostname" Width="150" DisplayMemberBinding="{Binding Hostname}"/>
+								<GridViewColumn Header="Hostname" Width="130" DisplayMemberBinding="{Binding Hostname}"/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -138,7 +138,7 @@
 								</GridViewColumn>
 								<GridViewColumn Header="MAC" Width="100" DisplayMemberBinding="{Binding MAC}"/>
 								<GridViewColumn Header="Vendor (OUI)" Width="170" DisplayMemberBinding="{Binding Vendor}"/>
-								<GridViewColumn Header="Hostname" Width="150" DisplayMemberBinding="{Binding Hostname}"/>
+								<GridViewColumn Header="Hostname" Width="130" DisplayMemberBinding="{Binding Hostname}"/>
 							</GridView>
 						</ListView.View>
 					</ListView>
@@ -176,10 +176,10 @@
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
-								<GridViewColumn Header="URL" Width="160">
+								<GridViewColumn Header="URL" Width="170">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding URL}" TextAlignment="Center" MinWidth="160"/>
+											<TextBlock Text="{Binding URL}" TextAlignment="Center" MinWidth="170"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
