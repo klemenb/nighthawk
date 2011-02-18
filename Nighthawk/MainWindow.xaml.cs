@@ -131,17 +131,18 @@ namespace Nighthawk
             // check for bad interface
             if (Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0")
             {
-                MessageBox.Show("Invalid interface! Please select another one from the list.", "Nighthawk - network scan",
-                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show("Invalid interface! Please select another one from the list.",
+                                "Nighthawk - network scan",
+                                MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 return;
             }
-            
+
             // check for active arp spoofing
             if (Nighthawk != null && Nighthawk.ARPTools != null && Nighthawk.ARPTools.SpoofingStarted)
             {
                 MessageBox.Show("Please stop ARP spoofing before running another scan.", "Nighthawk - network scan",
-                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                                MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                 return;
             }

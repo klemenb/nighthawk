@@ -111,7 +111,10 @@ namespace Nighthawk
             workerNDP.Start();
 
             // send IPv6 stuff
-            device.SendPacket(GenerateIpv6Ping());
+            if (deviceInfo.IPv6 != string.Empty || deviceInfo.LinkLocal != string.Empty)
+            {
+                device.SendPacket(GenerateIpv6Ping());
+            }
 
             // loop through entire subnet, send ARP packets
             while (currentIP <= endIP)
@@ -164,7 +167,7 @@ namespace Nighthawk
                                                     EthernetPacketType.Arp);
 
             // generate IP part - layer 2
-            var ipv6Packet = new IPv6Packet(IPAddress.Parse(deviceInfo.IPv6), IPAddress.Parse("ff02::1"));
+            var ipv6Packet = new IPv6Packet(IPAddress.Parse((deviceInfo.IPv6 != string.Empty ? deviceInfo.IPv6 : deviceInfo.LinkLocal)), IPAddress.Parse("ff02::1"));
             ipv6Packet.NextHeader = IPProtocolType.ICMPV6;
             ethernetPacket.PayloadPacket = ipv6Packet;
             
