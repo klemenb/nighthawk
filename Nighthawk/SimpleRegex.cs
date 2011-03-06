@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 /**
@@ -23,9 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 namespace Nighthawk
 {
-    /**
-     * Simplification of C# regex matching
-     */
     class SimpleRegex
     {
         public static List<string> GetMatches(Regex regex, string data)

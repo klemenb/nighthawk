@@ -1,22 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.IO;
-using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.WinPcap;
-using SharpPcap.LibPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
@@ -52,7 +46,6 @@ namespace Nighthawk
         // modules
         public Sniffer Sniffer;
         public ARPTools ARPTools;
-        public NDPTools NDPTools;
         public SSLStrip SSLStrip;
         public Scanner Scanner;
 
@@ -60,7 +53,7 @@ namespace Nighthawk
         public Dictionary<string, string> Vendors = new Dictionary<string, string>();
 
         // device status
-        public bool Started = false;
+        public bool Started;
 
         // last paragraph
         private string lastSSLText = string.Empty;
@@ -177,7 +170,6 @@ namespace Nighthawk
             // initialize modules
             Sniffer = new Sniffer(deviceInfo);
             ARPTools = new ARPTools(deviceInfo);
-            NDPTools = new NDPTools(deviceInfo);
             SSLStrip = new SSLStrip(deviceInfo);
             Scanner = new Scanner(deviceInfo);
 
@@ -237,7 +229,16 @@ namespace Nighthawk
         private void device_OnPacketArrival(object sender, CaptureEventArgs e)
         {
             // parse packet
-            var packet = Packet.ParsePacket(e.Packet);
+            Packet packet;
+
+            try
+            {
+                packet = Packet.ParsePacket(e.Packet);
+            }
+            catch
+            {
+                return;
+            }
 
             // check only ethernet packets
             if (packet is EthernetPacket)
@@ -277,8 +278,8 @@ namespace Nighthawk
                 // TCP packet
                 if (tcp != null)
                 {
-                    // if we are likely to have a HTTP packet (client -> server)
-                    if (tcp.DestinationPort == 80)
+                    // if we are likely to have a HTTP/FTP packet (client -> server)
+                    if (tcp.DestinationPort == 80 || tcp.DestinationPort == 21)
                     {
                         if (Sniffer.Started)
                         {
@@ -334,6 +335,10 @@ namespace Nighthawk
                 {
                     brush = new SolidColorBrush(Window.ColorSnifferHTTPAuth);
                 }
+                else if (type == SnifferResultType.FTP)
+                {
+                    brush = new SolidColorBrush(Window.ColorSnifferFTP);
+                }
 
                 // create new result item
                 var result = new SnifferResult { URL = url, Username = username, Password = password, Aditional = aditional, Type = type, ShapeBrush = brush};
@@ -375,7 +380,7 @@ namespace Nighthawk
                     else
                         item.IP = ip;
                    
-                    // exclude local MAC
+                    // exclude local MAC)
                     if (mac.ToString() != deviceInfo.PMAC.ToString())
                     {
                         Window.TargetList.Add(item);

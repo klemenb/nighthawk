@@ -92,7 +92,6 @@
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
     <Compile Include="Main.cs" />
-    <Compile Include="NDPTools.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Scanner.cs" />
     <Compile Include="SimpleRegex.cs" />
