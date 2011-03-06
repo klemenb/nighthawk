@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -11,7 +10,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using PacketDotNet;
 using PacketDotNet.Utils;
-using SharpPcap;
 using SharpPcap.WinPcap;
 
 /**
@@ -40,8 +38,7 @@ namespace Nighthawk
         private DeviceInfo deviceInfo;
 
         // status
-        public bool Started = false;
-
+        public bool Started;
         public bool ResolveHostnames;
 
         // packet queues (packet store for BG thread to work on)
@@ -137,10 +134,11 @@ namespace Nighthawk
 
             // stop threads
             workerARP.Join();
+            workerNDP.Join();
 
             // signal scan end, dispose timer
             ScanCompleted();
-            (o as Timer).Dispose();
+            ((Timer) o).Dispose();
         }
 
         // create ARP request packet
@@ -172,10 +170,12 @@ namespace Nighthawk
             ethernetPacket.PayloadPacket = ipv6Packet;
             
             // generate ICMPv6 part - layer 3
-            var icmpv6Packet = new ICMPv6Packet(new ByteArraySegment(new byte[40]));
-            
-            icmpv6Packet.Type = ICMPv6Types.EchoRequest;
-            icmpv6Packet.PayloadData = Encoding.ASCII.GetBytes("abcdefghijklmnopqrstuvwabcdefghi");
+            var icmpv6Packet = new ICMPv6Packet(new ByteArraySegment(new byte[40]))
+                                   {
+                                       Type = ICMPv6Types.EchoRequest,
+                                       PayloadData = Encoding.ASCII.GetBytes("abcdefghijklmnopqrstuvwabcdefghi")
+                                   };
+
             ipv6Packet.PayloadPacket = icmpv6Packet;
 
             var pseudo = Network.GetPseudoHeader(ipv6Packet.SourceAddress, ipv6Packet.DestinationAddress,
@@ -269,8 +269,10 @@ namespace Nighthawk
                         if (packet.Bytes.Count() > 0 && packet.Bytes[0] == 129)
                         {
                             // get IP, MAC
-                            var ip = (packet.ParentPacket as IPv6Packet).SourceAddress;
-                            var mac = (packet.ParentPacket.ParentPacket as EthernetPacket).SourceHwAddress;
+                            if (packet.ParentPacket == null || packet.ParentPacket.ParentPacket == null) continue;
+
+                            var ip = ((IPv6Packet) packet.ParentPacket).SourceAddress;
+                            var mac = ((EthernetPacket) packet.ParentPacket.ParentPacket).SourceHwAddress;
 
                             Response(ip.ToString(), true, mac, "");
                         }
@@ -299,7 +301,7 @@ namespace Nighthawk
         // worker function for resolving hostnames
         public void WorkerResolver(object data)
         {
-            var ip = (data as IPAddress);
+            var ip = (IPAddress) data;
             var hostname = "";
 
             Thread.Sleep(100);
@@ -383,7 +385,7 @@ namespace Nighthawk
                 return "/";
             }
 
-            p.Close();            
+            p.Close();         
 
             return "/";
         }

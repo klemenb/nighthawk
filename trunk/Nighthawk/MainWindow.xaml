@@ -24,13 +24,13 @@
 						<Image Source="Icons\SaveIconNetwork.png" Width="16" Height="16" /> 		
 					</MenuItem.Icon>
 				</MenuItem>
-                <MenuItem Header="Save sniffer results" Click="MenuItemSaveSniffer_Click">
+				<MenuItem Header="Save sniffer results" Click="MenuItemSaveSniffer_Click">
 					<MenuItem.Icon>		    			
 						<Image Source="Icons\SaveIconSniffer.png" Width="16" Height="16" /> 		
 					</MenuItem.Icon>
 				</MenuItem>
 				<Separator />
-                <MenuItem Header="Exit" Click="MenuItemExit_Click">
+				<MenuItem Header="Exit" Click="MenuItemExit_Click">
 					<MenuItem.Icon>		    			
 						<Image Source="Icons\ExitIcon.png" Width="16" Height="16" /> 		
 					</MenuItem.Icon>
@@ -45,7 +45,6 @@
 			</MenuItem>
 		</Menu>
 		<nighthawk:StatusBox x:Name="SBArp" Margin="0,112,239,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
-		<nighthawk:StatusBox x:Name="SBNdp" Margin="0,112,239,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="NDP" Visibility="Collapsed" />
 		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,112,195,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
 		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,112,151,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
 		<TabControl Margin="8,110,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2">
@@ -63,9 +62,9 @@
 					<GroupBox Margin="8,4,8,0" Header="Interface selection" Grid.ColumnSpan="2" >
 						<Grid Margin="0">
 							<ComboBox x:Name="CInterface" Height="22" Text="TextBox" VerticalAlignment="Top" Margin="5,4,38,0" BorderThickness="1" FontWeight="Normal"/>
-                            <Button x:Name="BInterfaceRefresh" HorizontalAlignment="Right" VerticalAlignment="Top" Height="22" Width="25" Margin="0,4,7,0" Click="BInterfaceRefresh_Click">
-                                <Image Source="Icons\RefreshIcon.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" ToolTip="Refresh interfaces" Height="16" Width="16" />
-                            </Button>
+							<Button x:Name="BInterfaceRefresh" HorizontalAlignment="Right" VerticalAlignment="Top" Height="22" Width="25" Margin="0,4,7,0" Click="BInterfaceRefresh_Click">
+								<Image Source="Icons\RefreshIcon.png" Stretch="Uniform" RenderOptions.BitmapScalingMode="Fant" ToolTip="Refresh interfaces" Height="16" Width="16" />
+							</Button>
 						</Grid>
 					</GroupBox>
 					<GroupBox Margin="8,12,8,0" Grid.Row="1" Header="ARP tools" VerticalAlignment="Top" Height="114" >
@@ -78,12 +77,7 @@
 							</Button>
 							<Button x:Name="BStartARP" Click="BStartARP_Click" IsEnabled="False" Content="Start ARP spoofing" Margin="5,65,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
 								<Button.Effect>
-                                    <DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
-								</Button.Effect>
-							</Button>
-							<Button x:Name="BStartNDP" Click="BStartNDP_Click" IsEnabled="False" Content="Start NDP spoofing" Margin="5,94,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1" Visibility="Collapsed">
-								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartNDP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+									<DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
 								</Button.Effect>
 							</Button>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,57,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
@@ -101,7 +95,7 @@
 									<DropShadowEffect x:Name="SHStartSSLstrip" BlurRadius="0" ShadowDepth="10" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360"/>
 								</Button.Effect>
 							</Button>
-							<CheckBox x:Name="CHExcludeSSLLocalIP" Content="Exclude local IP" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal"/>
+							<CheckBox x:Name="CHExcludeSSLLocalIP" IsEnabled="False" Content="Exclude local IP" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal"/>
 							<CheckBox x:Name="CHExcludeSnifferLocalIP" Content="Exclude local IP" Margin="6,88.5,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" FontWeight="Normal"/>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,0,6,54.54" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Bottom"/>
 						</Grid>
@@ -118,7 +112,7 @@
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
-								<GridViewColumn Header="MAC" Width="100" DisplayMemberBinding="{Binding MAC}"/>
+								<GridViewColumn Header="MAC" Width="105" DisplayMemberBinding="{Binding MAC}"/>
 								<GridViewColumn Header="Vendor (OUI)" Width="170" DisplayMemberBinding="{Binding Vendor}"/>
 								<GridViewColumn Header="Hostname" Width="130" DisplayMemberBinding="{Binding Hostname}"/>
 							</GridView>
@@ -132,11 +126,11 @@
 								<GridViewColumn Header="IPv6 address" Width="150">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-                                            <TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="150"/>
+											<TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="150"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
-								<GridViewColumn Header="MAC" Width="100" DisplayMemberBinding="{Binding MAC}"/>
+								<GridViewColumn Header="MAC" Width="105" DisplayMemberBinding="{Binding MAC}"/>
 								<GridViewColumn Header="Vendor (OUI)" Width="170" DisplayMemberBinding="{Binding Vendor}"/>
 								<GridViewColumn Header="Hostname" Width="130" DisplayMemberBinding="{Binding Hostname}"/>
 							</GridView>
@@ -154,15 +148,17 @@
 						<RowDefinition Height="0.7*"></RowDefinition>
 						<RowDefinition Height="0.3*"></RowDefinition>
 					</Grid.RowDefinitions>
-					<GroupBox Header="Legend" Margin="8" Grid.Column="0" Grid.RowSpan="2" >
+					<GroupBox Header="Legend" Margin="8,8,8,0" Grid.Column="0" Height="121" VerticalAlignment="Top" >
 						<Grid Margin="0">
 							<Rectangle Fill="#FFA70000" Height="15" Margin="5,11.085,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,10,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTTP auth (401)"/></TextBlock>
 							<Rectangle Fill="#FF000097" Height="15" Margin="5,31.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,31.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTML forms"/></TextBlock>
-							<Rectangle Fill="#FF3C3C3C" Height="15" Margin="5,62.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
-							<TextBlock Height="16.085" Margin="24,62.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL strippping"/></TextBlock>
-							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Height="0.5" Margin="5,54,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" VerticalAlignment="Top" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5"/>
+							<Rectangle Fill="#FF3C3C3C" Height="15" Margin="5,79.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,79.167,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL strippping"/></TextBlock>
+							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Height="0.5" Margin="5,72.5,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" VerticalAlignment="Top" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5"/>
+							<Rectangle Fill="#FF009600" Height="15" Margin="5,51,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,51,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="FTP"/>
 						</Grid>
 					</GroupBox>
 					<TextBlock Grid.Column="1" Margin="9,18,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold"><Run Text="Sniffer "/><Run Language="sl-si" Text="results"/><Run Text=":"/></TextBlock>
@@ -176,7 +172,7 @@
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
-								<GridViewColumn Header="URL" Width="170">
+								<GridViewColumn Header="URL / IP address" Width="170">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
 											<TextBlock Text="{Binding URL}" TextAlignment="Center" MinWidth="170"/>
@@ -186,21 +182,21 @@
 								<GridViewColumn Header="Username" Width="110">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-                                            <TextBlock Text="{Binding Username}" TextAlignment="Center" MinWidth="110"/>
+											<TextBlock Text="{Binding Username}" TextAlignment="Center" MinWidth="110"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
 								<GridViewColumn Header="Password" Width="110">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-                                            <TextBlock Text="{Binding Password}" TextAlignment="Center" MinWidth="110"/>
+											<TextBlock Text="{Binding Password}" TextAlignment="Center" MinWidth="110"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
 								<GridViewColumn Header="Additional info" Width="200">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-                                            <TextBlock Text="{Binding Aditional}" TextAlignment="Center" MinWidth="200"/>
+											<TextBlock Text="{Binding Aditional}" TextAlignment="Center" MinWidth="200"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
@@ -211,12 +207,17 @@
 						<FlowDocument/>
 					</RichTextBox>
 					<TextBlock Grid.Column="1" Margin="9,4,8,16" TextWrapping="Wrap" FontWeight="Bold" Grid.Row="1" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL stripping debug"/><Run Text=":"/><Run Language="sl-si" Text=" "/><Run Foreground="#FF7A7A7A" Language="sl-si" Text="(last line on top)"/></TextBlock>
+					<Button x:Name="BClearSniffer" Content="Clear sniffer results" Height="22" VerticalAlignment="Top" Margin="9,138,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" Click="BClearSniffer_Click">
+						<Button.Effect>
+							<DropShadowEffect x:Name="SHStartScan1" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+						</Button.Effect>
+					</Button>
 				</Grid>
 			</TabItem>			
 		</TabControl>
 		<Image Source="Graphics\Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="9.626,30.335,0,0" HorizontalAlignment="Left" Height="75.159" VerticalAlignment="Top" Width="73.155" Stretch="Uniform" />
-		<TextBlock Height="42.166" Margin="97,23,177.333,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="Segoe UI Semibold"><Run Language="sl-si" Text="Nighthawk"/></TextBlock>
-		<TextBlock Height="22" Margin="98,64.5,166.333,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Foreground="#FF8F8F8F" Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Foreground="#FFC4C4C4" Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
+		<TextBlock Height="42.166" Margin="97,27,177.333,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="Segoe UI Semibold"><Run Language="sl-si" Text="Nighthawk"/></TextBlock>
+		<TextBlock Height="22" Margin="98,68,166.333,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Foreground="#FF8F8F8F" Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Foreground="#FFC4C4C4" Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
 		<Image Source="Graphics/Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,-70,-82,0" RenderTransformOrigin="0.5,0.5" Opacity="0.2" Panel.ZIndex="-10" Height="216" VerticalAlignment="Top" Width="218" HorizontalAlignment="Right" d:LayoutOverrides="GridBox" >
 			<Image.RenderTransform>
 				<TransformGroup>

