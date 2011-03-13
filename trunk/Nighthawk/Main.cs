@@ -146,12 +146,16 @@ namespace Nighthawk
                 // parse interface ID from WinPcap device "Name"
                 var id = Regex.Split(device.Name, "NPF_")[1];
 
-                // get and set mac address (DeviceInfo)
+                // get and set mac address and windows name (DeviceInfo)
                 foreach (var iface in NetworkInterface.GetAllNetworkInterfaces())
                 {
                     if (iface.Id == id)
                     {
-                        if(DeviceInfoList.Last() != null) DeviceInfoList.Last().PMAC = iface.GetPhysicalAddress();
+                        if(DeviceInfoList.Last() != null)
+                        {
+                            DeviceInfoList.Last().PMAC = iface.GetPhysicalAddress();
+                            DeviceInfoList.Last().WinName = iface.Name;
+                        }
                     }
                 }
             }
