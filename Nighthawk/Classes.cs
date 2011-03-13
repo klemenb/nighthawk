@@ -147,6 +147,7 @@ namespace Nighthawk
         public string IPv6;
         public string LinkLocal;
         public string Mask;
+        public string WinName;
         public string Broadcast;
         public PhysicalAddress PMAC;
         public int CIDR;
