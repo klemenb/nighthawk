@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.WinPcap;
@@ -352,6 +353,13 @@ namespace Nighthawk
                 {
                     Window.SnifferResultList.Add(result);
                 }
+
+                // notify user
+                if (Window.TCTabs.SelectedIndex != 1)
+                {
+                    Window.RCTSnifferUpdated.Visibility = Visibility.Visible;
+                    ((Storyboard) Window.Resources["STSnifferUpdated"]).Begin();
+                }
             }));
         }
 
@@ -407,7 +415,7 @@ namespace Nighthawk
                 if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
-                    // Window.BStartNDP.IsEnabled = true;
+                    Window.CHResolveHostnames.IsEnabled = true;
                 }
             }));
         }

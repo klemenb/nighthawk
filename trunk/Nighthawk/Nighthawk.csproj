@@ -151,6 +151,11 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <BlendEmbeddedFont Include="Fonts\seguisb.ttf">
+      <IsSystemFont>True</IsSystemFont>
+      <All>True</All>
+      <AutoFill>True</AutoFill>
+    </BlendEmbeddedFont>
     <Resource Include="Graphics\Nighthawk.png" />
     <Resource Include="Icons\HelpIcon.png" />
     <Resource Include="Icons\SaveIconSniffer.png" />

@@ -30,7 +30,7 @@ namespace Nighthawk
             return (int)subnetConsecutiveOnes;
         }
 
-        // get START/END ip
+        // get start/end ip
         public static long[] MaskToStartEnd(string ip, string subnetMask)
         {
             return MaskToStartEnd(ip, MaskToCIDR(subnetMask));
