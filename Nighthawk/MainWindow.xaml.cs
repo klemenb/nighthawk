@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using Microsoft.Win32;
 
 /**
@@ -171,6 +172,7 @@ namespace Nighthawk
             // update button text
             BScanNetwork.Content = "Scanning...";
             BScanNetwork.IsEnabled = false;
+            CHResolveHostnames.IsEnabled = false;
         }
 
         // "Start/Stop sniffer"
@@ -191,6 +193,7 @@ namespace Nighthawk
                 BStartSniffer.Content = "Stop sniffer";
                 SHStartSniffer.Color = EnabledColor;
                 SBSniffer.Enabled = true;
+                CHExcludeSnifferLocalIP.IsEnabled = false;
             }
             else
             {
@@ -201,6 +204,7 @@ namespace Nighthawk
                 BStartSniffer.Content = "Start sniffer";
                 SHStartSniffer.Color = DisabledColor;
                 SBSniffer.Enabled = false;
+                CHExcludeSnifferLocalIP.IsEnabled = true;
             }
         }
 
@@ -259,22 +263,24 @@ namespace Nighthawk
                 }
 
                 // start SSL strip
-                Nighthawk.SSLStrip.Start();
+                Nighthawk.SSLStrip.Start(CHStripCookies.IsChecked != null ? (bool)CHStripCookies.IsChecked : false);
 
                 // update button text, color
                 BStartSSLstrip.Content = "Stop SSL stripping";
                 SHStartSSLstrip.Color = EnabledColor;
                 SBSsl.Enabled = true;
+                CHStripCookies.IsEnabled = false;
             }
             else
             {
-                // start SSL strip
+                // stop SSL strip
                 Nighthawk.SSLStrip.Stop();
 
                 // update button text, color
                 BStartSSLstrip.Content = "Start SSL stripping";
                 SHStartSSLstrip.Color = DisabledColor;
                 SBSsl.Enabled = false;
+                CHStripCookies.IsEnabled = true;
             }
         }
 
@@ -297,6 +303,14 @@ namespace Nighthawk
         private void BClearSniffer_Click(object sender, RoutedEventArgs e)
         {
             SnifferResultList.Clear();
+        }
+
+        // current tab changed
+        private void TCTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            RCTSnifferUpdated.Visibility = Visibility.Collapsed;
+
+            ((Storyboard)Resources["STSnifferUpdated"]).Stop();
         }
 
         /* Menu events */

@@ -8,17 +8,17 @@
 	x:Name="StatusBoxControl" Loaded="StatusBoxControl_Loaded" ToolTip="Disabled">
 	<UserControl.Resources>
 		<LinearGradientBrush x:Key="BrushEnabled" EndPoint="0.5,1" StartPoint="0.5,0">
-			<GradientStop Color="#FF313131" Offset="1"/>
-			<GradientStop Color="#FF545454"/>
+			<GradientStop Color="#FF252525" Offset="1"/>
+			<GradientStop Color="#FF4B4B4B"/>
 		</LinearGradientBrush>
 		<LinearGradientBrush x:Key="BrushDisabled" EndPoint="0.5,1" StartPoint="0.5,0">
-			<GradientStop Color="Gray" Offset="1"/>
-			<GradientStop Color="#FFB6B6B6"/>
+			<GradientStop Color="#FF6A6A6A" Offset="1"/>
+			<GradientStop Color="#FF9D9D9D"/>
 		</LinearGradientBrush>
 	</UserControl.Resources>
 
 	<Grid x:Name="LayoutRoot" Width="36" Height="16">
 		<Rectangle x:Name="RectangleBox" Margin="0" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeThickness="0.5" RadiusX="3" RadiusY="3" Fill="{StaticResource BrushDisabled}"/>
-		<TextBlock x:Name="TextField" Text="{Binding ElementName=StatusBoxControl, Path=Text}" TextWrapping="Wrap" Foreground="White" FontFamily="Segoe UI Semibold" TextAlignment="Center" Margin="0,1.5,0,0" FontSize="9.333"/>
+		<TextBlock x:Name="TextField" Text="{Binding ElementName=StatusBoxControl, Path=Text}" TextWrapping="Wrap" Foreground="White" FontFamily="/Nighthawk;component/Fonts/#Segoe UI Semibold" TextAlignment="Center" Margin="0,1.5,0,0" FontSize="9.333"/>
 	</Grid>
 </UserControl>

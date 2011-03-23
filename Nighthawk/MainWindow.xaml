@@ -3,7 +3,19 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:nighthawk="clr-namespace:Nighthawk"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Nighthawk.MainWindow"
-		Title="Nighthawk 0.3" Height="650" Width="900" MinHeight="650" MinWidth="900" Icon="Icons\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed">
+		Title="Nighthawk 0.3" MinHeight="650" MinWidth="900" Icon="Icons\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed" Height="636" Width="900">
+	<Window.Resources>
+		<Storyboard x:Key="STSnifferUpdated" RepeatBehavior="Forever" AutoReverse="True">
+			<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="RCTSnifferUpdated">
+				<EasingColorKeyFrame KeyTime="0" Value="#FF64D462"/>
+				<EasingColorKeyFrame KeyTime="0:0:0.2" Value="#FF25AB23"/>
+			</ColorAnimationUsingKeyFrames>
+			<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).(GradientBrush.GradientStops)[1].(GradientStop.Color)" Storyboard.TargetName="RCTSnifferUpdated">
+				<EasingColorKeyFrame KeyTime="0" Value="#FF219D1F"/>
+				<EasingColorKeyFrame KeyTime="0:0:0.2" Value="#FF076405"/>
+			</ColorAnimationUsingKeyFrames>
+		</Storyboard>
+	</Window.Resources>
 	<Grid>
 		<Grid.RowDefinitions>
 			<RowDefinition Height="0.644*"/>
@@ -44,10 +56,7 @@
 				</MenuItem>
 			</MenuItem>
 		</Menu>
-		<nighthawk:StatusBox x:Name="SBArp" Margin="0,112,239,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
-		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,112,195,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
-		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,112,151,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
-		<TabControl Margin="8,110,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2">
+		<TabControl x:Name="TCTabs" Margin="8,110,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" SelectionChanged="TCTabs_SelectionChanged">
 			<TabItem Header=" Network ">
 				<Grid Background="WhiteSmoke" Margin="0,0.5,0,-0.5">
 					<Grid.ColumnDefinitions>
@@ -72,12 +81,12 @@
 							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="6,35,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal"/>
 							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,9,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" d:LayoutOverrides="VerticalAlignment">
 								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartScan" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+									<DropShadowEffect x:Name="SHStartScan" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 								</Button.Effect>
 							</Button>
 							<Button x:Name="BStartARP" Click="BStartARP_Click" IsEnabled="False" Content="Start ARP spoofing" Margin="5,65,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
 								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+									<DropShadowEffect x:Name="SHStartARP" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 								</Button.Effect>
 							</Button>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,57,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
@@ -87,15 +96,15 @@
 						<Grid Margin="0">
 							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,63,0,0" Width="116" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Normal">
 								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartSniffer" Color="#FFFFB9B9" BlurRadius="0" RenderingBias="Quality" Direction="3960" ShadowDepth="10"/>
+									<DropShadowEffect x:Name="SHStartSniffer" Color="#FFFFB9B9" BlurRadius="0" RenderingBias="Quality" Direction="3960" ShadowDepth="8"/>
 								</Button.Effect>
 							</Button>
 							<Button x:Name="BStartSSLstrip" IsEnabled="True" Content="Start SSL stripping" Margin="5,9,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" BorderThickness="1" Click="BStartSSLstrip_Click" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal">
 								<Button.Effect>
-									<DropShadowEffect x:Name="SHStartSSLstrip" BlurRadius="0" ShadowDepth="10" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360"/>
+									<DropShadowEffect x:Name="SHStartSSLstrip" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 								</Button.Effect>
 							</Button>
-							<CheckBox x:Name="CHExcludeSSLLocalIP" IsEnabled="False" Content="Exclude local IP" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal"/>
+							<CheckBox x:Name="CHStripCookies" Content="Strip cookies" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal"/>
 							<CheckBox x:Name="CHExcludeSnifferLocalIP" Content="Exclude local IP" Margin="6,88.5,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" FontWeight="Normal"/>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,0,6,54.54" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Bottom"/>
 						</Grid>
@@ -148,7 +157,7 @@
 						<RowDefinition Height="0.7*"></RowDefinition>
 						<RowDefinition Height="0.3*"></RowDefinition>
 					</Grid.RowDefinitions>
-					<GroupBox Header="Legend" Margin="8,8,8,0" Grid.Column="0" Height="121" VerticalAlignment="Top" >
+					<GroupBox Header="Legend" Margin="8,11,8,0" Grid.Column="0" Height="121" VerticalAlignment="Top" >
 						<Grid Margin="0">
 							<Rectangle Fill="#FFA70000" Height="15" Margin="5,11.085,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,10,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTTP auth (401)"/></TextBlock>
@@ -156,13 +165,13 @@
 							<TextBlock Height="16.085" Margin="24,31.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTML forms"/></TextBlock>
 							<Rectangle Fill="#FF3C3C3C" Height="15" Margin="5,79.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,79.167,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL strippping"/></TextBlock>
-							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Height="0.5" Margin="5,72.5,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" VerticalAlignment="Top" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5"/>
-							<Rectangle Fill="#FF009600" Height="15" Margin="5,51,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
-							<TextBlock Height="16.085" Margin="24,51,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="FTP"/>
+							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Height="0.5" Margin="5,73,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" VerticalAlignment="Top" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5"/>
+							<Rectangle Fill="#FF009600" Height="15" Margin="5,52,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,52,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="FTP"/>
 						</Grid>
 					</GroupBox>
-					<TextBlock Grid.Column="1" Margin="9,18,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold"><Run Text="Sniffer "/><Run Language="sl-si" Text="results"/><Run Text=":"/></TextBlock>
-					<ListView x:Name="LSnifferResults" Margin="8,40,8,4" Grid.Column="1" Grid.RowSpan="1">
+					<TextBlock Grid.Column="1" Margin="9,12,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold"><Run Text="Sniffer "/><Run Language="sl-si" Text="results"/><Run Text=":"/></TextBlock>
+					<ListView x:Name="LSnifferResults" Margin="8,34,8,4" Grid.Column="1" Grid.RowSpan="1">
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="Type" Width="40">
@@ -209,16 +218,28 @@
 					<TextBlock Grid.Column="1" Margin="9,4,8,16" TextWrapping="Wrap" FontWeight="Bold" Grid.Row="1" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL stripping debug"/><Run Text=":"/><Run Language="sl-si" Text=" "/><Run Foreground="#FF7A7A7A" Language="sl-si" Text="(last line on top)"/></TextBlock>
 					<Button x:Name="BClearSniffer" Content="Clear sniffer results" Height="22" VerticalAlignment="Top" Margin="9,138,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" Click="BClearSniffer_Click">
 						<Button.Effect>
-							<DropShadowEffect x:Name="SHStartScan1" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="10"/>
+							<DropShadowEffect x:Name="SHStartScan1" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 						</Button.Effect>
 					</Button>
 				</Grid>
 			</TabItem>			
 		</TabControl>
-		<Image Source="Graphics\Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="9.626,30.335,0,0" HorizontalAlignment="Left" Height="75.159" VerticalAlignment="Top" Width="73.155" Stretch="Uniform" />
-		<TextBlock Height="42.166" Margin="97,27,177.333,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="Segoe UI Semibold"><Run Language="sl-si" Text="Nighthawk"/></TextBlock>
-		<TextBlock Height="22" Margin="98,68,166.333,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Foreground="#FF8F8F8F" Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Foreground="#FFC4C4C4" Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
-		<Image Source="Graphics/Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,-70,-82,0" RenderTransformOrigin="0.5,0.5" Opacity="0.2" Panel.ZIndex="-10" Height="216" VerticalAlignment="Top" Width="218" HorizontalAlignment="Right" d:LayoutOverrides="GridBox" >
+		<TextBlock Height="43.54" Margin="9,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="/Nighthawk;component/Fonts/#Segoe UI Semibold">
+			<TextBlock.Foreground>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<GradientStop Color="Black" Offset="1"/>
+					<GradientStop Color="#FF232323"/>
+				</LinearGradientBrush>
+			</TextBlock.Foreground>
+			<TextBlock.Effect>
+				<DropShadowEffect BlurRadius="2" Color="#FFE4E4E4" RenderingBias="Quality" ShadowDepth="1" Direction="367" Opacity="0.5"/>
+			</TextBlock.Effect>
+			<Run Language="sl-si" Text="Nighthawk"/></TextBlock>
+		<TextBlock Height="22" Margin="9,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF6E6E6E">
+			<TextBlock.Effect>
+				<DropShadowEffect BlurRadius="2" Color="#FFE4E4E4" RenderingBias="Quality" ShadowDepth="1" Direction="367" Opacity="0.5"/>
+			</TextBlock.Effect><Run Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
+		<Image Source="Graphics/Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,-25.872,-23.163,0" RenderTransformOrigin="0.5,0.5" Opacity="0.45" Panel.ZIndex="-10" Height="166.415" VerticalAlignment="Top" Width="192.334" HorizontalAlignment="Right" d:LayoutOverrides="GridBox" >
 			<Image.RenderTransform>
 				<TransformGroup>
 					<ScaleTransform ScaleY="1" ScaleX="-1"/>
@@ -230,5 +251,32 @@
 		</Image>
 		<Rectangle Grid.Column="1" HorizontalAlignment="Right" Height="127.873" Margin="0,20.96,0,0" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeThickness="0" VerticalAlignment="Top" Width="8" Fill="White"/>
 		<TextBlock Height="14" Margin="8,0,8,2.334" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="#FF727272" FontSize="10.667" Grid.Row="1" Grid.ColumnSpan="2"><Run Language="sl-si" Text="This software may be used only for educational purposes and the author takes no responsibility for improper usage or any damage or data loss that might occur during usage."/></TextBlock>
+		<Rectangle x:Name="RCTSnifferUpdated" HorizontalAlignment="Left" Height="19.083" Margin="124.336,112.959,0,0" StrokeThickness="0.5" VerticalAlignment="Top" Width="5.042" Visibility="Collapsed">
+			<Rectangle.Fill>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<GradientStop Color="#FF64D462" Offset="0"/>
+					<GradientStop Color="#FF25AB23" Offset="1"/>
+				</LinearGradientBrush>
+			</Rectangle.Fill>
+		</Rectangle>
+		<Path Data="M10,104 L534.44351,104" Fill="#FFF1F1F1" Height="13.959" Margin="9,94,169.126,0" Stretch="Fill" VerticalAlignment="Top" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeThickness="4">
+			<Path.Stroke>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<LinearGradientBrush.RelativeTransform>
+						<TransformGroup>
+							<ScaleTransform CenterY="0.5" CenterX="0.5"/>
+							<SkewTransform CenterY="0.5" CenterX="0.5"/>
+							<RotateTransform Angle="90" CenterY="0.5" CenterX="0.5"/>
+							<TranslateTransform/>
+						</TransformGroup>
+					</LinearGradientBrush.RelativeTransform>
+					<GradientStop Color="#FFDCE1E1" Offset="0.363"/>
+					<GradientStop Color="White" Offset="1"/>
+				</LinearGradientBrush>
+			</Path.Stroke>
+		</Path>
+		<nighthawk:StatusBox x:Name="SBArp" Margin="0,88,253,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
+		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,88,208,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
+		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,88,163,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
 	</Grid>
 </Window>

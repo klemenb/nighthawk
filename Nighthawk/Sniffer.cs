@@ -86,6 +86,12 @@ namespace Nighthawk
             "geslo"
         };
 
+        // excluded field names - password
+        private string[] excludedFieldNamesPassword = new string[]
+        {
+            "session_key_only"
+        };
+
         // constructor
         public Sniffer(DeviceInfo deviceInfo)
         {
@@ -267,7 +273,7 @@ namespace Nighthawk
                     }
                     
                     // password
-                    if (fieldNamesPassword.Where(s => param[0].Contains(s)).Count() > 0 && password == string.Empty)
+                    if (fieldNamesPassword.Where(s => param[0].Contains(s)).Count() > 0 && password == string.Empty && !excludedFieldNamesPassword.Contains(param[0]))
                     {
                         password = param[1];
                     }
@@ -297,7 +303,7 @@ namespace Nighthawk
                     }
                     
                     // password
-                    if (fieldNamesPassword.Where(s => param[0].Contains(s)).Count() > 0 && password == string.Empty)
+                    if (fieldNamesPassword.Where(s => param[0].Contains(s)).Count() > 0 && password == string.Empty && !excludedFieldNamesPassword.Contains(param[0]))
                     {
                         password = param[1];
                     }
