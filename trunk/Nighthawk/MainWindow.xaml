@@ -56,7 +56,26 @@
 				</MenuItem>
 			</MenuItem>
 		</Menu>
-		<TabControl x:Name="TCTabs" Margin="8,110,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" SelectionChanged="TCTabs_SelectionChanged">
+		<Path Data="M10,104 L534.44351,104" Fill="#FFF1F1F1" Height="13.959" Margin="133.378,106,169.126,0" Stretch="Fill" VerticalAlignment="Top" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeThickness="4">
+			<Path.Stroke>
+				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+					<LinearGradientBrush.RelativeTransform>
+						<TransformGroup>
+							<ScaleTransform CenterY="0.5" CenterX="0.5"/>
+							<SkewTransform CenterY="0.5" CenterX="0.5"/>
+							<RotateTransform Angle="90" CenterY="0.5" CenterX="0.5"/>
+							<TranslateTransform/>
+						</TransformGroup>
+					</LinearGradientBrush.RelativeTransform>
+					<GradientStop Color="#FFE6E6E6" Offset="0.363"/>
+					<GradientStop Color="White" Offset="1"/>
+				</LinearGradientBrush>
+			</Path.Stroke>
+		</Path>
+		<nighthawk:StatusBox x:Name="SBArp" Margin="0,100,248,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
+		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,100,203,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
+		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,100,158,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
+		<TabControl x:Name="TCTabs" Margin="8,98,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" SelectionChanged="TCTabs_SelectionChanged">
 			<TabItem Header=" Network ">
 				<Grid Background="WhiteSmoke" Margin="0,0.5,0,-0.5">
 					<Grid.ColumnDefinitions>
@@ -224,7 +243,7 @@
 				</Grid>
 			</TabItem>			
 		</TabControl>
-		<TextBlock Height="43.54" Margin="9,25,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="/Nighthawk;component/Fonts/#Segoe UI Semibold">
+		<TextBlock Height="43.54" Margin="9,27,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="/Nighthawk;component/Fonts/#Segoe UI Semibold">
 			<TextBlock.Foreground>
 				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
 					<GradientStop Color="Black" Offset="1"/>
@@ -235,11 +254,10 @@
 				<DropShadowEffect BlurRadius="2" Color="#FFE4E4E4" RenderingBias="Quality" ShadowDepth="1" Direction="367" Opacity="0.5"/>
 			</TextBlock.Effect>
 			<Run Language="sl-si" Text="Nighthawk"/></TextBlock>
-		<TextBlock Height="22" Margin="9,68,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF6E6E6E">
-			<TextBlock.Effect>
+		<TextBlock Height="22" Margin="9,69,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF6E6E6E"><TextBlock.Effect>
 				<DropShadowEffect BlurRadius="2" Color="#FFE4E4E4" RenderingBias="Quality" ShadowDepth="1" Direction="367" Opacity="0.5"/>
-			</TextBlock.Effect><Run Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
-		<Image Source="Graphics/Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,-25.872,-23.163,0" RenderTransformOrigin="0.5,0.5" Opacity="0.45" Panel.ZIndex="-10" Height="166.415" VerticalAlignment="Top" Width="192.334" HorizontalAlignment="Right" d:LayoutOverrides="GridBox" >
+			</TextBlock.Effect><Run Language="sl-si" Text="&quot;The supreme art of war is to subdue the enemy without fighting.&quot; "/><Run Foreground="#FFAFAFAF" Language="sl-si" Text="Sun Tzu"/><LineBreak/></TextBlock>
+		<Image Source="Graphics/Nighthawk.png" RenderOptions.BitmapScalingMode="HighQuality" Margin="0,-29.872,-18.325,0" RenderTransformOrigin="0.5,0.5" Opacity="0.45" Panel.ZIndex="-10" Height="161.415" VerticalAlignment="Top" Width="189.334" HorizontalAlignment="Right" d:LayoutOverrides="GridBox" >
 			<Image.RenderTransform>
 				<TransformGroup>
 					<ScaleTransform ScaleY="1" ScaleX="-1"/>
@@ -251,7 +269,7 @@
 		</Image>
 		<Rectangle Grid.Column="1" HorizontalAlignment="Right" Height="127.873" Margin="0,20.96,0,0" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeThickness="0" VerticalAlignment="Top" Width="8" Fill="White"/>
 		<TextBlock Height="14" Margin="8,0,8,2.334" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="#FF727272" FontSize="10.667" Grid.Row="1" Grid.ColumnSpan="2"><Run Language="sl-si" Text="This software may be used only for educational purposes and the author takes no responsibility for improper usage or any damage or data loss that might occur during usage."/></TextBlock>
-		<Rectangle x:Name="RCTSnifferUpdated" HorizontalAlignment="Left" Height="19.083" Margin="124.336,112.959,0,0" StrokeThickness="0.5" VerticalAlignment="Top" Width="5.042" Visibility="Collapsed">
+		<Rectangle x:Name="RCTSnifferUpdated" HorizontalAlignment="Left" Height="19.083" Margin="124.336,100.959,0,0" StrokeThickness="0.5" VerticalAlignment="Top" Width="5.042" Visibility="Collapsed">
 			<Rectangle.Fill>
 				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
 					<GradientStop Color="#FF64D462" Offset="0"/>
@@ -259,24 +277,5 @@
 				</LinearGradientBrush>
 			</Rectangle.Fill>
 		</Rectangle>
-		<Path Data="M10,104 L534.44351,104" Fill="#FFF1F1F1" Height="13.959" Margin="9,94,169.126,0" Stretch="Fill" VerticalAlignment="Top" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeThickness="4">
-			<Path.Stroke>
-				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-					<LinearGradientBrush.RelativeTransform>
-						<TransformGroup>
-							<ScaleTransform CenterY="0.5" CenterX="0.5"/>
-							<SkewTransform CenterY="0.5" CenterX="0.5"/>
-							<RotateTransform Angle="90" CenterY="0.5" CenterX="0.5"/>
-							<TranslateTransform/>
-						</TransformGroup>
-					</LinearGradientBrush.RelativeTransform>
-					<GradientStop Color="#FFDCE1E1" Offset="0.363"/>
-					<GradientStop Color="White" Offset="1"/>
-				</LinearGradientBrush>
-			</Path.Stroke>
-		</Path>
-		<nighthawk:StatusBox x:Name="SBArp" Margin="0,88,253,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
-		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,88,208,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
-		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,88,163,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
 	</Grid>
 </Window>

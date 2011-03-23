@@ -89,7 +89,7 @@ namespace Nighthawk
             {
                 Thread.Sleep(50);
             }
-            
+
             Nighthawk.StopDevice();
 
             Application.Current.Shutdown();

@@ -296,6 +296,8 @@ namespace Nighthawk
             var ipv6 = GetIPv6Adress(mac);
 
             Response(ipv6, true, mac, "");
+
+            return;
         }
 
         // worker function for resolving hostnames
@@ -309,12 +311,16 @@ namespace Nighthawk
             try
             {
                 hostname = Dns.GetHostEntry(ip).HostName;
-                // hostname = Dns.GetHostByAddress(ip).HostName;
             }
-            catch { }
+            catch(Exception e)
+            {
+                var test = e;
+            }
 
             // invoke event
             Resolved(ip.ToString(), ip.AddressFamily == AddressFamily.InterNetworkV6, hostname);
+
+            return;
         }
 
         // read IPv6 from ND cache
@@ -357,8 +363,9 @@ namespace Nighthawk
 
                 return "/";
             }
+
             // Windows XP - "ipv6 nc"
-            else if (system.Version.Major == 5 && system.Version.Minor == 1)
+            if (system.Version.Major == 5 && system.Version.Minor == 1)
             {
                 // set parameters
                 p.StartInfo.Arguments = "/k ipv6 nc | findstr " + macString;

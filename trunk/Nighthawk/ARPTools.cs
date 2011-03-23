@@ -97,6 +97,9 @@ namespace Nighthawk
         // stop spoofing
         public void StopSpoofing()
         {
+            // remove a static ARP entry for our gateway
+            if (SpoofingStarted) StaticARP(SpoofingTarget2.IP, SpoofingTarget2.PMAC, deviceInfo.WinName, StaticARPOperation.Remove);
+
             SpoofingStarted = false;
 
             // stop threads & re-ARP
@@ -117,9 +120,6 @@ namespace Nighthawk
             
             PacketQueue.Clear();
             PacketQueueRouting.Clear();
-
-            // remove a static ARP entry for our gateway
-            StaticARP(SpoofingTarget2.IP, SpoofingTarget2.PMAC, deviceInfo.WinName, StaticARPOperation.Remove);
         }
 
         // static ARP entry manipulation
