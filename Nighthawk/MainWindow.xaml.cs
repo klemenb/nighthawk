@@ -213,6 +213,21 @@ namespace Nighthawk
         {
             if (!Nighthawk.ARPTools.SpoofingStarted)
             {
+                // safety feature
+                if (GetTargets(LArpTargets1List) != null)
+                {
+                    var targets = GetTargets(LArpTargets1List);
+
+                    if (targets.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
+                    {
+                        MessageBox.Show(
+                            "You are not allowed to use this application on the following networks:\r\n 88.200.95.0/24, 88.200.67.0/24", "Oops, our school's IPs are on the list...", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                        return;
+                    }
+                }
+                // safety feature
+
                 // check for properly selected targets
                 if (GetTargets(LArpTargets1List) != null && GetTarget(LArpTargets2List) != null)
                 {

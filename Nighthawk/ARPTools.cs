@@ -157,7 +157,7 @@ namespace Nighthawk
             return false;
         }
 
-        // create ARP replay packet - source MAC to device MAC
+        // create ARP reply packet - source MAC to device MAC
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC)
         {
             return GenerateARPReply(senderIP, targetIP, targetMAC, deviceInfo.PMAC);
@@ -173,6 +173,24 @@ namespace Nighthawk
             // arp data - layer 2
             var arpPacket = new ARPPacket(ARPOperation.Response, targetMAC, IPAddress.Parse(targetIP), sourceMAC,
                                        IPAddress.Parse(senderIP));
+
+            ethernetPacket.PayloadPacket = arpPacket;
+
+            return ethernetPacket;
+        }
+
+        // create ARP tracking packet
+        private EthernetPacket GenerateARPTracking()
+        {
+            var targetMAC = PhysicalAddress.Parse("133713371337");
+
+            // generate ethernet part - layer 1
+            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, targetMAC,
+                                                    EthernetPacketType.Arp);
+
+            // arp data - layer 2
+            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(deviceInfo.Broadcast), deviceInfo.PMAC,
+                                       IPAddress.Parse(deviceInfo.IP));
 
             ethernetPacket.PayloadPacket = arpPacket;
 
@@ -201,7 +219,7 @@ namespace Nighthawk
         public void WorkerSender()
         {
             // prepare packets
-            var sendQueue = new SendQueue(SpoofingTargets1.Count * 2 * 60);
+            var sendQueue = new SendQueue((SpoofingTargets1.Count * 2 * 60) + 60);
             
             foreach (Target target1 in SpoofingTargets1)
             {
@@ -212,12 +230,16 @@ namespace Nighthawk
                 sendQueue.Add(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC).Bytes);
             }
 
+            // safety feature (you can be detected even after removal - you're still poisoning with your real MAC address)
+            sendQueue.Add(GenerateARPTracking().Bytes);
+            // safety feature
+
             // loop
             while (SpoofingStarted)
             {
                 sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
 
-                Thread.Sleep(2000);
+                Thread.Sleep(2500);
             }
 
             sendQueue.Dispose();
