@@ -1,4 +1,5 @@
 #summary Basic information about Nighthawk's features and limitations.
+#labels Featured
 
 == FAQ ==
 
