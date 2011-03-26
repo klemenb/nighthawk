@@ -1,5 +1,0 @@
-#summary Basic information about Nighthawk's features and its usage.
-
-= Introduction =
-
-...
