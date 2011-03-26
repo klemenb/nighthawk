@@ -12,10 +12,8 @@ After a successful network traffic redirection, SSL stripping tries to force HTT
 
 _What does "Strip cookies" do?_
 
-It basically strips all cookie information from HTTP request and ends any "logged in" session forcing the user to login again and therefore allowing Nighthawk to capture login information.
+It basically strips all information regarding cookies from HTTP request and ends any "logged in" session, forcing the user to login again and therefore allowing Nighthawk to capture login information.
 
 _What can Nighthawk's sniffer actually sniff?_
 
-Currently it only looks for HTTP authentication data (403), FTP logins and most common field names inside GET/POST requests.
-
-__
+Currently it only looks for HTTP authentication data (403), FTP logins and most common field names (used in login forms) inside GET/POST requests.
