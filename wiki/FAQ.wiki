@@ -22,3 +22,7 @@ Currently it only looks for HTTP authentication data (403), FTP logins and most 
 _What is the current state of IPv6 support?_
 
 At this time only the scanner has some support for IPv6. It checks the neighbour cache for IPv6-enabled hosts that were detected during ARP scanning, sends a multicast ICMPv6 ping and listens for possible replies.
+
+_How does it look like?_
+
+http://public.net-lord.net/nighthawk/nighthawk_ss_small.png
