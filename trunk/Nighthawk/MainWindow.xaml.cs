@@ -8,11 +8,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Shell;
 using Microsoft.Win32;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2010  Klemen Bratec
+Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -46,13 +47,13 @@ namespace Nighthawk
         public Color ColorSnifferFTP = Color.FromRgb(0, 150, 0);
 
         public Color ColorSSLStrip = Color.FromRgb(60, 60, 60);
-
-        // device info
-        private DeviceInfo deviceInfo;
         
         public MainWindow()
         {
             InitializeComponent();
+
+            TaskbarItemInfo = new TaskbarItemInfo();
+            TaskbarItemInfo.ProgressState = new TaskbarItemProgressState();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -139,13 +140,23 @@ namespace Nighthawk
                 return;
             }
 
-            // check for active arp spoofing
-            if (Nighthawk != null && Nighthawk.ARPTools != null && Nighthawk.ARPTools.SpoofingStarted)
-            {
-                MessageBox.Show("Please stop ARP spoofing before running another scan.", "Nighthawk - network scan",
-                                MessageBoxButton.OK, MessageBoxImage.Exclamation);
+            // check for active ARP spoofing or SSL stripping
+            if (Nighthawk != null) {
+                if (Nighthawk.ARPTools != null && Nighthawk.ARPTools.SpoofingStarted)
+                {
+                    MessageBox.Show("Please stop ARP spoofing before running another scan.", "Nighthawk - network scan",
+                                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
-                return;
+                    return;
+                }
+
+                if (Nighthawk.SSLStrip != null && Nighthawk.SSLStrip.Started)
+                {
+                    MessageBox.Show("Please stop SSL stripping before running another scan.", "Nighthawk - network scan",
+                                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                    return;
+                }
             }
 
             // start device
@@ -164,10 +175,7 @@ namespace Nighthawk
             TargetList.Clear();
 
             // start scanner
-            Nighthawk.Scanner.ScanNetwork((bool)CHResolveHostnames.IsChecked);
-
-            // set device info
-            deviceInfo = Nighthawk.DeviceInfoList[CInterface.SelectedIndex];
+            Nighthawk.Scanner.ScanNetwork(CHResolveHostnames.IsChecked != null ? (bool)CHResolveHostnames.IsChecked : false);
 
             // update button text
             BScanNetwork.Content = "Scanning...";
@@ -326,6 +334,8 @@ namespace Nighthawk
             RCTSnifferUpdated.Visibility = Visibility.Collapsed;
 
             ((Storyboard)Resources["STSnifferUpdated"]).Stop();
+
+            TaskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
         }
 
         /* Menu events */
@@ -376,7 +386,7 @@ namespace Nighthawk
                     }
                     catch
                     {
-                        MessageBox.Show("Unable to save file. Please try again with a different location or filename", "Nighthawk - file error",
+                        MessageBox.Show("Unable to save file. Please try again with a different location or filename.", "Nighthawk - file error",
                                     MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
@@ -391,17 +401,17 @@ namespace Nighthawk
                 var fileData = new StringBuilder();
 
                 // create first line
-                fileData.AppendLine("Type;URL;Username;Password;Aditional");
+                fileData.AppendLine("Type;Date;URL;Username;Password;Aditional info");
 
                 foreach (var item in SnifferResultList)
                 {
                     // get type
                     var type = "";
 
-                    if (item.Type == SnifferResultType.HTML) type = "HTML";
+                    if (item.Type == SnifferResultType.HTML) type = "HTML form";
                     if (item.Type == SnifferResultType.HTTPAuth) type = "HTTP authentication";
 
-                    fileData.AppendLine(type  + ";" + item.URL + ";" + item.Username + ";" + item.Password + ";" +
+                    fileData.AppendLine(type  + ";" + item.Time.ToString("dd-mm-yyyy HH:mm:ss") + ";" + item.URL + ";" + item.Username + ";" + item.Password + ";" +
                                         item.Aditional);
                 }
 
@@ -429,7 +439,7 @@ namespace Nighthawk
                     }
                     catch
                     {
-                        MessageBox.Show("Unable to save file. Please try again with a different location or filename",
+                        MessageBox.Show("Unable to save file. Please try again with a different location or filename.",
                                         "Nighthawk - file error",
                                         MessageBoxButton.OK, MessageBoxImage.Error);
                     }

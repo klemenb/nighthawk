@@ -75,7 +75,7 @@
 		<nighthawk:StatusBox x:Name="SBArp" Margin="0,100,248,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ARP" />
 		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,100,203,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
 		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,100,158,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
-		<TabControl x:Name="TCTabs" Margin="8,98,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" SelectionChanged="TCTabs_SelectionChanged">
+		<TabControl x:Name="TCTabs" Margin="8,98,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" SelectionChanged="TCTabs_SelectionChanged" FontFamily="Segoe UI">
 			<TabItem Header=" Network ">
 				<Grid Background="WhiteSmoke" Margin="0,0.5,0,-0.5">
 					<Grid.ColumnDefinitions>

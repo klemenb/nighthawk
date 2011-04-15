@@ -19,7 +19,7 @@ namespace Nighthawk
             var exception = (Exception) e.ExceptionObject;
             var data = string.Empty;
 
-            // get exception message
+            // get exception message (no need to say anything...)
             if (exception.InnerException != null)
             {
                 if (exception.InnerException.InnerException != null)
