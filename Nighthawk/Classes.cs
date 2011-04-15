@@ -9,7 +9,7 @@ using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2010  Klemen Bratec
+Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -128,10 +128,16 @@ namespace Nighthawk
     {
         public SnifferResultType Type { get; set; }
         public SolidColorBrush ShapeBrush { get; set; }
+        public DateTime Time { get; set; }
         public string URL { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
         public string Aditional { get; set; }
+
+        public SnifferResult()
+        {
+            Time = DateTime.Now;
+        }
 
         public string CompareString()
         {

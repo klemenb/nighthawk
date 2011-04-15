@@ -14,7 +14,7 @@ using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2010  Klemen Bratec
+Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ namespace Nighthawk
         // current device
         private WinPcapDevice device;
         private DeviceInfo deviceInfo;
+        private PhysicalAddress physicalAddress;
 
         // status
         public bool Started;
@@ -87,6 +88,9 @@ namespace Nighthawk
         public void ScanNetwork(bool resolveHostnames)
         {
             ResolveHostnames = resolveHostnames;
+
+            // set MAC address
+            physicalAddress = deviceInfo.PMAC;
 
             // get start/end IP
             long[] range = Network.MaskToStartEnd(deviceInfo.IP, deviceInfo.Mask);
@@ -145,11 +149,11 @@ namespace Nighthawk
         private EthernetPacket GenerateARPRequest(string destinationIP, DeviceInfo deviceInfo)
         {
             // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, PhysicalAddress.Parse("FFFFFFFFFFFF"),
+            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
                                                     EthernetPacketType.Arp);
 
             // arp data - layer 2
-            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), deviceInfo.PMAC,
+            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), physicalAddress,
                                        IPAddress.Parse(deviceInfo.IP));
 
             ethernetPacket.PayloadPacket = arpPacket;
@@ -161,7 +165,7 @@ namespace Nighthawk
         private EthernetPacket GenerateIpv6Ping()
         {
             // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, PhysicalAddress.Parse("FFFFFFFFFFFF"),
+            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
                                                     EthernetPacketType.Arp);
 
             // generate IP part - layer 2
@@ -189,6 +193,8 @@ namespace Nighthawk
         // worker function that parses ARP packets
         public void WorkerARP()
         {
+            List<IPAddress> processedIPs = new List<IPAddress>();
+
             // main loop
             while (Started)
             {
@@ -216,19 +222,25 @@ namespace Nighthawk
                             var mac = packet.SenderHardwareAddress;
                             var hostname = ResolveHostnames ? "Resolving..." : String.Empty;
 
-                            Response(ip.ToString(), false, mac, hostname);
-
-                            // resolve hostname
-                            if (ResolveHostnames)
+                            // check if IP already processed
+                            if (!processedIPs.Contains(ip))
                             {
-                                // start resolver thread
-                                var resolver = new Thread(new ParameterizedThreadStart(WorkerResolver));
-                                resolver.Start(ip);
+                                Response(ip.ToString(), false, mac, hostname);
+
+                                // resolve hostname
+                                if (ResolveHostnames)
+                                {
+                                    // start resolver thread
+                                    var resolver = new Thread(new ParameterizedThreadStart(WorkerResolver));
+                                    resolver.Start(ip);
+                                }
+
+                                // start ipv6 thread
+                                var ipv6Resolve = new Thread(new ParameterizedThreadStart(WorkerIPv6));
+                                ipv6Resolve.Start(mac);
                             }
 
-                            // start ipv6 thread
-                            var ipv6Resolve = new Thread(new ParameterizedThreadStart(WorkerIPv6));
-                            ipv6Resolve.Start(mac);
+                            processedIPs.Add(ip);
                         }
                     }
 
@@ -312,10 +324,7 @@ namespace Nighthawk
             {
                 hostname = Dns.GetHostEntry(ip).HostName;
             }
-            catch(Exception e)
-            {
-                var test = e;
-            }
+            catch { }
 
             // invoke event
             Resolved(ip.ToString(), ip.AddressFamily == AddressFamily.InterNetworkV6, hostname);

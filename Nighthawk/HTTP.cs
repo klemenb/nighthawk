@@ -6,7 +6,7 @@ using PacketDotNet;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2010  Klemen Bratec
+Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -121,6 +121,9 @@ namespace Nighthawk
             if (packet.PayloadData != null)
             {
                 var data = encoding.GetString(packet.PayloadData);
+
+                // check for possible full GET/POST requests
+                if (data.Length > 3 && (data.Substring(0, 4) == "POST" || data.Substring(0, 3) == "GET")) return false;
 
                 // get rid of possible left-over headers
                 if (data.Contains("\r\n\r\n"))

