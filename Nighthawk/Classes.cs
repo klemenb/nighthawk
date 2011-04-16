@@ -8,7 +8,7 @@ using System.Windows.Media;
 using SharpPcap.WinPcap;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 namespace Nighthawk
 {
-    // GUI - observable collection for targets
+    // observable collection for targets
     public class TargetList : ObservableCollection<Target>
     {
         public bool ContainsIP(string ip)
@@ -38,6 +38,11 @@ namespace Nighthawk
 
             return false;
         }
+
+        public List<Target> ToList()
+        {
+            return new List<Target>(this);
+        }
     }
 
     // target class
@@ -46,6 +51,8 @@ namespace Nighthawk
         private string _Hostname;
         private string _IPv6;
         private string _IP;
+
+        public List<string> IPv6List { get; set; }
         
         public string MAC { get; set; }
         public PhysicalAddress PMAC { get; set; }
@@ -117,7 +124,7 @@ namespace Nighthawk
         }       
     }
 
-    // GUI - observable collection for sniffer results
+    // observable collection for sniffer results
     public class SnifferResultList : ObservableCollection<SnifferResult>
     {
         
@@ -160,6 +167,7 @@ namespace Nighthawk
         public int CIDRv6;
     }
 
+    // extension methods
     public static class Extensions
     {
         // ObservableList sorting
