@@ -47,7 +47,6 @@ namespace Nighthawk
                        exception.StackTrace;
             }
 
-            // save to file
             var file = File.Create("nighthawk-error-log.txt");
             var stream = new StreamWriter(file);
 

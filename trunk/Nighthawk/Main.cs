@@ -15,7 +15,7 @@ using SharpPcap;
 using SharpPcap.WinPcap;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -35,46 +35,40 @@ namespace Nighthawk
 {
     public class Main
     {
-        // our network interface
         public WinPcapDevice Device;
 
-        // list of devices (DeviceInfo)
         public List<DeviceInfo> DeviceInfoList = new List<DeviceInfo>();
         private DeviceInfo deviceInfo;
 
-        // GUI
         public MainWindow Window;
 
-        // modules
         public Sniffer Sniffer;
         public ARPTools ARPTools;
+        public NDTools NDTools;
         public SSLStrip SSLStrip;
         public Scanner Scanner;
 
-        // vendors (MAC OUI)
+        // simple MAC - VENDOR table (OUI)
         public Dictionary<string, string> Vendors = new Dictionary<string, string>();
 
-        // device status
         public bool Started;
 
-        // last paragraph
+        // last SSLStrip debug line
         private string lastSSLText = string.Empty;
 
-        // constructor
         public Main(MainWindow window)
         {
             Window = window;
         }
 
-        // returns a collection of network interfaces
+        // get a collection of network interfaces
         public List<string> GetInterfaces()
         {
             var devices = new List<string>();
 
-            // clear DeviceInfo list
             DeviceInfoList.Clear();
 
-            // try to check for WinPcap???
+            // try to check for WinPcap
             var error = false;
 
             try
@@ -165,7 +159,7 @@ namespace Nighthawk
             return devices;
         }
 
-        // start listening on a device
+        // start listening on a device (combobox index)
         public void StartDevice(int deviceIndex)
         {
             Started = true;
@@ -173,22 +167,22 @@ namespace Nighthawk
             deviceInfo = DeviceInfoList[deviceIndex];
             Device = WinPcapDeviceList.Instance[deviceIndex];    
 
-            // initialize modules
             Sniffer = new Sniffer(deviceInfo);
             ARPTools = new ARPTools(deviceInfo);
-            SSLStrip = new SSLStrip(deviceInfo);
+            NDTools = new NDTools(deviceInfo);
+            SSLStrip = new SSLStrip();
             Scanner = new Scanner(deviceInfo);
 
-            // module events
             Sniffer.SnifferResult += new SnifferResultHandler(sniffer_OnSnifferResult);
             Scanner.ScannerResponse += new ScannerResponseReceived(scanner_OnResponse);
             Scanner.ScanComplete += new ScannerEventHandler(scanner_OnScanComplete);
             Scanner.HostnameResolved += new ScannerHostnameResolvedHandler(scanner_HostnameResolved);
             SSLStrip.SSLStripped += new SSLStripHandler(SSLStrip_OnSSLStripped);
 
-            // open device, start capturing
+            // open device, set filters & events, start capturing
             Device.Open(DeviceMode.Promiscuous, 1);
             Device.Filter = "(arp || ip || ip6)";
+
             Device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
             Device.StartCapture();
         }
@@ -203,25 +197,24 @@ namespace Nighthawk
             Device.Close();
         }
 
-        // OUI database loader
+        // load OUI database from "OUI.txt" and fill the MAC - VENDOR table
         public void LoadOUI()
         {
             string[] dbLines = File.ReadAllLines("OUI.txt");
 
-            // parse every line and fill "Vendors"
             foreach (var line in dbLines)
             {
                 if (!line.StartsWith("#") && line.Length > 5)
                 {
                     var macSegment = line.Substring(0, 8).Replace("-", "");
-                    var vendor = line.Substring(18, line.Length - 18);
+                    var vendor = line.Substring(9, line.Length - 9);
 
                     if(!Vendors.ContainsKey(macSegment)) Vendors.Add(macSegment, vendor);
                 }
             }
         }
 
-        // check for Vendor
+        // get vendor string from MAC address
         private string GetVendorFromMAC(string mac)
         {
             var macSegment = mac.Substring(0, 6);
@@ -234,7 +227,6 @@ namespace Nighthawk
         // packet arrival event
         private void device_OnPacketArrival(object sender, CaptureEventArgs e)
         {
-            // parse packet
             Packet packet;
 
             try
@@ -246,10 +238,9 @@ namespace Nighthawk
                 return;
             }
 
-            // check only ethernet packets
             if (packet is EthernetPacket)
             {
-                // decode packet as TCP, ARP, IP
+
                 var tcp = TcpPacket.GetEncapsulated(packet);
                 var arp = ARPPacket.GetEncapsulated(packet);
                 var ip = IpPacket.GetEncapsulated(packet);
@@ -306,10 +297,10 @@ namespace Nighthawk
                     }
                 }
 
-                // IP packet (for routing)
+                // IP packet
                 if (ip != null)
                 {
-                    // only route IPv4 when ARP spoofing active
+                    // route IPv4
                     if (ARPTools.SpoofingStarted && ip.SourceAddress.AddressFamily == AddressFamily.InterNetwork)
                     {
                         lock (ARPTools.PacketQueueRouting)
@@ -317,22 +308,29 @@ namespace Nighthawk
                             ARPTools.PacketQueueRouting.Add(packet);
                         }
                     }
+
+                    // route IPv6
+                    if (NDTools.SpoofingStarted && ip.SourceAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                    {
+                        lock (NDTools.PacketQueueRouting)
+                        {
+                            NDTools.PacketQueueRouting.Add(packet);
+                        }
+                    }
                 }
             }
         }
 
         /* Module events */
-        private delegate void UI();
-
-        // sniffer result (username/password sniffed)
+        
+        // sniffer result - username & password sniffed
         private void sniffer_OnSnifferResult(string url, string username, string password, string aditional, SnifferResultType type)
         {
-            // update GUI text
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
                 var brush = new SolidColorBrush();
 
-                // brush color
+                // set brush color
                 if (type == SnifferResultType.HTML)
                 {
                     brush = new SolidColorBrush(Window.ColorSnifferHTML);
@@ -346,7 +344,7 @@ namespace Nighthawk
                     brush = new SolidColorBrush(Window.ColorSnifferFTP);
                 }
 
-                // create new result item
+                // create a new result item
                 var result = new SnifferResult { URL = url, Username = username, Password = password, Aditional = aditional, Type = type, ShapeBrush = brush};
 
                 // don't repeat entries
@@ -354,7 +352,7 @@ namespace Nighthawk
                 {
                     Window.SnifferResultList.Add(result);
 
-                    // notify user
+                    // notify user (blinking green line on the "Sniffer" tab, Win7 taskbar)
                     if (Window.TCTabs.SelectedIndex != 1)
                     {
                         Window.RCTSnifferUpdated.Visibility = Visibility.Visible;
@@ -366,22 +364,21 @@ namespace Nighthawk
             }));
         }
 
-        // scanner response (new target)
-        private void scanner_OnResponse(string ip, bool ipv6, PhysicalAddress mac, string hostname)
+        // scanner response - new target
+        private void scanner_OnResponse(string ip, bool ipv6, PhysicalAddress mac, string hostname, List<string> ipv6List = null)
         {
-            // update GUI
             Window.Dispatcher.Invoke(new UI(delegate
             {
-                // check for existing MAC
+                // check for existing MAC and update current item
                 var items = Window.TargetList.Where(o => o.MAC.Replace(":", "") == mac.ToString());
 
-                // add IP
                 if (items.Count() > 0)
                 {
                     var item = items.First();
 
                     if (ipv6 && (item.IPv6 == string.Empty || item.IPv6 == "/"))
                         item.IPv6 = ip;
+                        if (ipv6List != null && ipv6List.Count > 0) item.IPv6List = ipv6List;
                     else if (!ipv6)
                         item.IP = ip;
                 }
@@ -391,11 +388,16 @@ namespace Nighthawk
                     var item = new Target { Hostname = hostname, MAC = Network.FriendlyPhysicalAddress(mac), PMAC = mac, Vendor = GetVendorFromMAC(mac.ToString()) };
 
                     if (ipv6)
+                    {
                         item.IPv6 = ip;
+                        if (ipv6List != null && ipv6List.Count > 0) item.IPv6List = ipv6List;
+                    }
                     else
+                    {
                         item.IP = ip;
-                   
-                    // exclude local MAC)
+                    }
+
+                    // exclude local MAC
                     if (mac.ToString() != deviceInfo.PMAC.ToString())
                     {
                         Window.TargetList.Add(item);
@@ -408,28 +410,32 @@ namespace Nighthawk
         // network scan completed
         private void scanner_OnScanComplete()
         {
-            // update GUI
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
                 Window.BScanNetwork.IsEnabled = true;
                 Window.BScanNetwork.Content = "Scan network";
 
-                // check for target count to enable ARP spoofing buttons
+                // enable ARP spoofing buttons
                 if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
                     Window.CHResolveHostnames.IsEnabled = true;
                 }
+
+                // check for IPv6 support
+                if (deviceInfo.IPv6 != string.Empty)
+                {
+                    Window.BStartND.IsEnabled = true;
+                    Window.TBPrefix.Text = Network.GetPrefixFromIP(deviceInfo.IPv6);
+                }
             }));
         }
-
-
+        
         // hostname resolved
         private void scanner_HostnameResolved(string ip, bool ipv6, string hostname)
         {
             if (Scanner.ResolveHostnames)
             {
-                // update GUI
                 Window.Dispatcher.BeginInvoke(new UI(delegate
                 {
                     // check for local IP
@@ -445,10 +451,9 @@ namespace Nighthawk
         // SSL stripped
         private void SSLStrip_OnSSLStripped(string sourceIP, string destIP, List<string> changed)
         {
-            // update GUI text
             Window.Dispatcher.BeginInvoke(new UI(delegate
             {
-                // determine what has changed
+                // construct "changes"
                 var changedText = string.Empty;
 
                 foreach(var change in changed)
@@ -461,18 +466,17 @@ namespace Nighthawk
                     }
                 }
 
-                // build output string
+                // build whole output string
                 var text = "SSL stripped ("+ sourceIP +" -> "+ destIP +"): "+ changedText;
                 var resultText = new Run(text);
                 resultText.Foreground = new SolidColorBrush(Window.ColorSSLStrip);
 
-                // change paragraph style
                 var thickness = new Thickness(0, 0, 0, 5);
                 var paragraph = new Paragraph(resultText);
 
                 paragraph.Margin = thickness;
 
-                // don't repeat entries
+                // don't repeat the same entries
                 if (lastSSLText != text)
                 {
                     lastSSLText = text;
@@ -486,4 +490,6 @@ namespace Nighthawk
             }));
         }
     }
+
+    public delegate void UI();
 }

@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify

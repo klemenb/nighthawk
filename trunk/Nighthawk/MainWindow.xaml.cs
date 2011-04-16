@@ -12,7 +12,7 @@ using System.Windows.Shell;
 using Microsoft.Win32;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -37,11 +37,9 @@ namespace Nighthawk
         public TargetList TargetList = new TargetList();
         public SnifferResultList SnifferResultList = new SnifferResultList();
 
-        // colors
         private Color DisabledColor = Color.FromRgb(255, 185, 185);
         private Color EnabledColor = Color.FromRgb(169, 239, 168);
 
-        // sniffer colos
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
         public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);
         public Color ColorSnifferFTP = Color.FromRgb(0, 150, 0);
@@ -62,30 +60,43 @@ namespace Nighthawk
 
             Title = "Nighthawk " + GetWindowTitle(false);
 
+            // "Loading..." interfaces
+            CInterface.ItemsSource = new List<string> {"Loading..."};
+            CInterface.SelectedIndex = 0;
+
+            // do startup things in the background
+            Thread startupThread = new Thread(new ThreadStart(Startup));
+            startupThread.Start();
+        }
+
+        private void Startup()
+        {
             // load OUI database
             Nighthawk.LoadOUI();
 
-            // fill interfaces
-            CInterface.ItemsSource = Nighthawk.GetInterfaces();
-            
-            // select first interface
-            if (((List<string>) CInterface.ItemsSource).Count > 0) CInterface.SelectedIndex = 0;
+            var interfaces = Nighthawk.GetInterfaces();
 
-            // set list sources
-            LArpTargets1List.ItemsSource = TargetList;
-            LArpTargets2List.ItemsSource = TargetList;
+            Dispatcher.BeginInvoke(new UI(delegate
+            {
+                // fill interfaces
+                CInterface.ItemsSource = interfaces;
 
-            LSnifferResults.ItemsSource = SnifferResultList;
+                if (((List<string>)CInterface.ItemsSource).Count > 0) CInterface.SelectedIndex = 0;
+
+                LArpTargets1List.ItemsSource = TargetList;
+                LArpTargets2List.ItemsSource = TargetList;
+
+                LSnifferResults.ItemsSource = SnifferResultList;
+            }));
         }
         
         private void Window_Closed(object sender, EventArgs e)
         {
-            // stop everything
             Nighthawk.ARPTools.StopSpoofing();
+            Nighthawk.NDTools.StopSpoofing();
             Nighthawk.Sniffer.Stop();
             Nighthawk.SSLStrip.Stop();
 
-            // wait for scanner if necessary
             while (Nighthawk.Scanner.Started)
             {
                 Thread.Sleep(50);
@@ -106,7 +117,7 @@ namespace Nighthawk
             return !revision ? major + "." + minor : major + "." + minor + " (" + build + ")";
         }
 
-        // get ARP targets
+        // get selected ARP targets
         private List<Target> GetTargets(ListView list)
         {
             var targets = new List<Target>();
@@ -119,7 +130,7 @@ namespace Nighthawk
             return targets.Count > 0 ? targets : null;
         }
 
-        // get ARP target
+        // get selected ARP target
         private Target GetTarget(ListView list)
         {
             return list.SelectedItem != null ? (Target) list.SelectedItem : null;
@@ -171,13 +182,11 @@ namespace Nighthawk
                 Nighthawk.StartDevice(CInterface.SelectedIndex);
             }
 
-            // clear collection
             TargetList.Clear();
 
-            // start scanner
             Nighthawk.Scanner.ScanNetwork(CHResolveHostnames.IsChecked != null ? (bool)CHResolveHostnames.IsChecked : false);
 
-            // update button text
+            // update GUI
             BScanNetwork.Content = "Scanning...";
             BScanNetwork.IsEnabled = false;
             CHResolveHostnames.IsEnabled = false;
@@ -188,16 +197,14 @@ namespace Nighthawk
         {
             if (Nighthawk.Sniffer == null || !Nighthawk.Sniffer.Started)
             {
-                // start device
                 if (!Nighthawk.Started)
                 {
                     Nighthawk.StartDevice(CInterface.SelectedIndex);
                 }
 
-                // start sniffer
                 Nighthawk.Sniffer.Start((bool)CHExcludeSnifferLocalIP.IsChecked);
 
-                // update button text, color
+                // update GUI
                 BStartSniffer.Content = "Stop sniffer";
                 SHStartSniffer.Color = EnabledColor;
                 SBSniffer.Enabled = true;
@@ -205,10 +212,9 @@ namespace Nighthawk
             }
             else
             {
-                // stop sniffer
                 Nighthawk.Sniffer.Stop();
 
-                // update button text, color
+                // update GUI
                 BStartSniffer.Content = "Start sniffer";
                 SHStartSniffer.Color = DisabledColor;
                 SBSniffer.Enabled = false;
@@ -239,10 +245,9 @@ namespace Nighthawk
                 // check for properly selected targets
                 if (GetTargets(LArpTargets1List) != null && GetTarget(LArpTargets2List) != null)
                 {
-                    // start spoofing
                     Nighthawk.ARPTools.StartSpoofing(GetTargets(LArpTargets1List), GetTarget(LArpTargets2List));
 
-                    // update button text, color
+                    // update GUI
                     BStartARP.Content = "Stop ARP spoofing";
                     SHStartARP.Color = EnabledColor;
                     SBArp.Enabled = true;
@@ -255,13 +260,58 @@ namespace Nighthawk
             }
             else
             {
-                // stop spoofing
                 Nighthawk.ARPTools.StopSpoofing();
                
-                // update button text, color
+                // update GUI
                 BStartARP.Content = "Start ARP spoofing";
                 SHStartARP.Color = DisabledColor;
                 SBArp.Enabled = false;
+            }
+        }
+
+        // "Start/Stop ND spoofing"
+        private void BStartND_Click(object sender, RoutedEventArgs e)
+        {
+            if (!Nighthawk.NDTools.SpoofingStarted)
+            {
+                // safety feature (it's OK to simply check for IPv4 addresses)
+                if (TargetList.ToList() != null)
+                {
+                    var targets = TargetList.ToList();
+
+                    if (targets.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
+                    {
+                        MessageBox.Show(
+                            "You are not allowed to use this application on the following networks:\r\n 88.200.95.0/24, 88.200.67.0/24", "Oops, our school's IPs are on the list...", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                        return;
+                    }
+                }
+                // safety feature
+
+                if (Network.PrefixValid(TBPrefix.Text))
+                {
+                    Nighthawk.NDTools.StartSpoofing(TBPrefix.Text, TargetList.ToList());
+
+                    // update GUI
+                    BStartND.Content = "Stop ND spoofing";
+                    SHStartND.Color = EnabledColor;
+                    SBNd.Enabled = true;
+                }
+                else
+                {
+                    MessageBox.Show("Please enter a valid IPv6 prefix.", "Nighthawk - ND spoofing",
+                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+            }
+            else
+            {
+                Nighthawk.NDTools.StopSpoofing();
+
+                // update GUI
+                BStartND.Content = "Start ND spoofing";
+                SHStartND.Color = DisabledColor;
+                SBNd.Enabled = false;
             }
         }
         
@@ -270,25 +320,22 @@ namespace Nighthawk
         {
             if (Nighthawk.SSLStrip == null || !Nighthawk.SSLStrip.Started)
             {
-                // start device
                 if (!Nighthawk.Started)
                 {
                     Nighthawk.StartDevice(CInterface.SelectedIndex);
                 }
 
-                // check for ARP spoofing
-                if (!Nighthawk.ARPTools.SpoofingStarted)
+                if (!Nighthawk.ARPTools.SpoofingStarted && !Nighthawk.NDTools.SpoofingStarted)
                 {
-                    MessageBox.Show("SSL stripping requires active ARP spoofing to function properly.", "Nighthawk - SSL stripping",
+                    MessageBox.Show("SSL stripping requires active ARP or ND spoofing to function properly.", "Nighthawk - SSL stripping",
                                     MessageBoxButton.OK, MessageBoxImage.Exclamation);
 
                     return;
                 }
 
-                // start SSL strip
                 Nighthawk.SSLStrip.Start(CHStripCookies.IsChecked != null ? (bool)CHStripCookies.IsChecked : false);
 
-                // update button text, color
+                // update GUI
                 BStartSSLstrip.Content = "Stop SSL stripping";
                 SHStartSSLstrip.Color = EnabledColor;
                 SBSsl.Enabled = true;
@@ -296,10 +343,9 @@ namespace Nighthawk
             }
             else
             {
-                // stop SSL strip
                 Nighthawk.SSLStrip.Stop();
 
-                // update button text, color
+                // update GUI
                 BStartSSLstrip.Content = "Start SSL stripping";
                 SHStartSSLstrip.Color = DisabledColor;
                 SBSsl.Enabled = false;
@@ -310,7 +356,6 @@ namespace Nighthawk
         // refresh interfaces
         private void BInterfaceRefresh_Click(object sender, RoutedEventArgs e)
         {
-            // check for active tools
             if (!Nighthawk.Started || (Nighthawk.Started && !Nighthawk.Scanner.Started && !Nighthawk.ARPTools.SpoofingStarted && !Nighthawk.Sniffer.Started && !Nighthawk.SSLStrip.Started))
             {
                 CInterface.ItemsSource = Nighthawk.GetInterfaces();

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 namespace Nighthawk
 {
@@ -30,12 +31,13 @@ namespace Nighthawk
             return (int)subnetConsecutiveOnes;
         }
 
-        // get start/end ip
+        // get starting IP from subnet mask
         public static long[] MaskToStartEnd(string ip, string subnetMask)
         {
             return MaskToStartEnd(ip, MaskToCIDR(subnetMask));
         }
 
+        // get ending IP from subnet mask
         public static long[] MaskToStartEnd(string ip, int bits)
         {
             IPAddress ipAddr = IPAddress.Parse(ip);
@@ -103,6 +105,44 @@ namespace Nighthawk
             }
 
             return output;
+        }
+
+        // convert hexadecimal to bytes
+        public static byte[] HexToByte(string hex)
+        {
+            hex = hex.Replace(" ", "");
+
+            int numberChars = hex.Length;
+            byte[] bytes = new byte[numberChars / 2];
+
+            for (int i = 0; i < numberChars; i += 2)
+            {
+                bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+            }
+
+            return bytes;
+        }
+
+        // convert ipv6 to it's full hexadecimal form
+        public static string IPv6ToFullHex(string ipv6)
+        {
+            return BitConverter.ToString(IPAddress.Parse(ipv6).GetAddressBytes()).Replace("-", "").ToLower();
+        }
+
+        // check for valid IPv6 /64 prefix
+        public static bool PrefixValid(string prefix)
+        {
+            var regex = new Regex("^([0-9A-Fa-f]{1,4}):([0-9A-Fa-f]{1,4}):([0-9A-Fa-f]{1,4}):([0-9A-Fa-f]{1,4}::)$");
+
+            return regex.IsMatch(prefix);
+        }
+
+        // get /64 prefix from IPv6 address
+        public static string GetPrefixFromIP(string ip)
+        {
+            var parts = ip.Split(':');
+
+            return parts[0] + ":" + parts[1] + ":" + parts[2] + ":" + parts[3] + "::";
         }
 
         // get IPv6 pseudo-header (adapted from: http://www.winsocketdotnetworkprogramming.com/clientserversocketnetworkcommunication8f_3.html)

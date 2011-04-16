@@ -94,6 +94,7 @@
     <Compile Include="Controls\About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
+    <Compile Include="NDTools.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Network.cs" />
     <Compile Include="Scanner.cs" />

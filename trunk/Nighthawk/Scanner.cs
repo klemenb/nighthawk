@@ -13,7 +13,7 @@ using PacketDotNet.Utils;
 using SharpPcap.WinPcap;
 
 /**
-Nighthawk - ARP spoofing, simple SSL stripping and password sniffing for Windows
+Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
 Copyright (C) 2011  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
@@ -33,27 +33,24 @@ namespace Nighthawk
 {
     public class Scanner
     {
-        // current device
         private WinPcapDevice device;
         private DeviceInfo deviceInfo;
         private PhysicalAddress physicalAddress;
 
-        // status
         public bool Started;
         public bool ResolveHostnames;
 
-        // packet queues (packet store for BG thread to work on)
+        // packet queues (packet storage for BG threads)
         public List<ARPPacket> PacketQueueARP = new List<ARPPacket>();
         private List<ARPPacket> threadQueueARP = new List<ARPPacket>();
 
         public List<ICMPv6Packet> PacketQueueNDP = new List<ICMPv6Packet>();
         private List<ICMPv6Packet> threadQueueNDP = new List<ICMPv6Packet>();
 
-        // worker threads
         private Thread workerARP;
         private Thread workerNDP;
 
-        // scan completed event
+        // events
         public event ScannerEventHandler ScanComplete;
 
         private void ScanCompleted()
@@ -61,15 +58,13 @@ namespace Nighthawk
             if (ScanComplete != null) ScanComplete();
         }
 
-        // scanner response event
         public event ScannerResponseReceived ScannerResponse;
 
-        private void Response(string ip, bool ipv6, PhysicalAddress mac, string hostname)
+        private void Response(string ip, bool ipv6, PhysicalAddress mac, string hostname, List<string> ipv6List = null)
         {
-            if (ScannerResponse != null) ScannerResponse(ip, ipv6, mac, hostname);
+            if (ScannerResponse != null) ScannerResponse(ip, ipv6, mac, hostname, ipv6List);
         }
 
-        // hostname resolved event
         public event ScannerHostnameResolvedHandler HostnameResolved;
 
         private void Resolved(string ip, bool ipv6, string hostname)
@@ -77,19 +72,17 @@ namespace Nighthawk
             if (HostnameResolved != null) HostnameResolved(ip, ipv6, hostname);
         }
 
-        // constructor
         public Scanner(DeviceInfo deviceInfo)
         {
             device = deviceInfo.Device;
             this.deviceInfo = deviceInfo;
         }
 
-        // scans network (ARP requests & NDP solicitation)
+        // start a network scan - ARP request for IPv4, multicast ping & cache search for IPv6 (resolve hostnames)
         public void ScanNetwork(bool resolveHostnames)
         {
             ResolveHostnames = resolveHostnames;
 
-            // set MAC address
             physicalAddress = deviceInfo.PMAC;
 
             // get start/end IP
@@ -106,99 +99,85 @@ namespace Nighthawk
             workerARP.Name = "Scanner thread (ARP)";
             workerARP.Start();
 
-            // start worker to listen for NDP/ICMPv6 packets
+            // start worker to listen for ICMPv6 packets
             workerNDP = new Thread(new ThreadStart(WorkerICMPv6));
             workerNDP.Name = "Scanner thread (ICMPv6)";
             workerNDP.Start();
 
-            // send IPv6 stuff
+            // send mutlicast IPv6 ping
             if (deviceInfo.IPv6 != string.Empty || deviceInfo.LinkLocal != string.Empty)
             {
                 device.SendPacket(GenerateIpv6Ping());
             }
 
-            // loop through entire subnet, send ARP packets
+            // send ARP requests for all the hosts in our subnet
             while (currentIP <= endIP)
             {
-                // send packet
                 device.SendPacket(GenerateARPRequest(Network.LongToIP(currentIP), deviceInfo));
 
                 currentIP++;
             }
 
-            // timeout - wait for responses
+            // timer for stopping the scanner
             var waitTimer = new Timer(new TimerCallback(Timer_WaitOver));
             waitTimer.Change(4000, Timeout.Infinite);
         }
 
-        // scanner timer callback
+        // timer callback
         private void Timer_WaitOver(object o)
         {
             Started = false;
 
-            // stop threads
             workerARP.Join();
             workerNDP.Join();
 
-            // signal scan end, dispose timer
             ScanCompleted();
             ((Timer) o).Dispose();
         }
 
-        // create ARP request packet
+        // create ARP request packet (destination IP, deviceInfo)
         private EthernetPacket GenerateARPRequest(string destinationIP, DeviceInfo deviceInfo)
         {
-            // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
-                                                    EthernetPacketType.Arp);
-
-            // arp data - layer 2
-            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), physicalAddress,
-                                       IPAddress.Parse(deviceInfo.IP));
+            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"), EthernetPacketType.Arp);
+            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), physicalAddress, IPAddress.Parse(deviceInfo.IP));
 
             ethernetPacket.PayloadPacket = arpPacket;
 
             return ethernetPacket;
         }
 
-        // create multicast ping packet
+        // create multicast IPv6 ping packet
         private EthernetPacket GenerateIpv6Ping()
         {
-            // generate ethernet part - layer 1
-            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"),
-                                                    EthernetPacketType.Arp);
-
-            // generate IP part - layer 2
+            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"), EthernetPacketType.Arp);
             var ipv6Packet = new IPv6Packet(IPAddress.Parse((deviceInfo.IPv6 != string.Empty ? deviceInfo.IPv6 : deviceInfo.LinkLocal)), IPAddress.Parse("ff02::1"));
+            
             ipv6Packet.NextHeader = IPProtocolType.ICMPV6;
             ethernetPacket.PayloadPacket = ipv6Packet;
             
-            // generate ICMPv6 part - layer 3
             var icmpv6Packet = new ICMPv6Packet(new ByteArraySegment(new byte[40]))
-                                   {
-                                       Type = ICMPv6Types.EchoRequest,
-                                       PayloadData = Encoding.ASCII.GetBytes("abcdefghijklmnopqrstuvwabcdefghi")
-                                   };
+            {
+                Type = ICMPv6Types.EchoRequest,
+                PayloadData = Encoding.ASCII.GetBytes("abcdefghijklmnopqrstuvwabcdefghi")
+            };
 
             ipv6Packet.PayloadPacket = icmpv6Packet;
 
-            var pseudo = Network.GetPseudoHeader(ipv6Packet.SourceAddress, ipv6Packet.DestinationAddress,
-                                                 icmpv6Packet.Bytes.Length, 58);
-
+            // ICMPv6 checksum fix
+            var pseudo = Network.GetPseudoHeader(ipv6Packet.SourceAddress, ipv6Packet.DestinationAddress, icmpv6Packet.Bytes.Length, 58);
             icmpv6Packet.Checksum = (ushort)(ChecksumUtils.OnesComplementSum(pseudo.Concat(icmpv6Packet.Bytes).ToArray()) + 4);
 
             return ethernetPacket;
         }
 
-        // worker function that parses ARP packets
+        // worker function for processing incoming ARP replies
         public void WorkerARP()
         {
             List<IPAddress> processedIPs = new List<IPAddress>();
 
-            // main loop
             while (Started)
             {
-                // copy packets to threadQueue
+                // copy packets to thread's packet storage (threadQueue)
                 lock (PacketQueueARP)
                 {
                     foreach (ARPPacket packet in PacketQueueARP)
@@ -211,31 +190,29 @@ namespace Nighthawk
 
                 if (threadQueueARP.Count > 0)
                 {
-                    // loop through packets
+                    // loop through packets and parse responses
                     foreach (ARPPacket packet in threadQueueARP)
                     {
-                        // if ARP response and scanner still active
+                        // if we have an ARP reply (response) and scanner is still active
                         if (packet.Operation == ARPOperation.Response && Started)
                         {
-                            // get IP, MAC
                             var ip = packet.SenderProtocolAddress;
                             var mac = packet.SenderHardwareAddress;
                             var hostname = ResolveHostnames ? "Resolving..." : String.Empty;
 
-                            // check if IP already processed
+                            // process IP if not already processed
                             if (!processedIPs.Contains(ip))
                             {
                                 Response(ip.ToString(), false, mac, hostname);
 
-                                // resolve hostname
                                 if (ResolveHostnames)
                                 {
-                                    // start resolver thread
+                                    // start a background resolver thread
                                     var resolver = new Thread(new ParameterizedThreadStart(WorkerResolver));
                                     resolver.Start(ip);
                                 }
 
-                                // start ipv6 thread
+                                // start ipv6 resolver thread
                                 var ipv6Resolve = new Thread(new ParameterizedThreadStart(WorkerIPv6));
                                 ipv6Resolve.Start(mac);
                             }
@@ -255,13 +232,12 @@ namespace Nighthawk
             return;
         }
         
-        // worker function that parses ICMPv6 ping reply
+        // worker function for parsing ICMPv6 responses
         public void WorkerICMPv6()
         {
-            // main loop
             while (Started)
             {
-                // copy packets to threadQueue
+                // copy packets to thread's packet storage (threadQueue)
                 lock (PacketQueueNDP)
                 {
                     foreach (ICMPv6Packet packet in PacketQueueNDP)
@@ -274,13 +250,12 @@ namespace Nighthawk
 
                 if (threadQueueNDP.Count > 0)
                 {
-                    // loop through packets
+                    // loop through packets and parse them
                     foreach (ICMPv6Packet packet in threadQueueNDP)
                     {
-                        // if ping reply
+                        // if we have a ping reply
                         if (packet.Bytes.Count() > 0 && packet.Bytes[0] == 129)
                         {
-                            // get IP, MAC
                             if (packet.ParentPacket == null || packet.ParentPacket.ParentPacket == null) continue;
 
                             var ip = ((IPv6Packet) packet.ParentPacket).SourceAddress;
@@ -305,9 +280,9 @@ namespace Nighthawk
         public void WorkerIPv6(object data)
         {
             var mac = (PhysicalAddress)data;
-            var ipv6 = GetIPv6Adress(mac);
+            var ipv6List = GetIPv6Address(mac);
 
-            Response(ipv6, true, mac, "");
+            Response((ipv6List.Count > 0 ? ipv6List[0] : "/"), true, mac, "", ipv6List);
 
             return;
         }
@@ -326,14 +301,13 @@ namespace Nighthawk
             }
             catch { }
 
-            // invoke event
             Resolved(ip.ToString(), ip.AddressFamily == AddressFamily.InterNetworkV6, hostname);
 
             return;
         }
 
-        // read IPv6 from ND cache
-        public string GetIPv6Adress(PhysicalAddress mac)
+        // read IPv6 address from ND cache
+        public List<string> GetIPv6Address(PhysicalAddress mac)
         {            
             OperatingSystem system = Environment.OSVersion;
 
@@ -349,70 +323,43 @@ namespace Nighthawk
             p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             p.StartInfo.FileName = "cmd";
 
-            // Vista, Windows 7 - "netsh"
+            // Vista, Windows 7 - use "netsh"
             if (system.Version.Major > 5)
             {
-                // set parameters
                 p.StartInfo.Arguments = "/k netsh int ipv6 show neigh | findstr " + macString;
                 p.Start();
                 
                 var output = p.StandardOutput.ReadToEnd();
 
                 p.WaitForExit();
-
-                // split output lines
+                
                 var lines = output.Contains("\r\n") ? Regex.Split(output, "\r\n") : new string[] {output};
 
-                // return IP from the first line
+                var ipv6List = new List<string>();
+
                 foreach (var line in lines)
                 {
-                    var split = line.Split(' ');
-                    return split[0].Trim() != string.Empty ? split[0].Trim() : "/";
-                }
+                    // skip last line
+                    if (line == lines.Last()) continue;
 
-                return "/";
-            }
-
-            // Windows XP - "ipv6 nc"
-            if (system.Version.Major == 5 && system.Version.Minor == 1)
-            {
-                // set parameters
-                p.StartInfo.Arguments = "/k ipv6 nc | findstr " + macString;
-                p.Start();
-
-                var output = p.StandardOutput.ReadToEnd();
-
-                p.WaitForExit();
-
-                // split output lines (also clean double spaces)
-                var lines = output.Contains("\r\n") ? Regex.Split(Regex.Replace(output, "  ", " "), "\r\n") : new string[] { Regex.Replace(output, "  ", " ") };
-
-                // split line on spaces, return IPv6
-                foreach (var line in lines)
-                {
                     var split = line.Split(' ');
 
-                    if (split.Length > 1)
-                    {
-                        return split[1].Trim() != string.Empty ? split[1].Trim() : "/";
-                    }
+                    // check for link-locals (and don't include them)
+                    if(split[0].Trim() != string.Empty && !split[0].Trim().Contains("fe80::")) ipv6List.Add(split[0].Trim());
                 }
 
-                return "/";
+                return ipv6List;
             }
 
-            p.Close();         
+            p.Close();
 
-            return "/";
+            return new List<string>();
         }
     }
 
-    // ScannerEventHandler event delegate
     public delegate void ScannerEventHandler();
 
-    // ScannerResponseReceived event delegate
-    public delegate void ScannerResponseReceived(string ip, bool ipv6, PhysicalAddress mac, string hostname);
+    public delegate void ScannerResponseReceived(string ip, bool ipv6, PhysicalAddress mac, string hostname, List<string> ipv6List = null);
 
-    // ScannerHostnameResolvedHandler event delegate
     public delegate void ScannerHostnameResolvedHandler(string ip, bool ipv6, string hostname);
 }
