@@ -62,6 +62,8 @@ namespace Nighthawk
         {
             _IP = "/";
             _IPv6 = "/";
+
+            IPv6List = new List<string>();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

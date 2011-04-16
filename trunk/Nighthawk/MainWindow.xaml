@@ -131,7 +131,7 @@
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,56,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
 						</Grid>
 					</GroupBox>
-					<GroupBox Margin="8,74,8,0" Grid.Row="2" Header="ND tools (IPv6)" VerticalAlignment="Top" Height="122" Width="155.6" >
+					<GroupBox Margin="8,274,8,0" Grid.Row="1" Grid.RowSpan="2" Header="ND tools (IPv6)" VerticalAlignment="Top" Height="122" Width="155.6" >
 						<Grid Margin="0">
 							<Button x:Name="BStartND" Click="BStartND_Click" Content="Start ND spoofing" Margin="5,46,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" VerticalAlignment="Top" IsEnabled="False">
 								<Button.Effect>
