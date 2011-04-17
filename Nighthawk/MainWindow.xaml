@@ -3,7 +3,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:nighthawk="clr-namespace:Nighthawk"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Nighthawk.MainWindow"
-		Title="Nighthawk 0.3" MinHeight="650" MinWidth="900" Icon="Icons\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed" Height="636" Width="900">
+		Title="Nighthawk 0.3" MinHeight="650" MinWidth="920" Icon="Icons\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed" Height="636" Width="900">
 	<Window.Resources>
 		<Storyboard x:Key="STSnifferUpdated" RepeatBehavior="Forever" AutoReverse="True">
 			<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="RCTSnifferUpdated">
@@ -76,7 +76,7 @@
 		<nighthawk:StatusBox x:Name="SBNd" Margin="0,100,248,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="ND" />
 		<nighthawk:StatusBox x:Name="SBSsl" Margin="0,100,203,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SSL" />
 		<nighthawk:StatusBox x:Name="SBSniffer" Margin="0,100,158,0" VerticalAlignment="Top" HorizontalAlignment="Right" Text="SNIFF" />
-		<TabControl x:Name="TCTabs" Margin="8,98,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" FontFamily="Segoe UI">
+		<TabControl x:Name="TCTabs" Margin="8,98,8,18" Grid.RowSpan="2" Grid.ColumnSpan="2" SelectionChanged="TCTabs_SelectionChanged" FontFamily="Segoe UI">
 			<TabItem Header=" Network ">
 				<Grid Background="WhiteSmoke" Margin="0,0.5,0,-0.5">
 					<Grid.ColumnDefinitions>
@@ -148,10 +148,10 @@
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="IPv4 address" Width="90" DisplayMemberBinding="{Binding IP}"/>
-								<GridViewColumn Header="IPv6 address" Width="150">
+								<GridViewColumn Header="IPv6 address" Width="180">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="150"/>
+											<TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="180"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
@@ -166,10 +166,10 @@
 						<ListView.View>
 							<GridView>
 								<GridViewColumn Header="IPv4 address" Width="90" DisplayMemberBinding="{Binding IP}"/>
-								<GridViewColumn Header="IPv6 address" Width="150">
+								<GridViewColumn Header="IPv6 address" Width="180">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="150"/>
+											<TextBlock Text="{Binding IPv6}" TextAlignment="Left" MinWidth="180"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>

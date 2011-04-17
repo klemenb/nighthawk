@@ -248,7 +248,7 @@ namespace Nighthawk
                         var ip = (packet is IpPacket ? (IpPacket)packet : IpPacket.GetEncapsulated(packet));
 
                         // discard invalid packets
-                        if (ip is IPv4Packet && ((IPv4Packet)ip).Checksum == 0) continue;
+                        if (ip is IPv4Packet && (((IPv4Packet)ip).Checksum == 0 || !((IPv4Packet)ip).ValidIPChecksum)) continue;
 
                         var sourceIP = ip.SourceAddress.ToString();
                         var destinationIP = ip.DestinationAddress.ToString();
