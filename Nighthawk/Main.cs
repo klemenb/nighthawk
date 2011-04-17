@@ -233,7 +233,7 @@ namespace Nighthawk
 
             try
             {
-                packet = Packet.ParsePacket(e.Packet);
+                packet = Packet.ParsePacket(LinkLayers.Ethernet, e.Packet.Data);
             }
             catch
             {
