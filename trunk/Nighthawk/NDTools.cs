@@ -118,7 +118,7 @@ namespace Nighthawk
                 + deviceInfo.PMAC.ToString() + 
                 "1803000800001111000000000000000000000000000000001903000001010101ff0200000000000000000000000000fb");
 
-            return (EthernetPacket)Packet.Parse(bytes);
+            return (EthernetPacket)Packet.ParsePacket(LinkLayers.Ethernet, bytes);
         }
 
         // create a fake ND packet (source IP)
@@ -136,7 +136,7 @@ namespace Nighthawk
                 + "0201"
                 + deviceInfo.PMAC.ToString());
 
-            return (EthernetPacket)Packet.Parse(bytes);
+            return (EthernetPacket)Packet.ParsePacket(LinkLayers.Ethernet, bytes);
         }
 
         // worker function for sending RA packets
