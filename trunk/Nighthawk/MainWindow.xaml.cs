@@ -274,12 +274,12 @@ namespace Nighthawk
         {
             if (!Nighthawk.NDTools.SpoofingStarted)
             {
-                // safety feature (it's OK to simply check for IPv4 addresses)
-                if (TargetList.ToList() != null)
-                {
-                    var targets = TargetList.ToList();
+                var targetList = TargetList.ToList();
 
-                    if (targets.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
+                // safety feature (it's OK to simply check for IPv4 addresses)
+                if (targetList != null)
+                {
+                    if (targetList.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
                     {
                         MessageBox.Show(
                             "You are not allowed to use this application on the following networks:\r\n 88.200.95.0/24, 88.200.67.0/24", "Oops, our school's IPs are on the list...", MessageBoxButton.OK, MessageBoxImage.Exclamation);
@@ -289,9 +289,9 @@ namespace Nighthawk
                 }
                 // safety feature
 
-                if (Network.PrefixValid(TBPrefix.Text))
+                if (Network.PrefixValid(TBPrefix.Text) && targetList.Find(t => t.IPv6List.Contains(TBPrefix.Text)) != null)
                 {
-                    Nighthawk.NDTools.StartSpoofing(TBPrefix.Text, TargetList.ToList());
+                    Nighthawk.NDTools.StartSpoofing(TBPrefix.Text, targetList);
 
                     // update GUI
                     BStartND.Content = "Stop ND spoofing";
@@ -300,7 +300,7 @@ namespace Nighthawk
                 }
                 else
                 {
-                    MessageBox.Show("Please enter a valid IPv6 prefix.", "Nighthawk - ND spoofing",
+                    MessageBox.Show("There was a problem detecting IPv6/MAC address of the gateway.", "Nighthawk - ND spoofing",
                         MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 }
             }

@@ -377,10 +377,19 @@ namespace Nighthawk
                     var item = items.First();
 
                     if (ipv6 && (item.IPv6 == string.Empty || item.IPv6 == "/"))
+                    {
                         item.IPv6 = ip;
+
+                        // change ipv6List
                         if (ipv6List != null && ipv6List.Count > 0) item.IPv6List = ipv6List;
+                            
+                        // add ip to the list after ping response (ipv6List is null)
+                        if (ipv6List == null && !item.IPv6List.Contains(ip)) item.IPv6List.Add(ip);
+                    }
                     else if (!ipv6)
+                    {
                         item.IP = ip;
+                    }
                 }
                 // add new item
                 else
@@ -390,7 +399,12 @@ namespace Nighthawk
                     if (ipv6)
                     {
                         item.IPv6 = ip;
+
+                        // change ipv6List
                         if (ipv6List != null && ipv6List.Count > 0) item.IPv6List = ipv6List;
+
+                        // add ip to the list after ping response (ipv6List is null)
+                        if (ipv6List == null && !item.IPv6List.Contains(ip)) item.IPv6List.Add(ip);
                     }
                     else
                     {
