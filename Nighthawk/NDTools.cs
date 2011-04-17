@@ -126,7 +126,7 @@ namespace Nighthawk
         {
             // prepare neighbor advertisement packet
             var bytes = Network.HexToByte(
-                IPv6toMACTargets[sourceIP]
+                IPv6toMACTargets[prefix]
                 + deviceInfo.PMAC.ToString() +
                 "86dd6000000000203aff"
                 + Network.IPv6ToFullHex(sourceIP)

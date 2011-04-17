@@ -63,6 +63,8 @@ namespace Nighthawk
                 {
                     if(line != string.Empty) stripRedirects.Add(line);
                 }
+
+                Stripped(string.Empty, string.Empty, new List<string>() { "Loaded " + stripRedirects.Count + " URL(s) for HTTP 302 stripping!" });
             }
         }
 
@@ -171,7 +173,7 @@ namespace Nighthawk
                     packet.PayloadData = bytes;
                     packet.UpdateTCPChecksum();
 
-                    // checksum fixes for IPv4 packets (IPv6 doesn't have checksums)
+                    // checksum fixes for IPv4 packets (IPv6 packet doesn't have a checksum)
                     if (packet.ParentPacket is IPv4Packet)
                     {
                         var ip = (IPv4Packet)packet.ParentPacket;

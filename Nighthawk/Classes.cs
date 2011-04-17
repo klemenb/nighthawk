@@ -160,6 +160,7 @@ namespace Nighthawk
         public WinPcapDevice Device;
         public string IP;
         public string IPv6;
+        public List<string> IPv6List = new List<string>();
         public string LinkLocal;
         public string Mask;
         public string WinName;

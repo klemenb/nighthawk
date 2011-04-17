@@ -95,6 +95,7 @@ namespace Nighthawk
                 var broadcast = "";
 
                 var address6 = "";
+                var address6List = new List<string>();
                 var linkLocal = "";
 
                 foreach (var addr in device.Addresses)
@@ -108,13 +109,14 @@ namespace Nighthawk
                             subnet = addr.Netmask.ipAddress.ToString();
                             broadcast = addr.Broadaddr.ipAddress.ToString();
                         }
-
-                        // get last IPv6 AND link-local address
+                        
+                        // get IPv6 addresses
                         if (addr.Addr.ipAddress.AddressFamily == AddressFamily.InterNetworkV6)
                         {
                             if (!addr.Addr.ipAddress.IsIPv6LinkLocal)
                             {
                                 address6 = addr.Addr.ipAddress.ToString();
+                                address6List.Add(address6);
                             }
                             else
                             {
@@ -130,7 +132,7 @@ namespace Nighthawk
 
                 if (address != string.Empty && address != "0.0.0.0")
                 {
-                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
+                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, IPv6List = address6List, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
                     devices.Add(description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
                 }
                 else
@@ -480,8 +482,17 @@ namespace Nighthawk
                     }
                 }
 
+                var text = string.Empty;
+
                 // build whole output string
-                var text = "SSL stripped ("+ sourceIP +" -> "+ destIP +"): "+ changedText;
+                if (sourceIP != string.Empty)
+                {
+                    text = "Stripped: »" + changedText + "« (" + sourceIP + " -> " + destIP + ")";
+                } else
+                {
+                    text = "Information: »" + changedText + "«";
+                }
+
                 var resultText = new Run(text);
                 resultText.Foreground = new SolidColorBrush(Window.ColorSSLStrip);
 

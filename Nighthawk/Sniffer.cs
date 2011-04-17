@@ -150,18 +150,18 @@ namespace Nighthawk
                     foreach (TcpPacket packet in threadQueue)
                     {
                         if (packet.ParentPacket == null) continue;
+                        
+                        var sourceIP = ((IpPacket) packet.ParentPacket).SourceAddress;
+                        var destIP = ((IpPacket) packet.ParentPacket).DestinationAddress;
 
                         // check for exclusions
                         if (excludeLocalIP)
                         {
-                            if (((IpPacket) packet.ParentPacket).SourceAddress.ToString() == deviceInfo.IP || ((IpPacket) packet.ParentPacket).DestinationAddress.ToString() == deviceInfo.IP)
+                            if (sourceIP.ToString() == deviceInfo.IP || deviceInfo.IPv6List.Contains(sourceIP.ToString()))
                             {
                                 continue;
                             }
                         }
-
-                        var sourceIP = ((IpPacket) packet.ParentPacket).SourceAddress;
-                        var destIP = ((IpPacket) packet.ParentPacket).DestinationAddress;
 
                         // check for FTP packet
                         if (packet.DestinationPort == 21)
@@ -315,7 +315,7 @@ namespace Nighthawk
                         if (posts.Count() > 0)
                         {
                             hostname = posts.First().Hostname;
-                            comment += " *";
+                            // comment += " *";
 
                             postRequests.Remove(posts.First());
                         }
