@@ -161,11 +161,14 @@ namespace Nighthawk
         public string IP;
         public string IPv6;
         public List<string> IPv6List = new List<string>();
+        public string GatewayIP;
+        public string GatewayIPv6;
         public string LinkLocal;
         public string Mask;
         public string WinName;
         public string Broadcast;
         public PhysicalAddress PMAC;
+        public PhysicalAddress GatewayPMAC;
         public int CIDR;
         public int CIDRv6;
     }

@@ -344,8 +344,7 @@ namespace Nighthawk
 
                     var split = line.Split(' ');
 
-                    // check for link-locals (and don't include them)
-                    if(split[0].Trim() != string.Empty && !split[0].Trim().Contains("fe80::")) ipv6List.Add(split[0].Trim());
+                    if(split[0].Trim() != string.Empty) ipv6List.Add(split[0].Trim());
                 }
 
                 return ipv6List;

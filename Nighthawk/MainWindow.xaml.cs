@@ -228,7 +228,7 @@ namespace Nighthawk
             if (!Nighthawk.ARPTools.SpoofingStarted)
             {
                 // safety feature
-                if (GetTargets(LArpTargets1List) != null)
+                if (GetTargets(LArpTargets1List) != null && false)
                 {
                     var targets = GetTargets(LArpTargets1List);
 
@@ -277,7 +277,7 @@ namespace Nighthawk
                 var targetList = TargetList.ToList();
 
                 // safety feature (it's OK to simply check for IPv4 addresses)
-                if (targetList != null)
+                if (targetList != null && false)
                 {
                     if (targetList.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
                     {
@@ -289,7 +289,7 @@ namespace Nighthawk
                 }
                 // safety feature
 
-                if (Network.PrefixValid(TBPrefix.Text) && targetList.Find(t => t.IPv6List.Contains(TBPrefix.Text)) != null)
+                if (Network.PrefixValid(TBPrefix.Text) && Nighthawk.DeviceInfo.GatewayIPv6 != string.Empty)
                 {
                     Nighthawk.NDTools.StartSpoofing(TBPrefix.Text, targetList);
 
