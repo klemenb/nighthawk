@@ -38,7 +38,7 @@ namespace Nighthawk
         public WinPcapDevice Device;
 
         public List<DeviceInfo> DeviceInfoList = new List<DeviceInfo>();
-        private DeviceInfo deviceInfo;
+        public DeviceInfo DeviceInfo;
 
         public MainWindow Window;
 
@@ -132,7 +132,7 @@ namespace Nighthawk
 
                 if (address != string.Empty && address != "0.0.0.0")
                 {
-                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), IP = address, IPv6 = address6, IPv6List = address6List, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
+                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), GatewayIP = device.Interface.GatewayAddress.ToString(), IP = address, IPv6 = address6, IPv6List = address6List, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
                     devices.Add(description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
                 }
                 else
@@ -166,14 +166,14 @@ namespace Nighthawk
         {
             Started = true;
 
-            deviceInfo = DeviceInfoList[deviceIndex];
+            DeviceInfo = DeviceInfoList[deviceIndex];
             Device = WinPcapDeviceList.Instance[deviceIndex];    
 
-            Sniffer = new Sniffer(deviceInfo);
-            ARPTools = new ARPTools(deviceInfo);
-            NDTools = new NDTools(deviceInfo);
+            Sniffer = new Sniffer(DeviceInfo);
+            ARPTools = new ARPTools(DeviceInfo);
+            NDTools = new NDTools(DeviceInfo);
             SSLStrip = new SSLStrip();
-            Scanner = new Scanner(deviceInfo);
+            Scanner = new Scanner(DeviceInfo);
 
             Sniffer.SnifferResult += new SnifferResultHandler(sniffer_OnSnifferResult);
             Scanner.ScannerResponse += new ScannerResponseReceived(scanner_OnResponse);
@@ -414,7 +414,7 @@ namespace Nighthawk
                     }
 
                     // exclude local MAC
-                    if (mac.ToString() != deviceInfo.PMAC.ToString())
+                    if (mac.ToString() != DeviceInfo.PMAC.ToString())
                     {
                         Window.TargetList.Add(item);
                         Window.TargetList.Sort();
@@ -438,11 +438,18 @@ namespace Nighthawk
                     Window.CHResolveHostnames.IsEnabled = true;
                 }
 
+                // get MAC address of the gateway
+                var gateway = Window.TargetList.Where(t => t.IP == DeviceInfo.GatewayIP);
+
+                if (gateway.Count() > 0) DeviceInfo.GatewayPMAC = gateway.Last().PMAC;
+
                 // check for IPv6 support
-                if (deviceInfo.IPv6 != string.Empty)
+                if (DeviceInfo.IPv6 != string.Empty)
                 {
+                    DeviceInfo.GatewayIPv6 = NDTools.GetIPv6Gateway();
+
                     Window.BStartND.IsEnabled = true;
-                    Window.TBPrefix.Text = Network.GetPrefixFromIP(deviceInfo.IPv6);
+                    Window.TBPrefix.Text = Network.GetPrefixFromIP(DeviceInfo.IPv6);
                 }
             }));
         }
@@ -455,7 +462,7 @@ namespace Nighthawk
                 Window.Dispatcher.BeginInvoke(new UI(delegate
                 {
                     // check for local IP
-                    if (ip != deviceInfo.IP)
+                    if (ip != DeviceInfo.IP)
                     {
                         var target = Window.TargetList.Where(t => t.IP == ip.ToString());
                         if(target.Count() > 0) target.First().Hostname = hostname;
