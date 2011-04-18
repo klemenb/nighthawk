@@ -3,7 +3,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:nighthawk="clr-namespace:Nighthawk"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="Nighthawk.MainWindow"
-		Title="Nighthawk 0.3" MinHeight="650" MinWidth="940" Icon="Icons\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed" Height="636" Width="940">
+		Title="Nighthawk 0.3" MinHeight="660" MinWidth="940" Icon="Icons\NighthawkIcon.ico" Loaded="Window_Loaded" Closed="Window_Closed" Height="650" Width="940">
 	<Window.Resources>
 		<Storyboard x:Key="STSnifferUpdated" RepeatBehavior="Forever" AutoReverse="True">
 			<ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).(GradientBrush.GradientStops)[0].(GradientStop.Color)" Storyboard.TargetName="RCTSnifferUpdated">
@@ -98,10 +98,10 @@
 							</Button>
 						</Grid>
 					</GroupBox>
-					<GroupBox Margin="8,13,8,0" Grid.Row="1" Header="ARP tools" VerticalAlignment="Top" Height="114" Grid.RowSpan="2" >
+					<GroupBox Margin="8,13,8,0" Grid.Row="1" Header="ARP tools" VerticalAlignment="Top" Height="132" >
 						<Grid Margin="0">
 							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="6,35,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal"/>
-							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,9,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" d:LayoutOverrides="VerticalAlignment">
+							<Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,9,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" d:LayoutOverrides="VerticalAlignment" IsEnabled="False">
 								<Button.Effect>
 									<DropShadowEffect x:Name="SHStartScan" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 								</Button.Effect>
@@ -112,9 +112,10 @@
 								</Button.Effect>
 							</Button>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,57,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
+							<CheckBox x:Name="CHBlockPPTP" Content="Block PPTP (VPN)" Margin="6,91,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal" IsEnabled="False" ToolTip="Blocks port 1723 and protocol 47 (GRE)."/>
 						</Grid>
 					</GroupBox>
-					<GroupBox Header="Experimental tools" Margin="8,135,8,0" Height="132" VerticalAlignment="Top" Grid.Row="1" Grid.RowSpan="2" >
+					<GroupBox Header="Experimental tools" Margin="8,150,8,0" Height="132" VerticalAlignment="Top" Grid.Row="1" Grid.RowSpan="2" >
 						<Grid Margin="0">
 							<Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,64,0,0" Width="116" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Normal">
 								<Button.Effect>
@@ -126,12 +127,12 @@
 									<DropShadowEffect x:Name="SHStartSSLstrip" BlurRadius="0" Color="#FFFFB9B9" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 								</Button.Effect>
 							</Button>
-							<CheckBox x:Name="CHStripCookies" Content="Strip cookies" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal"/>
-							<CheckBox x:Name="CHExcludeSnifferLocalIP" Content="Exclude local IP" Margin="6,89.5,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" FontWeight="Normal"/>
+							<CheckBox x:Name="CHStripCookies" Content="Strip cookies" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal" ToolTip="Strips &quot;Cookie&quot; header from HTTP requests."/>
+							<CheckBox x:Name="CHExcludeSnifferLocalIP" Content="Exclude local IP" Margin="6,89.5,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" FontWeight="Normal" ToolTip="Prevents sniffing of local connections."/>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,56,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
 						</Grid>
 					</GroupBox>
-					<GroupBox Margin="8,274,8,0" Grid.Row="1" Grid.RowSpan="2" Header="ND tools (IPv6)" VerticalAlignment="Top" Height="122" Width="155.6" >
+					<GroupBox Margin="8,287,8,0" Grid.Row="1" Grid.RowSpan="2" Header="ND tools (IPv6)" VerticalAlignment="Top" Height="122" Width="155.6" >
 						<Grid Margin="0">
 							<Button x:Name="BStartND" Click="BStartND_Click" Content="Start ND spoofing" Margin="5,46,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" VerticalAlignment="Top" IsEnabled="False">
 								<Button.Effect>
@@ -191,17 +192,23 @@
 						<RowDefinition Height="0.7*"></RowDefinition>
 						<RowDefinition Height="0.3*"></RowDefinition>
 					</Grid.RowDefinitions>
-					<GroupBox Header="Legend" Margin="8,11,8,0" Grid.Column="0" Height="121" VerticalAlignment="Top" >
+					<GroupBox Header="Legend" Margin="8,11,8,0" Grid.Column="0" VerticalAlignment="Top" Height="181" >
 						<Grid Margin="0">
 							<Rectangle Fill="#FFA70000" Height="15" Margin="5,11.085,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,10,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTTP auth (401)"/></TextBlock>
 							<Rectangle Fill="#FF000097" Height="15" Margin="5,31.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,31.667,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="HTML forms"/></TextBlock>
-							<Rectangle Fill="#FF3C3C3C" Height="15" Margin="5,79.585,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
-							<TextBlock Height="16.085" Margin="24,79.167,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL strippping"/></TextBlock>
-							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Height="0.5" Margin="5,73,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" VerticalAlignment="Top" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5"/>
 							<Rectangle Fill="#FF009600" Height="15" Margin="5,52,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
 							<TextBlock Height="16.085" Margin="24,52,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="FTP"/>
+							<Rectangle Fill="DarkOrange" Height="15" Margin="5,72,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,72,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="IMAP"/><LineBreak/><Run Language="sl-si"/></TextBlock>
+							<Rectangle Fill="#FF780078" Height="15" Margin="5,93,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,93,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="POP3"/></TextBlock>
+							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="5,135,5,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
+							<Rectangle Fill="#FF5BDDFF" Height="15" Margin="5,114,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,114,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SMTP"/></TextBlock>
+							<Rectangle Fill="#FF3C3C3C" Height="15" Margin="5,141,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="15" Stroke="Black" StrokeThickness="0.5"/>
+							<TextBlock Height="16.085" Margin="24,141,3.534,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL strippping"/></TextBlock>
 						</Grid>
 					</GroupBox>
 					<TextBlock Grid.Column="1" Margin="9,12,8,0" TextWrapping="Wrap" VerticalAlignment="Top" FontWeight="Bold"><Run Text="Sniffer "/><Run Language="sl-si" Text="results"/><Run Text=":"/></TextBlock>
@@ -222,10 +229,10 @@
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
-								<GridViewColumn Header="Username" Width="110">
+								<GridViewColumn Header="Username" Width="150">
 									<GridViewColumn.CellTemplate>
 										<DataTemplate>
-											<TextBlock Text="{Binding Username}" TextAlignment="Center" MinWidth="110"/>
+											<TextBlock Text="{Binding Username}" TextAlignment="Center" MinWidth="150"/>
 										</DataTemplate>
 									</GridViewColumn.CellTemplate>
 								</GridViewColumn>
@@ -250,7 +257,7 @@
 						<FlowDocument/>
 					</RichTextBox>
 					<TextBlock Grid.Column="1" Margin="9,4,8,16" TextWrapping="Wrap" FontWeight="Bold" Grid.Row="1" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL stripping debug"/><Run Text=":"/><Run Language="sl-si" Text=" "/><Run Foreground="#FF7A7A7A" Language="sl-si" Text="(last line on top)"/></TextBlock>
-					<Button x:Name="BClearSniffer" Content="Clear sniffer results" Height="22" VerticalAlignment="Top" Margin="9,138,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" Click="BClearSniffer_Click">
+					<Button x:Name="BClearSniffer" Content="Clear sniffer results" Margin="9,199,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" Click="BClearSniffer_Click" Height="22" VerticalAlignment="Top">
 						<Button.Effect>
 							<DropShadowEffect x:Name="SHStartScan1" BlurRadius="0" Color="#FFE7E7E7" RenderingBias="Quality" Direction="360" ShadowDepth="8"/>
 						</Button.Effect>

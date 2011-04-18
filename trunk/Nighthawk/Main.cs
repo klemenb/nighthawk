@@ -277,8 +277,8 @@ namespace Nighthawk
                 // TCP packet
                 if (tcp != null)
                 {
-                    // if we are likely to have a HTTP/FTP packet (client -> server)
-                    if (tcp.DestinationPort == 80 || tcp.DestinationPort == 21)
+                    // HTTP, FTP, IMAP, POP3, SMTP packets (client -> server)
+                    if (tcp.DestinationPort == 80 || tcp.DestinationPort == 21 || tcp.DestinationPort == 143 || tcp.DestinationPort == 110 || tcp.DestinationPort == 25)
                     {
                         if (Sniffer.Started)
                         {
@@ -289,7 +289,7 @@ namespace Nighthawk
                         }
                     }
 
-                    // SSL stripping needs in & out
+                    // SSL stripping needs HTTP in & out
                     if (tcp.DestinationPort == 80 || tcp.SourcePort == 80)
                     {
                         if (SSLStrip.Started)
@@ -344,6 +344,18 @@ namespace Nighthawk
                 else if (type == SnifferResultType.FTP)
                 {
                     brush = new SolidColorBrush(Window.ColorSnifferFTP);
+                }
+                else if (type == SnifferResultType.IMAP)
+                {
+                    brush = new SolidColorBrush(Window.ColorSnifferIMAP);
+                }
+                else if (type == SnifferResultType.POP3)
+                {
+                    brush = new SolidColorBrush(Window.ColorSnifferPOP3);
+                }
+                else if (type == SnifferResultType.SMTP)
+                {
+                    brush = new SolidColorBrush(Window.ColorSnifferSMTP);
                 }
 
                 // create a new result item
@@ -435,6 +447,7 @@ namespace Nighthawk
                 if (Window.TargetList.Count > 0)
                 {
                     Window.BStartARP.IsEnabled = true;
+                    Window.CHBlockPPTP.IsEnabled = true;
                     Window.CHResolveHostnames.IsEnabled = true;
                 }
 
