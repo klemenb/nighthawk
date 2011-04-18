@@ -43,6 +43,9 @@ namespace Nighthawk
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
         public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);
         public Color ColorSnifferFTP = Color.FromRgb(0, 150, 0);
+        public Color ColorSnifferIMAP = Color.FromRgb(255, 140, 0);
+        public Color ColorSnifferPOP3 = Color.FromRgb(120, 0, 120);
+        public Color ColorSnifferSMTP = Color.FromRgb(91, 221, 255);
 
         public Color ColorSSLStrip = Color.FromRgb(60, 60, 60);
         
@@ -65,7 +68,7 @@ namespace Nighthawk
             CInterface.SelectedIndex = 0;
 
             // do startup things in the background
-            Thread startupThread = new Thread(new ThreadStart(Startup));
+            var startupThread = new Thread(new ThreadStart(Startup));
             startupThread.Start();
         }
 
@@ -87,6 +90,9 @@ namespace Nighthawk
                 LArpTargets2List.ItemsSource = TargetList;
 
                 LSnifferResults.ItemsSource = SnifferResultList;
+
+                // enable network scanning
+                BScanNetwork.IsEnabled = true;
             }));
         }
         
@@ -245,10 +251,11 @@ namespace Nighthawk
                 // check for properly selected targets
                 if (GetTargets(LArpTargets1List) != null && GetTarget(LArpTargets2List) != null)
                 {
-                    Nighthawk.ARPTools.StartSpoofing(GetTargets(LArpTargets1List), GetTarget(LArpTargets2List));
+                    Nighthawk.ARPTools.StartSpoofing(GetTargets(LArpTargets1List), GetTarget(LArpTargets2List), CHBlockPPTP.IsChecked != null ? (bool)CHBlockPPTP.IsChecked : false);
 
                     // update GUI
                     BStartARP.Content = "Stop ARP spoofing";
+                    CHBlockPPTP.IsEnabled = false;
                     SHStartARP.Color = EnabledColor;
                     SBArp.Enabled = true;
                 }
@@ -264,6 +271,7 @@ namespace Nighthawk
                
                 // update GUI
                 BStartARP.Content = "Start ARP spoofing";
+                CHBlockPPTP.IsEnabled = true;
                 SHStartARP.Color = DisabledColor;
                 SBArp.Enabled = false;
             }

