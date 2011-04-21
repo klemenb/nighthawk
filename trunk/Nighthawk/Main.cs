@@ -390,7 +390,7 @@ namespace Nighthawk
                 {
                     var item = items.First();
 
-                    if (ipv6 && (item.IPv6 == string.Empty || item.IPv6 == "/"))
+                    if (ipv6)
                     {
                         item.IPv6 = ip;
 
@@ -400,7 +400,7 @@ namespace Nighthawk
                         // add ip to the list after ping response (ipv6List is null)
                         if (ipv6List == null && !item.IPv6List.Contains(ip)) item.IPv6List.Add(ip);
                     }
-                    else if (!ipv6)
+                    else
                     {
                         item.IP = ip;
                     }
