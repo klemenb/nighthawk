@@ -15,10 +15,6 @@ _What does "Strip cookies" do?_
 
 It basically strips all information regarding cookies from HTTP request and ends any "logged in" sessions, forcing the user to login again and therefore allowing Nighthawk to capture login information.
 
-_What can Nighthawk's sniffer actually sniff?_
-
-Currently it only looks for HTTP authentication data (403), FTP logins and most common field names (used in login forms) inside GET/POST requests.
-
 _What is the current state of IPv6 support?_
 
 At this time only the scanner has some support for IPv6. It checks the neighbour cache for IPv6-enabled hosts that were detected during ARP scanning, sends a multicast ICMPv6 ping and listens for possible replies.
