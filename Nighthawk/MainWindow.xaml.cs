@@ -242,7 +242,7 @@ namespace Nighthawk
             if (!Nighthawk.ARPTools.SpoofingStarted)
             {
                 // safety feature
-                if (GetTargets(LArpTargets1List) != null && false)
+                if (GetTargets(LArpTargets1List) != null)
                 {
                     var targets = GetTargets(LArpTargets1List);
 
@@ -293,7 +293,7 @@ namespace Nighthawk
                 var targetList = TargetList.ToList();
 
                 // safety feature (it's OK to simply check for IPv4 addresses)
-                if (targetList != null && false)
+                if (targetList != null)
                 {
                     if (targetList.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
                     {
