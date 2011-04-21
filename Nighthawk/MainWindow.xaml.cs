@@ -167,6 +167,14 @@ namespace Nighthawk
                     return;
                 }
 
+                if (Nighthawk.NDTools != null && Nighthawk.NDTools.SpoofingStarted)
+                {
+                    MessageBox.Show("Please stop ND spoofing before running another scan.", "Nighthawk - network scan",
+                                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                    return;
+                }
+
                 if (Nighthawk.SSLStrip != null && Nighthawk.SSLStrip.Started)
                 {
                     MessageBox.Show("Please stop SSL stripping before running another scan.", "Nighthawk - network scan",
@@ -297,7 +305,7 @@ namespace Nighthawk
                 }
                 // safety feature
 
-                if (Network.PrefixValid(TBPrefix.Text) && Nighthawk.DeviceInfo.GatewayIPv6 != string.Empty)
+                if (Network.PrefixValid(TBPrefix.Text) && Nighthawk.DeviceInfo.GatewayIPv6 != string.Empty && targetList.Find(t => t.IPv6List.Contains(Nighthawk.DeviceInfo.GatewayIPv6)) != null)
                 {
                     Nighthawk.NDTools.StartSpoofing(TBPrefix.Text, targetList);
 
@@ -464,7 +472,7 @@ namespace Nighthawk
                     if (item.Type == SnifferResultType.HTML) type = "HTML form";
                     if (item.Type == SnifferResultType.HTTPAuth) type = "HTTP authentication";
 
-                    fileData.AppendLine(type  + ";" + item.Time.ToString("dd-mm-yyyy HH:mm:ss") + ";" + item.URL + ";" + item.Username + ";" + item.Password + ";" +
+                    fileData.AppendLine(type  + ";" + item.Time.ToString("dd-MM-yyyy HH:mm:ss") + ";" + item.URL + ";" + item.Username + ";" + item.Password + ";" +
                                         item.Aditional);
                 }
 
