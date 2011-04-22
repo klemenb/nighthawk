@@ -19,6 +19,6 @@
 
 	<Grid x:Name="LayoutRoot" Width="36" Height="16">
 		<Rectangle x:Name="RectangleBox" Margin="0" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeThickness="0.5" RadiusX="3" RadiusY="3" Fill="{StaticResource BrushDisabled}"/>
-		<TextBlock x:Name="TextField" Text="{Binding ElementName=StatusBoxControl, Path=Text}" TextWrapping="Wrap" Foreground="White" FontFamily="/Nighthawk;component/Fonts/#Segoe UI Semibold" TextAlignment="Center" Margin="0,1.5,0,0" FontSize="9.333"/>
+		<TextBlock x:Name="TextField" Text="{Binding ElementName=StatusBoxControl, Path=Text}" TextWrapping="Wrap" Foreground="White" FontFamily="Segoe UI Semibold" TextAlignment="Center" Margin="0,1.5,0,0" FontSize="9.333"/>
 	</Grid>
 </UserControl>

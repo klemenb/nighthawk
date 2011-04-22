@@ -265,7 +265,7 @@
 				</Grid>
 			</TabItem>			
 		</TabControl>
-		<TextBlock Height="43.54" Margin="9,27,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="/Nighthawk;component/Fonts/#Segoe UI Semibold">
+		<TextBlock Height="43.54" Margin="9,27,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="32" FontFamily="Segoe UI Semibold">
 			<TextBlock.Foreground>
 				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
 					<GradientStop Color="Black" Offset="1"/>
