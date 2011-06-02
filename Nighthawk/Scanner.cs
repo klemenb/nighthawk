@@ -110,17 +110,25 @@ namespace Nighthawk
                 device.SendPacket(GenerateIpv6Ping());
             }
 
-            // send ARP requests for all the hosts in our subnet
+            var possibilities = (int)endIP - (int)startIP;
+
+            var sendQueue = new SendQueue(possibilities * 80);
+
+            // create ARP requests for all the hosts in our subnet
             while (currentIP <= endIP)
             {
-                device.SendPacket(GenerateARPRequest(Network.LongToIP(currentIP), deviceInfo));
+                sendQueue.Add(GenerateARPRequest(Network.LongToIP(currentIP), deviceInfo).Bytes);
 
                 currentIP++;
             }
 
+            // send our queue
+            sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
+
             // timer for stopping the scanner
             var waitTimer = new Timer(new TimerCallback(Timer_WaitOver));
-            waitTimer.Change(4000, Timeout.Infinite);
+
+            waitTimer.Change(3500 * (possibilities > 255 ? 3 : 1), Timeout.Infinite);
         }
 
         // timer callback
