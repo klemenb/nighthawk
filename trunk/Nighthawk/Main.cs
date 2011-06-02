@@ -83,7 +83,10 @@ namespace Nighthawk
                 MessageBox.Show("WinPcap not installed or no devices detected!", "Nighthawk error",
                             MessageBoxButton.OK, MessageBoxImage.Error);
 
-                return new List<string>();
+                Window.Dispatcher.BeginInvoke(new UI(delegate
+                {
+                    Application.Current.Shutdown();
+                }));
             }
             //
 
