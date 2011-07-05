@@ -260,8 +260,7 @@ namespace Nighthawk
                         var destinationMAC = ethernetPacket.DestinationHwAddress.ToString();
 
                         if (destinationMAC == sourceMAC) continue;
-
-
+                        
                         // block PPTP if necessary (exclude local computer)
                         if (blockPPTP && sourceIP != deviceInfo.IP && destinationIP != deviceInfo.IP)
                         {

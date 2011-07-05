@@ -37,6 +37,8 @@ namespace Nighthawk
         private DeviceInfo deviceInfo;
         private PhysicalAddress physicalAddress;
 
+        private readonly PhysicalAddress broadcastMAC = PhysicalAddress.Parse("FFFFFFFFFFFF");
+
         public bool Started;
         public bool ResolveHostnames;
 
@@ -48,6 +50,7 @@ namespace Nighthawk
         private List<ICMPv6Packet> threadQueueNDP = new List<ICMPv6Packet>();
 
         private Thread workerARP;
+        private Thread workerSenderARP;
         private Thread workerNDP;
 
         // events
@@ -85,13 +88,6 @@ namespace Nighthawk
 
             physicalAddress = deviceInfo.PMAC;
 
-            // get start/end IP
-            long[] range = Network.MaskToStartEnd(deviceInfo.IP, deviceInfo.Mask);
-
-            long startIP = range[0];
-            long endIP = range[1];
-            long currentIP = startIP;
-
             Started = true;
 
             // start worker to listen for ARP packets
@@ -110,44 +106,15 @@ namespace Nighthawk
                 device.SendPacket(GenerateIpv6Ping());
             }
 
-            var possibilities = (int)endIP - (int)startIP;
-
-            var sendQueue = new SendQueue(possibilities * 80);
-
-            // create ARP requests for all the hosts in our subnet
-            while (currentIP <= endIP)
-            {
-                sendQueue.Add(GenerateARPRequest(Network.LongToIP(currentIP), deviceInfo).Bytes);
-
-                currentIP++;
-            }
-
-            // send our queue
-            sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
-
-            // timer for stopping the scanner
-            var waitTimer = new Timer(new TimerCallback(Timer_WaitOver));
-
-            waitTimer.Change(3500 * (possibilities > 255 ? 3 : 1), Timeout.Infinite);
-        }
-
-        // timer callback
-        private void Timer_WaitOver(object o)
-        {
-            Started = false;
-
-            workerARP.Join();
-            workerNDP.Join();
-
-            ScanCompleted();
-            ((Timer) o).Dispose();
+            workerSenderARP = new Thread(new ThreadStart(WorkerSender));
+            workerSenderARP.Start();
         }
 
         // create ARP request packet (destination IP, deviceInfo)
-        private EthernetPacket GenerateARPRequest(string destinationIP, DeviceInfo deviceInfo)
+        private EthernetPacket GenerateARPRequest(IPAddress destinationIP, IPAddress senderIP)
         {
-            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"), EthernetPacketType.Arp);
-            var arpPacket = new ARPPacket(ARPOperation.Request, PhysicalAddress.Parse("FFFFFFFFFFFF"), IPAddress.Parse(destinationIP), physicalAddress, IPAddress.Parse(deviceInfo.IP));
+            var ethernetPacket = new EthernetPacket(physicalAddress, broadcastMAC, EthernetPacketType.Arp);
+            var arpPacket = new ARPPacket(ARPOperation.Request, broadcastMAC, destinationIP, physicalAddress, senderIP);
 
             ethernetPacket.PayloadPacket = arpPacket;
 
@@ -157,7 +124,7 @@ namespace Nighthawk
         // create multicast IPv6 ping packet
         private EthernetPacket GenerateIpv6Ping()
         {
-            var ethernetPacket = new EthernetPacket(physicalAddress, PhysicalAddress.Parse("FFFFFFFFFFFF"), EthernetPacketType.Arp);
+            var ethernetPacket = new EthernetPacket(physicalAddress, broadcastMAC, EthernetPacketType.Arp);
             var ipv6Packet = new IPv6Packet(IPAddress.Parse((deviceInfo.IPv6 != string.Empty ? deviceInfo.IPv6 : deviceInfo.LinkLocal)), IPAddress.Parse("ff02::1"));
             
             ipv6Packet.NextHeader = IPProtocolType.ICMPV6;
@@ -176,6 +143,45 @@ namespace Nighthawk
             icmpv6Packet.Checksum = (ushort)(ChecksumUtils.OnesComplementSum(pseudo.Concat(icmpv6Packet.Bytes).ToArray()) + 4);
 
             return ethernetPacket;
+        }
+
+        // worker function for sending ARP requests
+        private void WorkerSender()
+        {
+            // get start/end IP
+            long[] range = Network.MaskToStartEnd(deviceInfo.IP, deviceInfo.Mask);
+
+            long startIP = range[0];
+            long endIP = range[1];
+            long currentIP = startIP;
+
+            var possibilities = (int)endIP - (int)startIP;
+
+            var sendQueue = new SendQueue(possibilities * 80);
+            var deviceIP = IPAddress.Parse(deviceInfo.IP);
+
+            // create ARP requests for all the hosts in our subnet);
+            while (currentIP <= endIP)
+            {
+                sendQueue.Add(GenerateARPRequest(Network.LongToIP(currentIP), deviceIP).Bytes);
+
+                currentIP++;
+            }
+
+            // send our queue
+            sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
+
+            Thread.Sleep(3000);
+
+            // stop other threads and stop scanning
+            Started = false;
+
+            workerARP.Join();
+            workerNDP.Join();
+
+            ScanCompleted();
+
+            return;
         }
 
         // worker function for processing incoming ARP replies

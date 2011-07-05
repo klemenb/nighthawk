@@ -81,9 +81,9 @@ namespace Nighthawk
         }
 
         // long to IP
-        public static string LongToIP(long address)
+        public static IPAddress LongToIP(long address)
         {
-            return IPAddress.Parse(address.ToString()).ToString();
+            return IPAddress.Parse(address.ToString());
         }
 
         // convert MAC to friendly MAC (with :)
