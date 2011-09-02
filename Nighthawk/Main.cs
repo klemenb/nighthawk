@@ -467,6 +467,9 @@ namespace Nighthawk
                     Window.BStartND.IsEnabled = true;
                     Window.TBPrefix.Text = Network.GetPrefixFromIP(DeviceInfo.IPv6);
                 }
+
+                // quick scan
+                if(Window.QuickAttack) Window.StartQuickAttack();
             }));
         }
         

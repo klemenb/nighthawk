@@ -180,6 +180,18 @@
 							</GridView>
 						</ListView.View>
 					</ListView>
+					<Grid x:Name="GRModeSelect" Grid.ColumnSpan="2" Margin="8" Grid.Row="1" Grid.RowSpan="2" Background="WhiteSmoke" Opacity="0.9">
+						<TextBlock Margin="0,81,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="29.333"><Run Language="sl-si" Text="What can I do for you?"/></TextBlock>
+						<StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,128,0,0">
+							<Button x:Name="BSelectQuickAttack" Content="Start quick attack" HorizontalAlignment="Center" Height="30" VerticalAlignment="Top" Width="180" FontSize="16" Margin="0" Click="BSelectQuickAttack_Click" />
+							<Button x:Name="BSelectAdvancedMode" Content="Enable advanced mode" HorizontalAlignment="Center" Height="30" VerticalAlignment="Top" Width="180" FontSize="16" Margin="17,0,0,0" Click="BSelectAdvancedMode_Click" />
+						</StackPanel>
+					</Grid>
+					<Grid x:Name="GRQuickAttack" Grid.ColumnSpan="2" Margin="8" Grid.Row="1" Grid.RowSpan="2" Background="WhiteSmoke" Opacity="0.9" Visibility="Collapsed">
+						<TextBlock Margin="0,81,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="29.333"><Run Language="sl-si" Text="Quick attack in progress..."/></TextBlock>
+						<TextBlock Margin="0,116,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="18.667" Text="Please change to »Sniffer« tab." Foreground="#FF787878"/>
+						<Button x:Name="BStopQuickAttack" Content="Stop" HorizontalAlignment="Center" Height="30" VerticalAlignment="Top" Width="80" FontSize="16" Margin="0,149,0,0" Click="BStopQuickAttack_Click" d:LayoutOverrides="VerticalAlignment" />
+					</Grid>
 				</Grid>
 			</TabItem>
 			<TabItem Header=" Sniffer ">
