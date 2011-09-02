@@ -37,8 +37,8 @@ namespace Nighthawk
         public TargetList TargetList = new TargetList();
         public SnifferResultList SnifferResultList = new SnifferResultList();
 
-        private Color DisabledColor = Color.FromRgb(255, 185, 185);
-        private Color EnabledColor = Color.FromRgb(169, 239, 168);
+        public Color DisabledColor = Color.FromRgb(255, 185, 185);
+        public Color EnabledColor = Color.FromRgb(169, 239, 168);
 
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
         public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);
@@ -48,6 +48,8 @@ namespace Nighthawk
         public Color ColorSnifferSMTP = Color.FromRgb(91, 221, 255);
 
         public Color ColorSSLStrip = Color.FromRgb(60, 60, 60);
+
+        public bool QuickAttack = false;
         
         public MainWindow()
         {
@@ -197,6 +199,13 @@ namespace Nighthawk
             }
 
             TargetList.Clear();
+
+            // reset lists and clear filters
+            LArpTargets1List.ItemsSource = TargetList;
+            LArpTargets2List.ItemsSource = TargetList;
+
+            LArpTargets1List.Items.Filter = null;
+            LArpTargets2List.Items.Filter = null;
 
             Nighthawk.Scanner.ScanNetwork(CHResolveHostnames.IsChecked != null ? (bool)CHResolveHostnames.IsChecked : false);
 
@@ -389,6 +398,36 @@ namespace Nighthawk
             SnifferResultList.Clear();
         }
 
+        // selected advanced mode
+        private void BSelectAdvancedMode_Click(object sender, RoutedEventArgs e)
+        {
+            GRModeSelect.Visibility = Visibility.Collapsed;
+        }
+
+        // selected quick attack mode
+        private void BSelectQuickAttack_Click(object sender, RoutedEventArgs e)
+        {
+            GRModeSelect.Visibility = Visibility.Collapsed;
+            GRQuickAttack.Visibility = Visibility.Visible;
+
+            QuickAttack = true;
+            BScanNetwork_Click(null, null);
+        }
+
+        // stop quick attack
+        private void BStopQuickAttack_Click(object sender, RoutedEventArgs e)
+        {
+            GRModeSelect.Visibility = Visibility.Visible;
+            GRQuickAttack.Visibility = Visibility.Collapsed;
+
+            QuickAttack = false;
+            BStartSniffer_Click(null, null);
+            BStartSSLstrip_Click(null, null);
+            BStartARP_Click(null, null);
+
+            if(Nighthawk.NDTools.SpoofingStarted) BStartND_Click(null, null);
+        }
+
         // current tab changed
         private void TCTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -397,6 +436,46 @@ namespace Nighthawk
             ((Storyboard)Resources["STSnifferUpdated"]).Stop();
 
             TaskbarItemInfo.ProgressState = TaskbarItemProgressState.None;
+        }
+
+        // start quick attack (after scan completes)
+        public void StartQuickAttack()
+        {
+            // clone source items
+            LArpTargets1List.ItemsSource = TargetList.ToList();
+            LArpTargets2List.ItemsSource = TargetList.ToList();
+           
+            // filter out hosts
+            LArpTargets1List.Items.Filter = TargetFilterHosts;
+            LArpTargets1List.UpdateLayout();
+            LArpTargets1List.SelectAll();
+
+            // filter out gateway
+            LArpTargets2List.Items.Filter = TargetFilterGateway;
+            LArpTargets2List.UpdateLayout();
+            LArpTargets2List.SelectedIndex = 0;
+
+            BStartARP_Click(null, null);
+
+            if (Nighthawk.DeviceInfo.IPv6 != string.Empty && Nighthawk.DeviceInfo.GatewayIPv6 != string.Empty && !Nighthawk.DeviceInfo.IPv6.Contains("fe80::"))
+                BStartND_Click(null, null);
+
+            BStartSSLstrip_Click(null, null);
+            BStartSniffer_Click(null, null);
+
+            TCTabs.SelectedIndex = 1;
+        }
+
+        // gateway filter
+        private bool TargetFilterGateway(object t)
+        {
+            return ((Target)t).IP == Nighthawk.DeviceInfo.GatewayIP;
+        }
+
+        // host filter
+        private bool TargetFilterHosts(object t)
+        {
+            return ((Target)t).IP != Nighthawk.DeviceInfo.GatewayIP;
         }
 
         /* Menu events */
