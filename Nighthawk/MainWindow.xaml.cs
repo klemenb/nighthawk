@@ -150,11 +150,13 @@ namespace Nighthawk
         private void BScanNetwork_Click(object sender, RoutedEventArgs e)
         {
             // check for bad interface
-            if (Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0")
+            if (Nighthawk.DeviceInfoList.Count == 0 || Nighthawk.DeviceInfoList[CInterface.SelectedIndex].IP == "0.0.0.0")
             {
                 MessageBox.Show("Invalid interface! Please select another one from the list.",
                                 "Nighthawk - network scan",
                                 MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                QuickAttack = false;
 
                 return;
             }
@@ -407,11 +409,15 @@ namespace Nighthawk
         // selected quick attack mode
         private void BSelectQuickAttack_Click(object sender, RoutedEventArgs e)
         {
-            GRModeSelect.Visibility = Visibility.Collapsed;
-            GRQuickAttack.Visibility = Visibility.Visible;
-
             QuickAttack = true;
             BScanNetwork_Click(null, null);
+
+            // this can be false if scan throws an error
+            if (QuickAttack)
+            {
+                GRModeSelect.Visibility = Visibility.Collapsed;
+                GRQuickAttack.Visibility = Visibility.Visible;
+            }
         }
 
         // stop quick attack
