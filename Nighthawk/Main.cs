@@ -197,6 +197,8 @@ namespace Nighthawk
         {
             Started = false;
 
+            if (Device == null) return;
+
             Device.StopCaptureTimeout = TimeSpan.FromMilliseconds(200);
             Device.StopCapture();
             Device.Close();
