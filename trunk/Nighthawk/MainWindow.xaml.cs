@@ -50,6 +50,7 @@ namespace Nighthawk
         public Color ColorSSLStrip = Color.FromRgb(60, 60, 60);
 
         public bool QuickAttack = false;
+        public bool WindowLoaded = false;
         
         public MainWindow()
         {
@@ -67,7 +68,7 @@ namespace Nighthawk
 
             // "Loading..." interfaces
             CInterface.ItemsSource = new List<string> {"Loading..."};
-            CInterface.SelectedIndex = 0;
+            CInterface.SelectedIndex = 0;       
 
             // do startup things in the background
             var startupThread = new Thread(new ThreadStart(Startup));
@@ -96,23 +97,28 @@ namespace Nighthawk
                 // enable network scanning
                 BScanNetwork.IsEnabled = true;
             }));
+
+            WindowLoaded = true;
         }
         
         private void Window_Closed(object sender, EventArgs e)
         {
-            Nighthawk.ARPTools.StopSpoofing();
-            Nighthawk.NDTools.StopSpoofing();
-            Nighthawk.Sniffer.Stop();
-            Nighthawk.SSLStrip.Stop();
-
-            while (Nighthawk.Scanner.Started)
+            if (WindowLoaded && Nighthawk.Started)
             {
-                Thread.Sleep(50);
+                Nighthawk.ARPTools.StopSpoofing();
+                Nighthawk.NDTools.StopSpoofing();
+                Nighthawk.Sniffer.Stop();
+                Nighthawk.SSLStrip.Stop();
+
+                while (Nighthawk.Scanner.Started)
+                {
+                    Thread.Sleep(50);
+                }
+
+                Nighthawk.StopDevice();
+
+                Application.Current.Shutdown();
             }
-
-            Nighthawk.StopDevice();
-
-            Application.Current.Shutdown();
         }
 
         // get current title (from AssemblyVersion)
@@ -120,9 +126,10 @@ namespace Nighthawk
         {
             var major = Assembly.GetExecutingAssembly().GetName().Version.Major.ToString();
             var minor = Assembly.GetExecutingAssembly().GetName().Version.Minor.ToString();
-            var build = Assembly.GetExecutingAssembly().GetName().Version.Build.ToString();
+            var subminor = Assembly.GetExecutingAssembly().GetName().Version.Build.ToString();
+            // var build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
 
-            return !revision ? major + "." + minor : major + "." + minor + " (" + build + ")";
+            return major + "." + minor + "." + subminor;
         }
 
         // get selected ARP targets
@@ -481,7 +488,7 @@ namespace Nighthawk
         // host filter
         private bool TargetFilterHosts(object t)
         {
-            return ((Target)t).IP != Nighthawk.DeviceInfo.GatewayIP;
+            return ((Target)t).IP != Nighthawk.DeviceInfo.GatewayIP && ((Target)t).IP != "/";
         }
 
         /* Menu events */

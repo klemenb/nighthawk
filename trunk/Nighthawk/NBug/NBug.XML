@@ -1,0 +1,1358 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NBug</name>
+    </assembly>
+    <members>
+        <member name="T:NBug.Core.UI.WinForms.WinFormsUI">
+            <summary>
+            This class is used to prevent statically referencing any WinForms dll from the UISelector.cs thus prevents
+            any unnecessary assembly from getting loaded into the memory.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.ExecutionFlow.ContinueExecution">
+            <summary>
+            This will handle all unhandled exceptions to be able to continue execution.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.ExecutionFlow.BreakExecution">
+            <summary>
+            This will handle all unhandled exceptions and exit the application.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Submission.Protocol.#ctor(System.String,NBug.Core.Submission.Protocols)">
+            <summary>
+            Initializes a new instance of the Protocol class to be extended by derived types.
+            </summary>
+            <param name="connectionString">Connection string to be parsed.</param>
+            <param name="protocol">Derived protocol type.</param>
+        </member>
+        <member name="M:NBug.Core.Submission.Protocol.#ctor(System.String,System.IO.Stream,NBug.Core.Submission.Protocols)">
+            <summary>
+            Initializes a new instance of the Protocol class to be extended by derived types.
+            </summary>
+            <param name="connectionString">Connection string to be parsed.</param>
+            <param name="reportFile">Report file in which the report details are contained.</param>
+            <param name="protocol">Derived protocol type.</param>
+        </member>
+        <member name="P:NBug.Core.Submission.Protocol.ConnectionString">
+            <summary>
+            Gets serialized representation of the connection string.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.Developer.InternalLogViewer.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.Developer.InternalLogViewer.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.Developer.InternalLogViewer.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Serialization.SerializableDictionary`2.#ctor">
+            <summary>
+            Default constructor provided for XML serializer.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.Developer.InternalExceptionViewer.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.Developer.InternalExceptionViewer.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.Developer.InternalExceptionViewer.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIProvider.Auto">
+            <summary>
+            Automatic provider selection is the default setting.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIProvider.Console">
+            <summary>
+            Only the console is used to display the interface and interact with the user if necessary.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIProvider.WinForms">
+            <summary>
+            Windows Forms interface is used for all UI displayed to the user.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIProvider.WPF">
+            <summary>
+            Windows Presentation Foundation interface is used for all UI displayed to the user.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.WinForms.Feedback.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Feedback.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Feedback.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.UI.UISelector">
+            <summary>
+            Initializes a new instance of the UISelector class which displays the user an appropriate user interface in the event of unhandled exceptions.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Serialization.SerializableException.#ctor">
+            <summary>
+            Default constructor provided for XML serialization and de-serialization.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.WinForms.Panels.ExceptionDetailView.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Panels.ExceptionDetailView.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Panels.ExceptionDetailView.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:NBug.Properties.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.UI_Console_Full_Message">
+            <summary>
+              Looks up a localized string similar to Unhandled exception occurred. Closing application..
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.UI_Console_Minimal_Message">
+            <summary>
+              Looks up a localized string similar to Unhandled exception occurred. Closing application..
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.UI_Console_Normal_Message">
+            <summary>
+              Looks up a localized string similar to Unhandled exception occurred. Closing application..
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.UI_Dialog_Full_Message">
+            <summary>
+              Looks up a localized string similar to The application has crashed and it will now be dismissed. If you click Quit, the application will close immediately. If you click Send and Quit, the application will close and a bug report will be send..
+            </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.UI_Dialog_Minimal_Message">
+             <summary>
+               Looks up a localized string similar to The application has crashed and it will now be dismissed.
+            A bug report has been sent to the developers. We apologize for the inconvenience..
+             </summary>
+        </member>
+        <member name="P:NBug.Properties.Resources.UI_Dialog_Normal_Message">
+            <summary>
+              Looks up a localized string similar to Unhandled exception has occurred in your application. If you click Continue, the application will ignore this error and attempt to continue. If you click quit, the application will close immediately..
+            </summary>
+        </member>
+        <member name="M:NBug.Handler.UnhandledExceptionHandler(System.Object,System.UnhandledExceptionEventArgs)">
+            <summary>
+            Used for handling general exceptions bound to the main thread.
+            Handles the <see cref="E:System.AppDomain.UnhandledException"/> events in <see cref="N:System"/> namespace.
+            </summary>
+            <param name="sender">Exception sender object.</param>
+            <param name="e">Real exception is in: ((Exception)e.ExceptionObject)</param>
+        </member>
+        <member name="M:NBug.Handler.ThreadExceptionHandler(System.Object,System.Threading.ThreadExceptionEventArgs)">
+            <summary>
+            Used for handling WinForms exceptions bound to the UI thread.
+            Handles the <see cref="E:System.Windows.Forms.Application.ThreadException"/> events in <see cref="N:System.Windows.Forms"/> namespace.
+            </summary>
+            <param name="sender">Exception sender object.</param>
+            <param name="e">Real exception is in: e.Exception</param>
+        </member>
+        <member name="M:NBug.Handler.DispatcherUnhandledExceptionHandler(System.Object,System.Windows.Threading.DispatcherUnhandledExceptionEventArgs)">
+            <summary>
+            Used for handling WPF exceptions bound to the UI thread.
+            Handles the <see cref="!:Application.DispatcherUnhandledException"/> events in <see cref="N:System.Windows"/> namespace.
+            </summary>
+            <param name="sender">Exception sender object</param>
+            <param name="e">Real exception is in: e.Exception</param>
+        </member>
+        <member name="M:NBug.Handler.UnobservedTaskExceptionHandler(System.Object,System.Threading.Tasks.UnobservedTaskExceptionEventArgs)">
+            <summary>
+            Used for handling System.Threading.Tasks bound to a background worker thread.
+            Handles the <see cref="P:NBug.Handler.UnobservedTaskException"/> event in <see cref="N:System.Threading.Tasks"/> namespace.
+            </summary>
+            <param name="sender">Exception sender object.</param>
+            <param name="e">Real exception is in: e.Exception.</param>
+        </member>
+        <member name="P:NBug.Handler.UnhandledException">
+            <summary>
+            Used for handling general exceptions bound to the main thread.
+            Handles the <see cref="E:System.AppDomain.UnhandledException"/> events in <see cref="N:System"/> namespace.
+            </summary>
+        </member>
+        <member name="P:NBug.Handler.ThreadException">
+            <summary>
+            Used for handling WinForms exceptions bound to the UI thread.
+            Handles the <see cref="E:System.Windows.Forms.Application.ThreadException"/> events in <see cref="N:System.Windows.Forms"/> namespace.
+            </summary>
+        </member>
+        <member name="P:NBug.Handler.DispatcherUnhandledException">
+            <summary>
+            Used for handling WPF exceptions bound to the UI thread.
+            Handles the <see cref="!:Application.DispatcherUnhandledException"/> events in <see cref="N:System.Windows"/> namespace.
+            </summary>
+        </member>
+        <member name="P:NBug.Handler.UnobservedTaskException">
+            <summary>
+            Used for handling System.Threading.Tasks bound to a background worker thread.
+            Handles the <see cref="P:NBug.Handler.UnobservedTaskException"/> event in <see cref="N:System.Threading.Tasks"/> namespace.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.Util.Logging.Logger">
+            <summary>
+            Uses <see cref="!:Trace.Write(string, string)"/> method to log important messages. Also provides a <see cref="E:NBug.Core.Util.Logging.Logger.LogWritten"/> event.
+            If <see cref="P:NBug.Settings.WriteLogToDisk"/> is set to true, a default "NBug.log" file is written to disk.
+            </summary>
+            <example>
+            A sample trace listener can easily be added to the current application with an app.config file looking as below:
+            <code>
+            {?xml version="1.0"?}
+            {configuration}
+             {configSections}
+             {/configSections}
+             {system.diagnostics}
+               {trace autoflush="true" indentsize="2"}
+                 {listeners}
+                   {add name="testAppListener" type="System.Diagnostics.TextWriterTraceListener" initializeData="MyApplication.log" /}
+                 {/listeners}
+               {/trace}
+             {/system.diagnostics}
+            {/configuration}
+            </code>
+            </example>
+        </member>
+        <member name="E:NBug.Core.Util.Logging.Logger.LogWritten">
+            <summary>
+            First parameters is message string, second one is the category.
+            </summary>
+        </member>
+        <member name="M:NBug.Properties.SettingsOverride.LoadCustomSettings(System.IO.Stream)">
+            <summary>
+            Loads custom settings file from the designated stream. Before calling this, you must set <c>SettingsOverride.Overridden = true;</c>
+            or the default settings will be loaded as the static constructor gets called otherwise.
+            </summary>
+            <param name="settingsFile">Stream to load the settings from.</param>
+        </member>
+        <member name="M:NBug.Properties.SettingsOverride.LoadCustomSettings(System.String)">
+            <summary>
+            Loads custom settings file from the designated file. Before calling this, you must set <c>SettingsOverride.Overridden = true;</c>
+            or the default settings will be loaded as the static constructor gets called otherwise.
+            </summary>
+            <param name="settingsFilePath">File to load the settings from. Used within <c>XElement.Load(path)</c></param>
+        </member>
+        <member name="P:NBug.Properties.SettingsOverride.Overridden">
+            <summary>
+            Gets or sets a value indicating whether the library settings are to be overridden. If the settings are to be overridden by code
+            or by some other library, it shall be done before any of the static members of the <see cref="T:NBug.Settings"/> class is accessed.
+            Note that setting this to true prevents default settings from getting loaded so should be used with caution.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Reporting.Info.Report.#ctor">
+            <summary>
+            Default constructor provided for XML serializer.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIMode.Auto">
+            <summary>
+            Automatic mode selection is the default setting. Mode and provider is automatically selected for different application types.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIMode.None">
+            <summary>
+            No user interface is displayed at all. All the exception handling and bug reporting process is silent. In this mode, termination of
+            of the host application can be skipped altogether via <see cref="P:NBug.Settings.ExitApplicationImmediately"/>
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIMode.Minimal">
+            <summary>
+            Minimal user interface is displayed. This consists of a simple message box for WinForms and WPF, and a single line of information
+            message for console applications.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIMode.Normal">
+            <summary>
+            Normal user interface is displayed to the user, which strikes a balance between the level of details shown about the exception and
+            being still user friendly. This closely replicates the original interface displayed by CLR in case of unhandled exceptions.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.UIMode.Full">
+            <summary>
+            Full blown user interface is displayed to the user. This interface contains as much detail about the exception and the application
+            as possible. This is very useful for power users.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.UI.WinForms.Normal.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Normal.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Normal.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.LoggerCategory.NBugTrace">
+            <summary>
+            This category outputs most detailed information about the internal state of the library. Every single major event (like
+            generating a bug report, submitting a bug report, truncating internal files, etc.) is logged in this category.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.LoggerCategory.NBugInfo">
+            <summary>
+            This category outputs results of substantial events like the server response after submitting a bug report to the a server. 
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.LoggerCategory.NBugWarning">
+            <summary>
+            This category outputs warning messages from non-exceptional but important errors like a missing or inaccessable files.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.LoggerCategory.NBugError">
+            <summary>
+            This category outputs error messages for exceptional and critical situations. These situations generally disable some functionality
+            of the library or halts the execution of some code path. If not in release mode, an exception is thrown for error messages.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.UI.WPF.WPFUI">
+            <summary>
+            This class is used to prevent statically referencing any WPF dlls from the UISelector.cs thus prevents
+            any unnecessary assembly from getting loaded into the memory.
+            </summary>
+        </member>
+        <member name="M:NBug.Exceptions.Filter(System.Action)">
+            <summary>
+            This function acts as an exception filter for any exception that is raised from within the action body (you can see
+            MSDN subject "Exception Filters" to get more info on the subject). As the name implies, exceptions raised from within
+            the action block is simply filtered to be sent as an error report, and never actually caught or handled. Filters all
+            the exceptions inside the action body and queues an error report. Note that the exceptions are not actually handled, 
+            but filtered, so if the exception is left unhandled in an upper block, it will crash the application. This is very 
+            useful for situations where you need to log exceptions inside a code block and get a good minidump of the exception.
+            Use the <see cref="M:NBug.Exceptions.Handle(System.Boolean,System.Action)"/> method to actually handle the exception and show an exception dialog to the
+            user and shut down the application gracefully (if set so). You can simply use <c>Filter(() =&gt; { MyCodeHere(); })</c>
+            </summary> 
+            <param name="body">Body of code to be executed.</param>
+        </member>
+        <member name="M:NBug.Exceptions.Handle(System.Boolean,System.Action)">
+            <summary>
+            Similar to <see cref="M:NBug.Exceptions.Filter(System.Action)"/> but this time, exceptions are not allowed to escape the action body and they are
+            simply swallowed after being queued for reporting, with a small UI displayed to the user (if set so). Note that
+            NBug can halt the execution with <c>Environment.Exit(0);</c> if you configured it to do so with <paramref name="continueExecution"/>
+            parameter set to <see langword="false"/>. You can simply use <c>Handle(true, () =&gt; { MyCodeHere(); })</c>
+            </summary>
+            <param name="continueExecution">Decides whether to exit application after handling the exception or continue execution.</param>
+            <param name="body">Body of code to be executed.</param>
+        </member>
+        <member name="M:NBug.Exceptions.Report(System.Exception)">
+            <summary>
+            Submits a bug report for the given exception. This function useful for submitting bug reports inside a try-catch block.
+            Note that this function uses the NBug configuration so it will use the pre-configured UI and submission settings.
+            </summary>
+            <param name="exception">The exception to submit as the bug report.</param>
+        </member>
+        <member name="F:NBug.Enums.StoragePath.WindowsTemp">
+            <summary>
+            %Temp% directory is the default storage. Usually set to 'C:\Documents and Settings\Username\Local Settings\Temp'.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.StoragePath.CurrentDirectory">
+            <summary>
+            Initial working directory, i.e. where the executing assembly (MyProduct.exe) is located.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.StoragePath.IsolatedStorage">
+            <summary>
+            User's isolated storage store (application scope).
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.StoragePath.Custom">
+            <summary>
+            Custom path should be a full path like 'C:\Documents and Settings\MyUser\Local Settings\Temp'.
+            </summary>
+            <remarks>Path should not have a trailing slash. If the directory doesn't exist, it is created first.</remarks>
+        </member>
+        <member name="F:NBug.Core.UI.WinForms.Panels.ExceptionDetails.components">
+            <summary> 
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Panels.ExceptionDetails.Dispose(System.Boolean)">
+            <summary> 
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Panels.ExceptionDetails.InitializeComponent">
+            <summary> 
+            Required method for Designer support - do not modify 
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.Util.Storage.ZipStorer">
+            <summary>
+            Unique class for compression/decompression file. Represents a Zip file.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.EncodeUTF8">
+            <summary>
+              True if UTF8 encoding for filename and comments, false if default (CP 437)
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ForceDeflating">
+            <summary>
+              Force deflate algotithm even if it inflates the stored file. Off by default.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.CrcTable">
+            <summary>
+              The crc table.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.DefaultEncoding">
+            <summary>
+              The default encoding.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.Files">
+            <summary>
+              The files.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.Access">
+            <summary>
+              The access.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.CentralDirImage">
+            <summary>
+              The central dir image.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.Comment">
+            <summary>
+              The comment.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ExistingFiles">
+            <summary>
+              The existing files.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.FileName">
+            <summary>
+              The file name.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileStream">
+            <summary>
+              The zip file stream.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.#cctor">
+            <summary>
+              Initializes static members of the <see cref="T:NBug.Core.Util.Storage.ZipStorer"/> class.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Create(System.String,System.String)">
+            <summary>
+            Method to create a new storage file
+            </summary>
+            <param name="_filename">
+            Full path of Zip file to create
+            </param>
+            <param name="_comment">
+            General comment for Zip file
+            </param>
+            <returns>
+            A valid ZipStorer object
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Create(System.IO.Stream,System.String)">
+            <summary>
+            Method to create a new zip storage in a stream
+            </summary>
+            <param name="_stream">
+            </param>
+            <param name="_comment">
+            </param>
+            <returns>
+            A valid ZipStorer object
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Open(System.String,System.IO.FileAccess)">
+            <summary>
+            Method to open an existing storage file
+            </summary>
+            <param name="_filename">
+            Full path of Zip file to open
+            </param>
+            <param name="_access">
+            File access mode as used in FileStream constructor
+            </param>
+            <returns>
+            A valid ZipStorer object
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Open(System.IO.Stream,System.IO.FileAccess)">
+            <summary>
+            Method to open an existing storage from stream
+            </summary>
+            <param name="_stream">
+            Already opened stream with zip contents
+            </param>
+            <param name="_access">
+            File access mode for stream operations
+            </param>
+            <returns>
+            A valid ZipStorer object
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.RemoveEntries(NBug.Core.Util.Storage.ZipStorer@,System.Collections.Generic.List{NBug.Core.Util.Storage.ZipStorer.ZipFileEntry})">
+            <summary>
+            Removes one of many files in storage. It creates a new Zip file.
+            </summary>
+            <param name="_zip">
+            Reference to the current Zip object
+            </param>
+            <param name="_zfes">
+            List of Entries to remove from storage
+            </param>
+            <returns>
+            True if success, false if not
+            </returns>
+            <remarks>
+            This method only works for storage of type FileStream
+            </remarks>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.AddFile(NBug.Core.Util.Storage.ZipStorer.Compression,System.String,System.String,System.String)">
+            <summary>
+            Add full contents of a file into the Zip storage
+            </summary>
+            <param name="_method">
+            Compression method
+            </param>
+            <param name="_pathname">
+            Full path of file to add to Zip storage
+            </param>
+            <param name="_filenameInZip">
+            Filename and path as desired in Zip directory
+            </param>
+            <param name="_comment">
+            Comment for stored file
+            </param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.AddStream(NBug.Core.Util.Storage.ZipStorer.Compression,System.String,System.IO.Stream,System.DateTime,System.String)">
+            <summary>
+            Add full contents of a stream into the Zip storage
+            </summary>
+            <param name="_method">
+            Compression method
+            </param>
+            <param name="_filenameInZip">
+            Filename and path as desired in Zip directory
+            </param>
+            <param name="_source">
+            Stream object containing the data to store in Zip
+            </param>
+            <param name="_modTime">
+            Modification time of the data to store
+            </param>
+            <param name="_comment">
+            Comment for stored file
+            </param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Close">
+            <summary>
+            Updates central directory (if pertinent) and close the Zip storage
+            </summary>
+            <remarks>
+            This is a required step, unless automatic dispose is used
+            </remarks>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.ExtractFile(NBug.Core.Util.Storage.ZipStorer.ZipFileEntry,System.String)">
+            <summary>
+            Copy the contents of a stored file into a physical file
+            </summary>
+            <param name="_zfe">
+            Entry information of file to extract
+            </param>
+            <param name="_filename">
+            Name of file to store uncompressed data
+            </param>
+            <returns>
+            True if success, false if not.
+            </returns>
+            <remarks>
+            Unique compression methods are Store and Deflate
+            </remarks>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.ExtractFile(NBug.Core.Util.Storage.ZipStorer.ZipFileEntry,System.IO.Stream)">
+            <summary>
+            Copy the contents of a stored file into an opened stream
+            </summary>
+            <param name="_zfe">
+            Entry information of file to extract
+            </param>
+            <param name="_stream">
+            Stream to store the uncompressed data
+            </param>
+            <returns>
+            True if success, false if not.
+            </returns>
+            <remarks>
+            Unique compression methods are Store and Deflate
+            </remarks>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.ReadCentralDir">
+            <summary>
+            Read all the file records in the central directory
+            </summary>
+            <returns>
+            List of all entries in directory
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Dispose">
+            <summary>
+            Closes the Zip file stream
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.DateTimeToDosTime(System.DateTime)">
+            <summary>
+            The date time to dos time.
+            </summary>
+            <param name="_dt">
+            The _dt.
+            </param>
+            <returns>
+            The date time to dos time.
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.DosTimeToDateTime(System.UInt32)">
+            <summary>
+            The dos time to date time.
+            </summary>
+            <param name="_dt">
+            The _dt.
+            </param>
+            <returns>
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.GetFileOffset(System.UInt32)">
+            <summary>
+            The get file offset.
+            </summary>
+            <param name="_headerOffset">
+            The _header offset.
+            </param>
+            <returns>
+            The get file offset.
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.NormalizedFilename(System.String)">
+            <summary>
+            The normalized filename.
+            </summary>
+            <param name="_filename">
+            The _filename.
+            </param>
+            <returns>
+            The normalized filename.
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.ReadFileInfo">
+            <summary>
+            The read file info.
+            </summary>
+            <returns>
+            The read file info.
+            </returns>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.Store(NBug.Core.Util.Storage.ZipStorer.ZipFileEntry@,System.IO.Stream)">
+            <summary>
+            The store.
+            </summary>
+            <param name="_zfe">
+            The _zfe.
+            </param>
+            <param name="_source">
+            The _source.
+            </param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.UpdateCrcAndSizes(NBug.Core.Util.Storage.ZipStorer.ZipFileEntry@)">
+            <summary>
+            The update crc and sizes.
+            </summary>
+            <param name="_zfe">
+            The _zfe.
+            </param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.WriteCentralDirRecord(NBug.Core.Util.Storage.ZipStorer.ZipFileEntry)">
+            <summary>
+            The write central dir record.
+            </summary>
+            <param name="_zfe">
+            The _zfe.
+            </param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.WriteEndRecord(System.UInt32,System.UInt32)">
+            <summary>
+            The write end record.
+            </summary>
+            <param name="_size">
+            The _size.
+            </param>
+            <param name="_offset">
+            The _offset.
+            </param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.WriteLocalHeader(NBug.Core.Util.Storage.ZipStorer.ZipFileEntry@)">
+            <summary>
+            The write local header.
+            </summary>
+            <param name="_zfe">
+            The _zfe.
+            </param>
+        </member>
+        <member name="T:NBug.Core.Util.Storage.ZipStorer.Compression">
+            <summary>
+            Compression method enumeration
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.Compression.Store">
+            <summary>
+              Uncompressed storage
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.Compression.Deflate">
+            <summary>
+              Deflate compression method
+            </summary>
+        </member>
+        <member name="T:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry">
+            <summary>
+            Represents an entry in Zip file directory
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.Comment">
+            <summary>
+              User comment for file
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.CompressedSize">
+            <summary>
+              Compressed file size
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.Crc32">
+            <summary>
+              32-bit checksum of entire file
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.EncodeUTF8">
+            <summary>
+              True if UTF8 encoding for filename and comments, false if default (CP 437)
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.FileOffset">
+            <summary>
+              Offset of file inside Zip storage
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.FileSize">
+            <summary>
+              Original file size
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.FilenameInZip">
+            <summary>
+              Full path and filename as stored in Zip
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.HeaderOffset">
+            <summary>
+              Offset of header information inside Zip storage
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.HeaderSize">
+            <summary>
+              Size of header information
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.Method">
+            <summary>
+              Compression method
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.ModifyTime">
+            <summary>
+              Last modification time of file
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.ZipStorer.ZipFileEntry.ToString">
+            <summary>
+            Overriden method
+            </summary>
+            <returns>
+            Filename in Zip
+            </returns>
+        </member>
+        <member name="M:NBug.Settings.LoadCustomSettings(System.Xml.Linq.XElement)">
+            <summary>
+            This should not be used directly. Rather, <see cref="M:NBug.Properties.SettingsOverride.LoadCustomSettings(System.IO.Stream)"/> should be prefered.
+            </summary>
+        </member>
+        <member name="M:NBug.Settings.SaveCustomSettings(System.IO.Stream,System.Boolean)">
+            <summary>
+            This should not be used directly. Rather, <see cref="M:NBug.Properties.SettingsOverride.SaveCustomSettings(System.IO.Stream)"/> should be prefered.
+            </summary>
+        </member>
+        <member name="M:NBug.Settings.GetDefaultValue``1(System.Linq.Expressions.Expression{System.Func{``0}})">
+            <summary>
+            Replicate the behavior of normal Properties.Settings class via getting default values for null settings.
+            Use this like GetDefaultValue(() => SleepBeforeSend);
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.Destination1">
+            <summary>Gets or sets the first report submission target. This should be properly configured according to the documentation.</summary>
+        </member>
+        <member name="P:NBug.Settings.Destination2">
+            <summary>Gets or sets the second report submission target. This should be properly configured according to the documentation.</summary>
+        </member>
+        <member name="P:NBug.Settings.Destination3">
+            <summary>Gets or sets the third report submission target. This should be properly configured according to the documentation.</summary>
+        </member>
+        <member name="P:NBug.Settings.Destination4">
+            <summary>Gets or sets the fourth report submission target. This should be properly configured according to the documentation.</summary>
+        </member>
+        <member name="P:NBug.Settings.Destination5">
+            <summary>Gets or sets the fifth report submission target. This should be properly configured according to the documentation.</summary>
+        </member>
+        <member name="P:NBug.Settings.UIMode">
+            <summary>
+            Gets or sets the UI mode. You should only change this if you red the documentation and understood it. Otherwise leave it to auto.
+            Default value is Auto.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.UIProvider">
+            <summary>
+            Gets or sets the UI provider. You should only change this if you red the documentation and understood it. Otherwise leave it to auto.
+            Default value is Auto.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.SleepBeforeSend">
+            <summary>
+            Gets or sets the time in seconds that report dispatcher waits before starting to submit queued bug reports. Dispatcher initializes as
+            soon as the application is run but waits for given number of seconds so that it won't slow down the application startup.
+            Default value is 10 seconds.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.MaxQueuedReports">
+            <summary>
+            Gets or sets the number of bug reports that can be queued for submission. Each time an unhandled occurs, the bug report is prepared to
+            be send at the next application startup. If submission fails (i.e. there is no Internet connection), the queue grows with each additional
+            unhandled exception and resulting bug reports. This limits the max no of queued reports to limit the disk space usage.
+            Default value is 5.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.StopReportingAfter">
+            <summary>
+            Gets or sets the number of days that NBug will be collecting bug reports for the application. Most of the time, 30 to 60 days after the
+            release, there will be a new release and the current one will be obsolete. Due to this, it is not logical to continue to create and submit
+            bug reports after a given number of days. After the predefined no of days, the user will still get to see the bug report UI but the reports
+            will not be actually submitted. Default value is 30 days.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.StoragePath">
+            <summary>
+            Gets or sets the bug report items storage path. After and unhandled exception occurs, the bug reports are created and queued for submission
+            on the next application startup. Until then, the reports will be stored in this location. Default value is the application executable directory.
+            This setting can either be assigned a full path string or a value from <see cref="T:NBug.Enums.StoragePath"/> enumeration.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.MiniDumpType">
+            <summary>
+            Gets or sets the memory dump type. Memory dumps are quite useful for replicating the exact conditions that the application crashed (i.e.
+            getting the stack trace, local variables, etc.) but they take up a great deal of space, so choose wisely. Options are:
+            None: No memory dump is generated.
+            Tiny: Dump size ~200KB compressed.
+            Normal: Dump size ~20MB compressed.
+            Full: Dump size ~100MB compressed.
+            Default value is Tiny.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.WriteLogToDisk">
+            <summary>
+            Gets or sets a value indicating whether to write "NLog.log" file to disk. Otherwise, you can subscribe to log events through the 
+            <see cref="E:NBug.Settings.InternalLogWritten"/> event. All the logging is done through System.Diagnostics.Trace.Write() function so you can also get
+            the log with any trace listener. Default value is true.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.ExitApplicationImmediately">
+            <summary>
+            Gets or sets a value indicating whether to to exit application after handling an unhandled exception or sending error report. This value
+            is disregarded for anything but UIMode.None. For UIMode.None, you can choose not to exit application which will result in
+            'Windows Error Reporting' (aka Dr. Watson) window to kick in. One reason to do so would be to keep in line with Windows 7 Logo requirements,
+            which is a corner case. This may also be helpful in using NBug library as a simple unhandled exception logger facility, just to log and submit
+            exceptions but does not interfere with the application execution flow. Default value is true.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.HandleProcessCorruptedStateExceptions">
+            <summary>
+            Gets or sets a value indicating whether to handled exceptions even in a corrupted process thought the 'HandleProcessCorruptedStateExceptions'
+            flag. The default value for this is false since generating bug reports for a corrupted process may not be successful so use with caution.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.DeferredReporting">
+            <summary>
+            Gets or sets a value indicating whether to use deferred reporting feature. With this feature enabled, all bug reports are sent 
+            after the next application start and as a background task. This helps facilitate sending of bug reports with large memory dumps
+            with them. When this feature is disabled, bug reports are sent as soon as an unhandled exception is caught. For the users, it is
+            very uncomfortable to wait for bug reports to be sent after an application crash, so it is best to leave this feature on.
+            Default value is true.
+            </summary>
+        </member>
+        <member name="E:NBug.Settings.InternalLogWritten">
+            <summary>
+            The internal logger write event for getting notifications for all internal NBug loggers. Using this event, you can attach internal NBug
+            logs to your applications own logging facility (i.e. log4net, NLog, etc.). First parameters is the message string, second one is the log
+            category (info, warning, error, etc.).
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.ReleaseMode">
+            <summary>
+            Gets or sets a value indicating whether to enable release mode for NBug library. In release mode, internal developer UI is not displayed and
+            unhandled exceptions are only handled if there is no debugger attached to the process. Once properly configured and verified to be working
+            as intended, NBug release mode should be enabled to be able properly to use Visual Studio debugger, without NBug trying to handle exceptions
+            before Visual Studio does. Default value is false.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.EnableNetworkTrace">
+            <summary>
+            Gets or sets a value indicating whether to enable network tracing and write the network trace log to "NBug.Network.log" file.
+            This should only be used for diagnostics, debugging purposes as it slows down network connections considerably.
+            Network tracing is disabled by default.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.Cipher">
+            <summary>
+            Gets the Cipher text used for encrypting connection strings before saving to disk. This is automatically generated when the 
+            method <see cref="M:NBug.Settings.SaveCustomSettings(System.IO.Stream,System.Boolean)"/> method is called with encryption set to true.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.EntryAssembly">
+            <summary>
+            Gets or sets the entry assembly which hosts the NBug assembly. It is used for retrieving the version and the full name
+            of the host application. i.e. Settings.EntryAssembly.GetLoadedModules()[0].Name; @ Info\General.cs
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.NBugDirectory">
+            <summary>
+            Gets or sets the absolute path to the directory that NBug.dll assembly currently resides. This is used in place of CWD
+            throughout this assembly to prevent the library from getting affected of CWD changes that happens with Directory.SetCurrentDirectory().
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.ThrowExceptions">
+            <summary>
+            Gets or sets a value indicating whether internal <see cref="T:NBug.Core.Util.Exceptions.NBugException"/> derived types are thrown or swallowed.
+            Exceptions are NOT thrown by  default except for debug builds. Note that exceptions are caught and re-thrown by the
+            Logger.Error() method with added information so stack trace is reset. The inner exceptions should be inspected to get
+            the actual stack trace.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.DisplayDeveloperUI">
+            <summary>
+            Gets or sets a value indicating whether to enable developer user interface facilities which enable easier diagnosis of
+            configuration and other internal errors.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.HandleExceptions">
+            <summary>
+            Gets or sets a value indicating whether the unhandled exception handlers in NBug.Handler class actually handle exceptions.
+            Exceptions will not be handled if the application is in release mode via <see cref="P:NBug.Settings.ReleaseMode"/> and a debugger
+            is attached to the process. This enables proper debugging of normal exceptions even in the presence of NBug.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.DispatcherIsAsynchronous">
+            <summary>
+            Gets or sets a value indicating whether the dispatcher, the class deals with sending of reports to their destinations like mail
+            address or an issue tracker, runs asynchronously (in a background worker thread as a <see cref="T:System.Threading.Tasks.Task"/>).
+            By default dispatcher runs on a background thread except for debug builds, where it blocks the UI and runs in a synchronous manner.
+            This is made so to prevent any exceptions thrown by the dispatcher from being swallowed by the CLR since background thread exceptions
+            are ignored in most cases, which is not desirable during development (i.e. in a debug build).
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.SkipDispatching">
+            <summary>
+            Gets or sets a value indicating whether to skip the report dispatching process altogether.
+            </summary>
+        </member>
+        <member name="P:NBug.Settings.RemoveThreadSleep">
+            <summary>
+            Gets or sets a value indicating whether to remove the all the <see cref="M:System.Threading.Thread.Sleep(System.Int32)"/> statements from 
+            the thread executions. Some thread sleep statements are place around to increase the host application performance i.e. the 
+            <see cref="P:NBug.Settings.SleepBeforeSend"/> halts the execution of <see cref="M:NBug.Core.Submission.Dispatcher.Dispatch"/> for a given number of
+            seconds to let host application initialize properly.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Submission.Dispatcher.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the Dispatcher class to send queued reports.
+            </summary>
+            <param name="isAsynchronous">
+            Decides whether to start the dispatching process asynchronously on a background thread.
+            </param>
+        </member>
+        <member name="M:NBug.Core.Submission.Dispatcher.EnumerateDestinations(System.IO.Stream)">
+            <summary>
+            Enumerate all protocols to see if they are properly configured and send using the ones that are configured 
+            as many times as necessary.
+            </summary>
+            <param name="reportFile">The file to read the report from.</param>
+            <returns>Returns <see langword="true"/> if the sending was successful. 
+            Returns <see langword="true"/> if the report was submitted to at least one destination.</returns>
+        </member>
+        <member name="M:NBug.Core.Reporting.Info.General.#ctor">
+            <summary>
+            Default constructor provided for XML serialization and de-serialization.
+            </summary>
+        </member>
+        <member name="P:NBug.Core.Reporting.Info.General.HostApplicationVersion">
+            <summary>
+            Gets or sets AssemblyFileVersion of host assembly.
+            </summary>
+        </member>
+        <member name="P:NBug.Core.Reporting.Info.General.NBugVersion">
+            <summary>
+            Gets or sets AssemblyFileVersion of NBug.dll assembly.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.Util.Storage.Storer">
+            <summary>
+            Initializes a new instance of the Storage class. This class implements <see cref="T:System.IDisposable"/> interface
+            so it is better used with a using {...} statement.
+            </summary>
+            <remarks>This class should be instantiated to work with a single file at once.</remarks>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.Storer.TruncateReportFiles">
+            <summary>
+            This function will get rid of the oldest files first.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.Storer.TruncateReportFiles(System.Int32)">
+            <summary>
+            This function will get rid of the oldest files first.
+            </summary>
+            <param name="maxQueuedReports">Maximum number of queued files to be stored. Setting this to 0 deletes all files.</param>
+        </member>
+        <member name="M:NBug.Core.Util.Storage.Storer.GetFirstReportFile">
+            <summary>
+            Returns the first-in-queue report file. If there are no files queued, returns <see langword="null"/>.
+            </summary>
+            <returns>Report file stream.</returns>
+        </member>
+        <member name="T:NBug.Core.Util.Storage.StoragePath">
+            <summary>
+            This structure holds the information about storage path. It does emit its internal data either as string or
+            <see cref="T:NBug.Enums.StoragePath"/> type according to usage so it must be handled with care.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.Reporting.MiniDump.DumpWriter">
+            <summary>
+            Sample usage:
+            <code>
+            using (FileStream fs = new FileStream("minidump.mdmp", FileMode.Create, FileAccess.ReadWrite, FileShare.Write)) 
+            { 
+            	DumpWriter.Write(fs.SafeFileHandle, DumpTypeFlag.WithDataSegs | DumpTypeFlag.WithHandleData); 
+            } 
+            </code>
+            </summary>
+            <remarks>Code snippet is from http://blogs.msdn.com/b/dondu/archive/2010/10/24/writing-minidumps-in-c.aspx </remarks>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.DumpWriter.Write(System.String)">
+            <summary>
+            Creates a new memory dump and writes it to the specified file (only if Settings.MiniDumpType != MiniDumpType.None).
+            </summary>
+            <param name="minidumpFilePath">The minidump file path. Overwritten if exists.</param>
+            <returns>True if Settings.MiniDumpType settings is set to anything else then MiniDumpType.None.</returns>
+        </member>
+        <member name="F:NBug.Enums.MiniDumpType.None">
+            <summary>
+            Generate no minidump at all.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.MiniDumpType.Tiny">
+            <summary>
+            Generates the smallest possible minidump still with useful information. Dump size is about ~100KB compressed.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.MiniDumpType.Normal">
+            <summary>
+            Generates minidump with private read write memory and data segments. This mode allows retreiving of local values and the stack
+            variables. Dump size is about ~5MB compressed.
+            </summary>
+        </member>
+        <member name="F:NBug.Enums.MiniDumpType.Full">
+            <summary>
+            Generates full application memory dump. This simply dump all memory used by the process. Dump size is about ~100MB compressed.
+            </summary>
+        </member>
+        <member name="T:NBug.Core.Reporting.MiniDump.ExceptionFilters">
+            <summary>
+            This class provides some utilities for working with exceptions and exception filters. The assembly will 
+            get generated (with automatic locking) on first use of this class with <see cref="M:System.Reflection.Emit.ILGenerator.Emit(System.Reflection.Emit.OpCode)"/>.
+            </summary>
+            <remarks>
+            <para>
+            Code inside of exception filters runs before the stack has been logically unwound, and so the throw point
+            is still visible in tools like debuggers, and backout code from finally blocks has not yet been run.
+            See http://blogs.msdn.com/rmbyers/archive/2008/12/22/getting-good-dumps-when-an-exception-is-thrown.aspx.
+            Filters can also be used to provide more fine-grained control over which exceptions are caught.  
+            </para><para>
+            Be aware, however, that filters run at a surprising time - after an exception has occurred but before
+            any finally clause has been run to restore broken invariants for things lexically in scope.  This can lead to
+            confusion if you access or manipulate program state from your filter.  See this blog entry for details
+            and more specific guidance: http://blogs.msdn.com/clrteam/archive/2009/08/25/the-good-and-the-bad-of-exception-filters.aspx.
+            </para><para>
+            This class relies on Reflection.Emit to generate code which can use filters.  If you are willing to add some
+            complexity to your build process, a static technique (like writing in VB and use ILMerge, or rewriting with CCI)
+            may be a better choice (eg. more performant and easier to specialize).  Again see
+            http://blogs.msdn.com/rmbyers/archive/2008/12/22/getting-good-dumps-when-an-exception-is-thrown.aspx for details.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.ExceptionFilters.Filter(System.Action,System.Action{System.Exception})">
+            <summary>
+            Execute the body with the specified filter with no handler ever being invoked
+            </summary>
+            <param name="body">
+            Body of code to be executed.
+            </param>
+            <param name="filter">
+            Body of filter code to be executed to do something with the filtered exception object.
+            </param>
+            <remarks>
+            Note that this allocates a delegate and closure class, a small amount of overhead but something that may not be appropriate
+            for inside of a tight inner loop.  If you want to call this on a very hot path, you may want to consider a direct call
+            rather than using an anonymous method.
+            </remarks>
+            <example>
+            Example of a general-purpose exception filter:
+            <code>
+            ExceptionFilters.Filter(() =>
+            {
+            	// This is the body of the 'try'
+              MyCode();
+            }, (ex) =>
+            {
+              // This is the body of the filter
+              System.Environment.FailFast("Unexpected exception: " + ex.Message);
+              return false; // don't catch - this code isn't reached
+            }); // no catch block needed
+            </code>
+            </example>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.ExceptionFilters.Filter(System.Action,System.Func{System.Exception,System.Boolean},System.Action{System.Exception})">
+            <summary>
+            Execute the body with the specified filter.
+            </summary>
+            <param name="body">
+            The code to run inside the "try" block
+            </param>
+            <param name="filter">
+            Called whenever an exception escapes body, passing the exeption object.  
+            For exceptions that aren't derived from System.Exception, they'll show up as an instance of RuntimeWrappedException.
+            </param>
+            <param name="handler">
+            Invoked (with the exception) whenever the filter returns true, causes the exception to be swallowed
+            </param>
+            <example>
+            Example of a general-purpose exception filter:
+            <code>
+            // General-purpose filter
+            ExceptionFilters.Filter(() => {
+              Console.WriteLine("In body");
+              throw new ApplicationException("test");
+            }, (e) => { // Filter block, good for minidumps
+              Console.WriteLine("In filter, exception type: {0}", e.GetType().FullName);
+              return true;
+            }, (e) => { // Catch block, just like a real catch(Exception e)
+              Console.WriteLine("In catch, exception type: {0}", e.GetType().FullName);
+            });
+            </code>
+            </example>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.ExceptionFilters.FailFast(System.Action)">
+            <summary>
+            Execute the body which is not expected to ever throw any exceptions.
+            If an exception does escape body, stop in the debugger if one is attached and then fail-fast.
+            </summary>
+            <param name="body">
+            Body of code to be executed.
+            </param>
+            <example>
+            To call code that you don’t expect to ever throw an exception you can just wrap it with ExecuteWithFailFast.  If any exceptions
+            escape it’ll immediately fail fast with a watson report and minidump (at the point of throw), or if a debugger is attached break
+            at the throw point.
+            <code>
+            // FailFast on throw
+            ExceptionFilters.FailFast(() =>
+            {
+              // Code you don't expect to throw exceptions
+              throw new ApplicationException("Test unexpected exception");
+            }); // A minidump will be generated here with good stack trace (not a reseted one like it would happen in a catch block)
+            </code>
+            </example>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.ExceptionFilters.TryCatch``1(System.Action,System.Type[],System.Action{``0})">
+            <summary>
+            Like a normal C# Try/Catch but allows one catch block to catch multiple different types of exceptions.
+            </summary>
+            <typeparam name="TExceptionBase">
+            The common base exception type to catch
+            </typeparam>
+            <param name="body">
+            Code to execute inside the try
+            </param>
+            <param name="typesToCatch">
+            All exception types to catch (each of which must be derived from or exactly TExceptionBase)
+            </param>
+            <param name="handler">
+            The catch block to execute when one of the specified exceptions is caught
+            </param>
+            <example>
+            Sometimes it’s useful to be able to catch multiple distinct exception types with the same catch block (without unwinding the
+            stack for other exceptions, so unexpected exceptions are easier to debug live or in a dump file).
+            <code>
+            // Catching multiple exception types at once as System.Exception
+            ExceptionFilters.TryCatch{SystemException}(() =>
+            {
+            	throw new ArgumentNullException();
+            },
+            new Type[] { typeof(InvalidCastException), typeof(ArgumentException), typeof(System.IO.FileNotFoundException) },
+            (e) =>
+            {
+            	Console.WriteLine("Caught: " + e.Message);
+            });
+            </code>
+            </example>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.ExceptionFilters.TryCatch(System.Action,System.Type[],System.Action{System.Exception})">
+            <summary>
+            A convenience method for when only the base type of 'Exception' is needed.
+            </summary>
+            <param name="body">
+            Body of code to be executed.
+            </param>
+            <param name="typesToCatch">
+            The types To Catch.
+            </param>
+            <param name="handler">
+            The handler.
+            </param>
+            <example>
+            <code>
+            // Catching multiple exception types at once as System.Exception
+            ExceptionFilters.TryCatch(() =>
+            {
+            	throw new ArgumentNullException();
+            },
+            new Type[] { typeof(InvalidCastException), typeof(ArgumentException), typeof(System.IO.FileNotFoundException) },
+            (e) =>
+            {
+            	Console.WriteLine("Caught: " + e.Message);
+            });
+            </code>
+            </example>
+        </member>
+        <member name="F:NBug.Core.Reporting.MiniDump.ExceptionFilters.filter">
+            <summary>
+            The filter.
+            </summary>
+        </member>
+        <member name="F:NBug.Core.Reporting.MiniDump.ExceptionFilters.writeGeneratedAssemblyToDisk">
+            <summary>
+            Set to true to write the generated assembly to disk for debugging purposes (eg. to run peverify
+            and ildasm on in the case of bad codegen).
+            </summary>
+        </member>
+        <member name="M:NBug.Core.Reporting.MiniDump.ExceptionFilters.GenerateFilter">
+            <summary>
+            Generate a function which has an EH filter
+            </summary>
+            <returns>
+            The new generated assembly with exception filtering capabilities.
+            </returns>
+        </member>
+        <member name="F:NBug.Core.UI.WinForms.Full.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Full.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:NBug.Core.UI.WinForms.Full.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+    </members>
+</doc>
