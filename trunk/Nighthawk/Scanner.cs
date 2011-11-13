@@ -346,6 +346,7 @@ namespace Nighthawk
                 var output = p.StandardOutput.ReadToEnd();
 
                 p.WaitForExit();
+                p.Dispose();
                 
                 var lines = output.Contains("\r\n") ? Regex.Split(output, "\r\n") : new string[] {output};
 
@@ -364,7 +365,7 @@ namespace Nighthawk
                 return ipv6List;
             }
 
-            p.Close();
+            p.Dispose();
 
             return new List<string>();
         }

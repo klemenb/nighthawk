@@ -166,6 +166,7 @@ namespace Nighthawk
                 var output = p.StandardOutput.ReadToEnd();
 
                 p.WaitForExit();
+                p.Dispose();
                 
                 var lines = output.Contains("\r\n") ? Regex.Split(output, "\r\n") : new string[] {output};
                 var line = lines.First();
@@ -176,7 +177,7 @@ namespace Nighthawk
                 return gateway;
             }
 
-            p.Close();
+            p.Dispose();
 
             return string.Empty;
         }
