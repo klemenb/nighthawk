@@ -190,6 +190,9 @@ namespace Nighthawk
 
             Device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
             Device.StartCapture();
+
+            // start WCF remote service
+            if (!RemoteService.Started) RemoteService.Start(DeviceInfo.IP);
         }
 
         // stop listening on a device
@@ -371,7 +374,10 @@ namespace Nighthawk
                 {
                     Window.SnifferResultList.Add(result);
 
-                    // notify user (blinking green line on the "Sniffer" tab, Win7 taskbar)
+                    // add to shared data
+                    SharedData.Add(new[] {url, username, password});
+
+                    // notify user (blinking green line on the "Sniffer" tab, Win7 taskbar));
                     if (Window.TCTabs.SelectedIndex != 1)
                     {
                         Window.RCTSnifferUpdated.Visibility = Visibility.Visible;

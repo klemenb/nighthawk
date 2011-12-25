@@ -89,7 +89,10 @@ namespace Nighthawk
         {
             "api_key",
             "app_id",
-            "blobheadername1"
+            "blobheadername1",
+            "__user",
+            "mf_story_key",
+            "timezone"
         };
 
         // excluded field names - password
@@ -98,7 +101,9 @@ namespace Nighthawk
             "session_key_only",
             "api_key",
             "app_id",
-            "blobkey"
+            "blobkey",
+            "mf_story_key",
+            "timezone"
         };
 
         public Sniffer(DeviceInfo deviceInfo)

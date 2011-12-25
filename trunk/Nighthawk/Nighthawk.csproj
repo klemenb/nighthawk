@@ -78,6 +78,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Discovery" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -103,6 +105,7 @@
     <Compile Include="NDTools.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Network.cs" />
+    <Compile Include="RemoteHawk.cs" />
     <Compile Include="Scanner.cs" />
     <Compile Include="SimpleRegex.cs" />
     <Compile Include="Sniffer.cs" />

@@ -149,8 +149,12 @@ namespace Nighthawk
                 p.Start();
                 p.WaitForExit();
 
+                p.Dispose();
+
                 return true;
             }
+
+            p.Dispose();
 
             return false;
         }
