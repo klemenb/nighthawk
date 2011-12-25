@@ -19,7 +19,7 @@ namespace Nighthawk
 
             #if !DEBUG
             AppDomain.CurrentDomain.UnhandledException += NBug.Handler.UnhandledException;
-            Application.Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
+            Current.DispatcherUnhandledException += NBug.Handler.DispatcherUnhandledException;
             #endif
         }
     }

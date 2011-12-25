@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define SCHOOL_SAFE
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -29,7 +31,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **/
 namespace Nighthawk
-{
+{    
     public partial class MainWindow : Window
     {
         public Main Nighthawk;
@@ -264,7 +266,11 @@ namespace Nighthawk
                 {
                     var targets = GetTargets(LArpTargets1List);
 
+                    #if SCHOOL_SAFE
                     if (targets.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
+                    #else
+                    if (false)
+                    #endif
                     {
                         MessageBox.Show(
                             "You are not allowed to use this application on the following networks:\r\n 88.200.95.0/24, 88.200.67.0/24", "Oops, our school's IPs are on the list...", MessageBoxButton.OK, MessageBoxImage.Exclamation);
@@ -278,6 +284,10 @@ namespace Nighthawk
                 if (GetTargets(LArpTargets1List) != null && GetTarget(LArpTargets2List) != null)
                 {
                     Nighthawk.ARPTools.StartSpoofing(GetTargets(LArpTargets1List), GetTarget(LArpTargets2List), CHBlockPPTP.IsChecked != null ? (bool)CHBlockPPTP.IsChecked : false);
+
+                    // set shared data
+                    SharedData.Network = Nighthawk.DeviceInfo.IP + "/" + Nighthawk.DeviceInfo.CIDR;
+                    SharedData.Clients = Nighthawk.ARPTools.SpoofingTargets1.Count;
 
                     // update GUI
                     BStartARP.Content = "Stop ARP spoofing";
@@ -313,7 +323,11 @@ namespace Nighthawk
                 // safety feature (it's OK to simply check for IPv4 addresses)
                 if (targetList != null)
                 {
+                    #if SCHOOL_SAFE
                     if (targetList.Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
+                    #else
+                    if (false)
+                    #endif
                     {
                         MessageBox.Show(
                             "You are not allowed to use this application on the following networks:\r\n 88.200.95.0/24, 88.200.67.0/24", "Oops, our school's IPs are on the list...", MessageBoxButton.OK, MessageBoxImage.Exclamation);
@@ -326,6 +340,9 @@ namespace Nighthawk
                 if (Network.PrefixValid(TBPrefix.Text) && Nighthawk.DeviceInfo.GatewayIPv6 != string.Empty && targetList.Find(t => t.IPv6List.Contains(Nighthawk.DeviceInfo.GatewayIPv6)) != null)
                 {
                     Nighthawk.NDTools.StartSpoofing(TBPrefix.Text, targetList);
+
+                    // set shared data
+                    SharedData.IPv6Spoofing = true;
 
                     // update GUI
                     BStartND.Content = "Stop ND spoofing";
@@ -341,6 +358,9 @@ namespace Nighthawk
             else
             {
                 Nighthawk.NDTools.StopSpoofing();
+
+                // set shared data
+                SharedData.IPv6Spoofing = true;
 
                 // update GUI
                 BStartND.Content = "Start ND spoofing";
@@ -434,9 +454,9 @@ namespace Nighthawk
             GRQuickAttack.Visibility = Visibility.Collapsed;
 
             QuickAttack = false;
-            BStartSniffer_Click(null, null);
-            BStartSSLstrip_Click(null, null);
-            BStartARP_Click(null, null);
+            if(Nighthawk.Sniffer.Started) BStartSniffer_Click(null, null);
+            if(Nighthawk.SSLStrip.Started) BStartSSLstrip_Click(null, null);
+            if(Nighthawk.ARPTools.SpoofingStarted) BStartARP_Click(null, null);
 
             if(Nighthawk.NDTools.SpoofingStarted) BStartND_Click(null, null);
         }
@@ -454,6 +474,16 @@ namespace Nighthawk
         // start quick attack (after scan completes)
         public void StartQuickAttack()
         {
+            #if SCHOOL_SAFE
+            if (TargetList.ToList().Exists(t => (t.IP.Contains("88.200.95.") || t.IP.Contains("88.200.67."))))
+            {
+                MessageBox.Show("You are not allowed to use this application on the following networks:\r\n 88.200.95.0/24, 88.200.67.0/24", "Oops, our school's IPs are on the list...", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                BStopQuickAttack_Click(null, null);
+                return;
+            }
+            #endif
+
             // clone source items
             LArpTargets1List.ItemsSource = TargetList.ToList();
             LArpTargets2List.ItemsSource = TargetList.ToList();
