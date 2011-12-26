@@ -351,8 +351,10 @@ namespace Nighthawk
                 }
                 else
                 {
-                    MessageBox.Show("There was a problem detecting IPv6/MAC address of the gateway.", "Nighthawk - ND spoofing",
-                        MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    if (!QuickAttack)
+                    {
+                        MessageBox.Show("There was a problem detecting IPv6/MAC address of the gateway.", "Nighthawk - ND spoofing", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    }
                 }
             }
             else
