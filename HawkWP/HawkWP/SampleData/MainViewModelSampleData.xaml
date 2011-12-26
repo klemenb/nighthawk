@@ -1,0 +1,13 @@
+﻿<local:MainViewModel 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"       
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:HawkWP" 
+    SampleProperty="Sample Text Property Value">
+    
+    <local:MainViewModel.Items>
+        <local:ItemViewModel LineOne="facebook.com" LineTwo="u: john@home.net" LineThree="p: test123"/>
+        <local:ItemViewModel LineOne="twitter.com" LineTwo="u: john@gmail.com" LineThree="p: testingPassword"/>
+        <local:ItemViewModel LineOne="website.com" LineTwo="u: john@facebook.com" LineThree="p: xd123@!%da"/>
+    </local:MainViewModel.Items>
+    
+</local:MainViewModel>
