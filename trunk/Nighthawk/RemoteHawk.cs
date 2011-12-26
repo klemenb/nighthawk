@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel;
 using System.ServiceModel.Description;
-using System.ServiceModel.Discovery;
-using System.Text;
+using System.Windows;
 
 namespace Nighthawk
 {
@@ -83,9 +81,18 @@ namespace Nighthawk
                 smb.HttpGetEnabled = true;
                 smb.MetadataExporter.PolicyVersion = PolicyVersion.Policy15;
 
-                // start WCF service
-                Service.Description.Behaviors.Add(smb);
-                Service.Open();
+                try
+                {
+                    // start WCF service
+                    Service.Description.Behaviors.Add(smb);
+                    Service.Open();
+                } catch (Exception e)
+                {
+                    MessageBox.Show("There was an error starting remote control service. " + (e.InnerException != null ? e.InnerException.Message : ""), "Nighthawk",
+                                    MessageBoxButton.OK, MessageBoxImage.Exclamation);
+
+                    return;
+                }
 
                 Started = true;
             }
