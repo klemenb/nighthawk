@@ -8,8 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:es="clr-namespace:Microsoft.Expression.Shapes;assembly=Microsoft.Expression.Drawing" xmlns:em="clr-namespace:Microsoft.Expression.Media;assembly=Microsoft.Expression.Drawing" 
     x:Class="HawkWP.MainPage" 
+    mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="768" 
     d:DataContext="{d:DesignData SampleData/MainViewModelSampleData.xaml}"
-    mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="768"
     FontFamily="{StaticResource PhoneFontFamilyNormal}"
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="{StaticResource PhoneForegroundBrush}"
@@ -40,35 +40,37 @@
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">                        
 						<Image Source="Nighthawk.png" Stretch="Uniform" Height="20" Margin="5,0,0,0"/>
-						<TextBlock x:Name="Title" Text="HawkWP" Margin="7,0,0,0" />
+						<TextBlock x:Name="Title" Text="HawkWP 1.1" Margin="7,0,0,0" />
                         <TextBlock HorizontalAlignment="Right" x:Name="Subtitle" Text="nighthawks' mobile friend" Foreground="Gray" Margin="7,0,0,0" />
                     </StackPanel>
                 </DataTemplate>
             </controls:Pivot.TitleTemplate>
             <!--Pivot item one-->
-            <controls:PivotItem Header="general">
+            <controls:PivotItem Header="general" Margin="8,33,16,-5">
             	<Grid Margin="0">
-            		<TextBlock Height="33" Margin="12,9,174,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333"><Run Text="Host"/><Run Text=" IP/hostname:"/></TextBlock>
-                    <TextBox x:Name="TB_Host" InputScope="TelephoneNumber" Height="74" Margin="0,35,8,0" TextWrapping="Wrap" VerticalAlignment="Top" />
-            		<Button Background="Black" x:Name="BTN_Start" Content="Connect" Height="72" VerticalAlignment="Top" Margin="0,109,8,0" Click="BTN_Start_Click" />
-            		<Rectangle Margin="12,212,21,0" Stroke="#FF454545" Fill="Black" Height="33" VerticalAlignment="Top"/>
-            		<TextBlock Margin="18,213,168,0" TextWrapping="Wrap" FontSize="21.333" Height="33" VerticalAlignment="Top"><Run Text="Status:"/><LineBreak/><Run/></TextBlock>
-            		<TextBlock x:Name="LTB_IPv4Network" HorizontalAlignment="Left" Margin="13,258,0,0" TextWrapping="Wrap" Text="IPv4 network:" Width="148" Height="35" VerticalAlignment="Top"/>
-                    <TextBlock x:Name="LTB_IPv4Clients" HorizontalAlignment="Left" Margin="13,293,0,279" TextWrapping="Wrap" Text="IPv4 clients:" Width="148"/>
-                    <TextBlock x:Name="TB_Status" Margin="87,214,221,0" TextWrapping="Wrap" Text="disconnected" Foreground="{StaticResource PhoneAccentBrush}" Height="33" VerticalAlignment="Top"/>
-                    <TextBlock x:Name="LTB_IPv6Spoofing" HorizontalAlignment="Left" Margin="13,0,0,245" TextWrapping="Wrap" Width="148" Height="35" VerticalAlignment="Bottom"><Run Text="IPv"/><Run Text="6"/><Run Text=" "/><Run Text="spoofing"/><Run Text=":"/></TextBlock>
-            		<TextBlock x:Name="TB_IPv4Network" Margin="143,258,135,0" TextWrapping="Wrap" Text="" Height="35" VerticalAlignment="Top"/>
-            		<TextBlock x:Name="TB_IPv4Clients" Margin="126,293,85,279" TextWrapping="Wrap" Text=""/>
-            		<TextBlock x:Name="TB_IPv6Spoofing" Margin="147,0,30,245" TextWrapping="Wrap" Text="" Height="35" VerticalAlignment="Bottom"/>
-            		<es:BlockArrow x:Name="SH_Arrow" Fill="#FFF4F4F5" Height="34.286" Margin="13,0,21,31" Orientation="Right" Stroke="Black" UseLayoutRounding="False" VerticalAlignment="Bottom" ArrowBodySize="0.4" ArrowheadAngle="61" Opacity="0.5" StrokeEndLineCap="Round" StrokeStartLineCap="Round" StrokeDashCap="Round" StrokeLineJoin="Round" Visibility="Collapsed"/>
-            		<TextBlock x:Name="TB_Notification" Height="26" Margin="14,0,0,50" TextWrapping="Wrap" Text="new data is available" VerticalAlignment="Bottom" FontSize="16" Foreground="{StaticResource PhoneAccentBrush}" HorizontalAlignment="Left" Width="205" Visibility="Collapsed"/>
+                    <TextBox x:Name="TB_Host" InputScope="TelephoneNumber" Height="74" Margin="1,35,7,0" TextWrapping="Wrap" VerticalAlignment="Top" />
+            		<Button Background="Black" x:Name="BTN_Start" Content="Connect" Height="72" VerticalAlignment="Top" Margin="2,199,159,0" Click="BTN_Start_Click" />
+            		<TextBlock Margin="14,259,172,0" TextWrapping="Wrap" FontSize="20" Height="33" VerticalAlignment="Top"><Run Text="s"/><Run Text="tatus:"/><LineBreak/><Run/></TextBlock>
+                    <TextBlock x:Name="TB_Status" Margin="77,259,0,0" TextWrapping="Wrap" Text="disconnected" Foreground="{StaticResource PhoneAccentBrush}" Height="33" VerticalAlignment="Top" FontSize="20" HorizontalAlignment="Left" Width="148"/>
+            		<TextBlock x:Name="TB_IPv4Network" Margin="15,0,122,235" TextWrapping="Wrap" Height="35" VerticalAlignment="Bottom" FontSize="21.333"><Run Text="192.168.1.1"/><Run Text="/24"/></TextBlock>
+            		<TextBlock x:Name="TB_IPv4Clients" Margin="15,0,122,163" TextWrapping="Wrap" Text="10" Height="35" VerticalAlignment="Bottom" FontSize="21.333"/>
+            		<TextBlock x:Name="TB_IPv6Spoofing" Margin="16,0,122,94" TextWrapping="Wrap" Text="Off" Height="35" VerticalAlignment="Bottom" FontSize="21.333"/>
+            		<es:BlockArrow x:Name="SH_Arrow" Fill="#FFF4F4F5" Height="34.286" Margin="14,0,21,33" Orientation="Right" Stroke="Black" UseLayoutRounding="False" VerticalAlignment="Bottom" ArrowBodySize="0.4" ArrowheadAngle="61" Opacity="0.5" StrokeEndLineCap="Round" StrokeStartLineCap="Round" StrokeDashCap="Round" StrokeLineJoin="Round" Visibility="Collapsed"/>
+            		<TextBlock x:Name="TB_Notification" Height="26" Margin="16,0,0,52" TextWrapping="Wrap" VerticalAlignment="Bottom" FontSize="16" Foreground="{StaticResource PhoneAccentBrush}" HorizontalAlignment="Left" Width="209" Visibility="Collapsed"><Run Text="new data is availa"/><Run Text="b"/><Run Text="le"/></TextBlock>
+            		<TextBlock Height="28" Margin="13,14,199,0" TextWrapping="Wrap" Text="Server IP address" VerticalAlignment="Top" Foreground="{StaticResource PhoneSubtleBrush}"/>
+            		<TextBlock Height="102" Margin="13,105,19,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333"><Run Text="IP address of your "/><Run Text="Nighthawk instance."/><LineBreak/><Run Text="Make sure your firewall allows connections on port "/><Run Text="51337"/><Run Text="."/><LineBreak/><Run Text="  "/></TextBlock>
+            		<TextBlock x:Name="LTB_IPv4Network" Height="28" Margin="15,0,197,271" TextWrapping="Wrap" Text="IPv4 network" VerticalAlignment="Bottom" Foreground="{StaticResource PhoneSubtleBrush}"/>
+            		<TextBlock x:Name="LTB_IPv4Clients" Height="28" Margin="15,0,197,198" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="{StaticResource PhoneSubtleBrush}"><Run Text="IPv4 "/><Run Text="clients"/></TextBlock>
+            		<TextBlock x:Name="LTB_IPv6Spoofing" Height="28" Margin="15,0,197,127" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="{StaticResource PhoneSubtleBrush}"><Run Text="IPv6 ("/><Run Text="RA"/><Run Text=") spoofing"/></TextBlock>
+            		<TextBlock x:Name="TB_ARPSpoofing" Margin="16,0,161,98" TextWrapping="Wrap" Text="On" Height="35" VerticalAlignment="Bottom" FontSize="21.333" Visibility="Collapsed"/>
+            		<TextBlock x:Name="LTB_ARPSpoofing" Height="28" Margin="15,0,197,132" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="{StaticResource PhoneSubtleBrush}" Text="ARP spoofing" Visibility="Collapsed"/>
             	</Grid>
                 <!--Double line list with text wrapping-->
                 
             </controls:PivotItem>
             <controls:PivotItem Header="sniffer">
                 <!--Double line list with text wrapping-->
-                <ListBox x:Name="LB_Sniffer" Margin="0,0,-12,0" ItemsSource="{Binding Items}">
+                <ListBox x:Name="FirstListBox" Margin="0,0,-12,0" ItemsSource="{Binding Items}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="0,0,0,5" Width="432" Height="100">
