@@ -20,7 +20,7 @@
     </SupportedCultures>
     <XapOutputs>true</XapOutputs>
     <GenerateSilverlightManifest>true</GenerateSilverlightManifest>
-    <XapFilename>HawkWP.xap</XapFilename>
+    <XapFilename>HawkWP-1.1.xap</XapFilename>
     <SilverlightManifestTemplate>Properties\AppManifest.xml</SilverlightManifestTemplate>
     <SilverlightAppEntry>HawkWP.App</SilverlightAppEntry>
     <ValidateXaml>true</ValidateXaml>
