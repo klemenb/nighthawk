@@ -112,6 +112,8 @@ namespace Nighthawk
                 Nighthawk.Sniffer.Stop();
                 Nighthawk.SSLStrip.Stop();
 
+                if(RemoteService.Service != null) RemoteService.Service.Close();
+
                 while (Nighthawk.Scanner.Started)
                 {
                     Thread.Sleep(50);
@@ -304,7 +306,11 @@ namespace Nighthawk
             else
             {
                 Nighthawk.ARPTools.StopSpoofing();
-               
+
+                // set shared data
+                SharedData.Network = "/";
+                SharedData.Clients = 0;
+
                 // update GUI
                 BStartARP.Content = "Start ARP spoofing";
                 CHBlockPPTP.IsEnabled = true;
@@ -362,7 +368,7 @@ namespace Nighthawk
                 Nighthawk.NDTools.StopSpoofing();
 
                 // set shared data
-                SharedData.IPv6Spoofing = true;
+                SharedData.IPv6Spoofing = false;
 
                 // update GUI
                 BStartND.Content = "Start ND spoofing";
