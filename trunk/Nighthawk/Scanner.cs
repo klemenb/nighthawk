@@ -337,12 +337,12 @@ namespace Nighthawk
             p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             p.StartInfo.FileName = "cmd";
 
-            // Vista, Windows 7 - use "netsh"
+            // Vista, Windows 7/8 - use "netsh"
             if (system.Version.Major > 5)
             {
-                p.StartInfo.Arguments = "/k netsh int ipv6 show neigh | findstr " + macString;
+                p.StartInfo.Arguments = "/C netsh int ipv6 show neigh | findstr " + macString + "";
                 p.Start();
-                
+
                 var output = p.StandardOutput.ReadToEnd();
 
                 p.WaitForExit();

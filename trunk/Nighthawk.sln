@@ -1,9 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nighthawk", "Nighthawk\Nighthawk.csproj", "{B77605C1-6479-42D8-AD09-3D84D54E781E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HawkWP", "HawkWP\HawkWP\HawkWP.csproj", "{BFF0D383-9007-42BE-BB43-4F335CEADECD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Windows Phone", "Windows Phone", "{3783727A-3912-4458-8F21-2C9DED36FA7E}"
 EndProject
@@ -29,26 +27,11 @@ Global
 		{B77605C1-6479-42D8-AD09-3D84D54E781E}.Release|Mixed Platforms.Build.0 = Release|x86
 		{B77605C1-6479-42D8-AD09-3D84D54E781E}.Release|x86.ActiveCfg = Release|x86
 		{B77605C1-6479-42D8-AD09-3D84D54E781E}.Release|x86.Build.0 = Release|x86
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|Mixed Platforms.Deploy.0 = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{BFF0D383-9007-42BE-BB43-4F335CEADECD} = {3783727A-3912-4458-8F21-2C9DED36FA7E}
 		{B77605C1-6479-42D8-AD09-3D84D54E781E} = {D259482E-C37E-498E-8438-73506DF1CD3C}
 	EndGlobalSection
 EndGlobal

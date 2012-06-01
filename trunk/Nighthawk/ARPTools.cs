@@ -138,13 +138,13 @@ namespace Nighthawk
             p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             p.StartInfo.FileName = "cmd";
 
-            // Vista, Windows 7 - use "netsh"
+            // Vista, Windows 7/8 - use "netsh"
             if (system.Version.Major > 5)
             {
                 if(operation == StaticARPOperation.Add)
-                    p.StartInfo.Arguments = "/k netsh interface ip add neighbors \"" + WinName + "\" " + IP + " " + macString + "";
+                    p.StartInfo.Arguments = "/k netsh interface ip delete neighbors \"" + WinName + "\" " + IP + " && netsh interface ip add neighbors \"" + WinName + "\" " + IP + " " + macString + " && exit";
                 else
-                    p.StartInfo.Arguments = "/k netsh interface ip delete neighbors \"" + WinName + "\" " + IP + "";
+                    p.StartInfo.Arguments = "/k netsh interface ip delete neighbors \"" + WinName + "\" " + IP + " && exit";
 
                 p.Start();
                 p.WaitForExit();
