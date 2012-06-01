@@ -40,7 +40,7 @@ namespace Nighthawk
         public SnifferResultList SnifferResultList = new SnifferResultList();
 
         public Color DisabledColor = Color.FromRgb(255, 89, 89);
-        public Color EnabledColor = Color.FromRgb(120, 240, 120);
+        public Color EnabledColor = Color.FromRgb(110, 220, 110);
 
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
         public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);

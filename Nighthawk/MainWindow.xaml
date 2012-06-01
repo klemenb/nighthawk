@@ -103,7 +103,7 @@
 							<CheckBox x:Name="CHResolveHostnames" Content="Resolve hostnames" Margin="6,35,5,0" IsChecked="False" VerticalAlignment="Top" FontWeight="Normal"/>
                             <Button x:Name="BScanNetwork" Click="BScanNetwork_Click" Content="Scan network" Height="22" VerticalAlignment="Top" Margin="5,9,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" d:LayoutOverrides="VerticalAlignment" IsEnabled="False">
 							</Button>    
-                            <Rectangle x:Name="SHStartARP" Fill="#FFFF6262" Margin="126,65,10,0" Height="21" VerticalAlignment="Top"></Rectangle>
+                            <Rectangle x:Name="SHStartARP" Fill="#FFFF6262" Margin="125,66,11,0" Height="20" VerticalAlignment="Top" Width="8" RadiusX="2" RadiusY="2"></Rectangle>
                             <Button x:Name="BStartARP" Click="BStartARP_Click" IsEnabled="False" Content="Start ARP spoofing" Margin="5,65,0,0" Height="22" VerticalAlignment="Top" Width="116" HorizontalAlignment="Left" BorderThickness="1">
 							</Button>
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,57,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
@@ -112,10 +112,10 @@
 					</GroupBox>
 					<GroupBox Header="Experimental tools" Margin="8,150,8,0" Height="132" VerticalAlignment="Top" Grid.Row="1" Grid.RowSpan="2" >
 						<Grid Margin="0">
-                            <Rectangle x:Name="SHStartSniffer" Fill="#FFFF6262" Margin="126,64,10,0" Height="22" VerticalAlignment="Top"></Rectangle>
+                            <Rectangle x:Name="SHStartSniffer" Fill="#FFFF6262" Margin="125,65,11,0" Height="20" VerticalAlignment="Top" Width="8" RadiusX="2" RadiusY="2"></Rectangle>
                             <Button x:Name="BStartSniffer" Click="BStartSniffer_Click" Content="Start sniffer" Margin="5,64,0,0" Width="116" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Normal" Height="22">
 							</Button>
-                            <Rectangle x:Name="SHStartSSLstrip" Fill="#FFFF6262" Margin="126,9,10,0" Height="21" VerticalAlignment="Top"></Rectangle>
+                            <Rectangle x:Name="SHStartSSLstrip" Fill="#FFFF6262" Margin="125,10,11,0" Height="20" VerticalAlignment="Top" RadiusX="2" RadiusY="2" Width="8"></Rectangle>
                             <Button x:Name="BStartSSLstrip" IsEnabled="True" Content="Start SSL stripping" Margin="5,9,0,0" Height="22" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" BorderThickness="1" Click="BStartSSLstrip_Click" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal">
 							</Button>
 							<CheckBox x:Name="CHStripCookies" Content="Strip cookies" Margin="6,35,0,0" Height="19" VerticalAlignment="Top" IsChecked="True" d:LayoutOverrides="VerticalAlignment" FontWeight="Normal" ToolTip="Strips &quot;Cookie&quot; header from HTTP requests."/>
@@ -123,12 +123,12 @@
 							<Path Data="M9,52.08 L135.77125,52.08" Fill="#FF505050" Margin="6,56,6,0" Stretch="Fill" Stroke="#FF707070" StrokeThickness="0.5" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeDashArray="4 5" Height="0.5" VerticalAlignment="Top"/>
 						</Grid>
 					</GroupBox>
-					<GroupBox Margin="8,287,8,0" Grid.Row="1" Grid.RowSpan="2" Header="ND tools (IPv6)" VerticalAlignment="Top" Height="122" Width="155.6" >
+					<GroupBox Margin="8,287,8,0" Grid.Row="1" Grid.RowSpan="2" Header="ND tools (IPv6)" VerticalAlignment="Top" Height="122" >
 						<Grid Margin="0">
-                            <Rectangle x:Name="SHStartND" Fill="#FFFF6262" Margin="126,46,10,0" Height="21" VerticalAlignment="Top"></Rectangle>                           
+                            <Rectangle x:Name="SHStartND" Fill="#FFFF6262" Margin="124,47,10,0" Height="20" VerticalAlignment="Top" Width="8" RadiusX="2" RadiusY="2"></Rectangle>                           
                             <Button x:Name="BStartND" Click="BStartND_Click" Content="Start ND spoofing" Margin="5,46,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" VerticalAlignment="Top" IsEnabled="False" Height="22">
 							</Button>
-							<TextBox x:Name="TBPrefix" Height="20" Margin="5,21,14,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="10.667" Foreground="Black" IsEnabled="False"/>
+							<TextBox x:Name="TBPrefix" Height="20" Margin="5,21,11,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="10.667" Foreground="Black" IsEnabled="False"/>
 							<TextBlock Height="16.5" Margin="6.5,6,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF606060" FontSize="9.333"><Run Text="IPv6 prefix (/64)"/><Run Language="sl-si" Text=" to advertise"/><Run Text=":"/></TextBlock>
 							<TextBlock Margin="6.5,72,8,0" TextWrapping="Wrap" Foreground="#FF606060" FontSize="9.333" Height="25.04" VerticalAlignment="Top"><Run Language="sl-si" Text="This will try to redirect ALL of the IPv6 traffic on the network."/></TextBlock>
 						</Grid>
@@ -183,7 +183,7 @@
 					</Grid>
 				</Grid>
 			</TabItem>
-			<TabItem Header=" Sniffer ">
+			<TabItem Header=" Sniffer " Margin="-2,-2,2,-2">
 				<Grid Background="WhiteSmoke">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="0.2*" MaxWidth="172" />
@@ -258,7 +258,6 @@
 						<FlowDocument/>
 					</RichTextBox>
 					<TextBlock Grid.Column="1" Margin="9,4,8,16" TextWrapping="Wrap" FontWeight="Bold" Grid.Row="1" VerticalAlignment="Top"><Run Language="sl-si" Text="SSL stripping debug"/><Run Text=":"/><Run Language="sl-si" Text=" "/><Run Foreground="#FF7A7A7A" Language="sl-si" Text="(last line on top)"/></TextBlock>
-                    <Rectangle x:Name="SHClearSniffer" Fill="#FFCFCFCF" Margin="125,199,39,0" Height="22" VerticalAlignment="Top"></Rectangle>
                     <Button x:Name="BClearSniffer" Content="Clear sniffer results" Margin="9,199,0,0" Width="116" HorizontalAlignment="Left" FontWeight="Normal" Click="BClearSniffer_Click" Height="22" VerticalAlignment="Top">
 					</Button>
 				</Grid>
@@ -290,7 +289,7 @@
 		</Image>
 		<Rectangle Grid.Column="1" HorizontalAlignment="Right" Height="127.873" Margin="0,20.96,0,0" StrokeStartLineCap="Square" StrokeEndLineCap="Round" StrokeThickness="0" VerticalAlignment="Top" Width="8" Fill="White"/>
 		<TextBlock Height="14" Margin="8,0,8,2.334" TextWrapping="Wrap" VerticalAlignment="Bottom" Foreground="#FF727272" FontSize="10.667" Grid.Row="1" Grid.ColumnSpan="2"><Run Language="sl-si" Text="This software may be used only for educational purposes and the author takes no responsibility for improper usage or any damage or data loss that might occur during usage."/></TextBlock>
-		<Rectangle x:Name="RCTSnifferUpdated" HorizontalAlignment="Left" Height="6" Margin="132,105,0,0" StrokeThickness="0.5" VerticalAlignment="Top" Width="6">
+		<Rectangle x:Name="RCTSnifferUpdated" HorizontalAlignment="Left" Height="24" Margin="122,98,0,0" StrokeThickness="0.5" VerticalAlignment="Top" Width="6" Panel.ZIndex="-2">
 			<Rectangle.Fill>
 				<LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
 					<GradientStop Color="#FF64D462" Offset="0"/>
