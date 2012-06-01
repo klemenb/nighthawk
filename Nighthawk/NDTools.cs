@@ -157,10 +157,10 @@ namespace Nighthawk
             p.StartInfo.WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
             p.StartInfo.FileName = "cmd";
 
-            // Vista, Windows 7 - use "netsh"
+            // Vista, Windows 7/8 - use "netsh"
             if (system.Version.Major > 5)
             {
-                p.StartInfo.Arguments = "/k netsh int ipv6 show route | findstr ::/0";
+                p.StartInfo.Arguments = "/k netsh int ipv6 show route | findstr ::/0 && exit";
                 p.Start();
                 
                 var output = p.StandardOutput.ReadToEnd();
@@ -180,6 +180,11 @@ namespace Nighthawk
             p.Dispose();
 
             return string.Empty;
+        }
+
+        void p_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         // worker function for sending RA packets

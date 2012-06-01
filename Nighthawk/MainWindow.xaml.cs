@@ -39,8 +39,8 @@ namespace Nighthawk
         public TargetList TargetList = new TargetList();
         public SnifferResultList SnifferResultList = new SnifferResultList();
 
-        public Color DisabledColor = Color.FromRgb(255, 185, 185);
-        public Color EnabledColor = Color.FromRgb(169, 239, 168);
+        public Color DisabledColor = Color.FromRgb(255, 89, 89);
+        public Color EnabledColor = Color.FromRgb(120, 240, 120);
 
         public Color ColorSnifferHTML = Color.FromRgb(0, 0, 151);
         public Color ColorSnifferHTTPAuth = Color.FromRgb(167, 0, 0);
@@ -60,6 +60,8 @@ namespace Nighthawk
 
             TaskbarItemInfo = new TaskbarItemInfo();
             TaskbarItemInfo.ProgressState = new TaskbarItemProgressState();
+
+            RenderOptions.ProcessRenderMode = System.Windows.Interop.RenderMode.SoftwareOnly;
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -96,6 +98,9 @@ namespace Nighthawk
 
                 LSnifferResults.ItemsSource = SnifferResultList;
 
+                // select first working interface from the list
+                SelectWorkingInterface();
+
                 // enable network scanning
                 BScanNetwork.IsEnabled = true;
             }));
@@ -131,9 +136,25 @@ namespace Nighthawk
             var major = Assembly.GetExecutingAssembly().GetName().Version.Major.ToString();
             var minor = Assembly.GetExecutingAssembly().GetName().Version.Minor.ToString();
             var subminor = Assembly.GetExecutingAssembly().GetName().Version.Build.ToString();
-            // var build = Assembly.GetExecutingAssembly().GetName().Version.Revision.ToString();
 
             return major + "." + minor + "." + subminor;
+        }
+
+        // select working interface
+        public void SelectWorkingInterface() 
+        {
+            // check all available interfaces
+            for(int i = 0; i < Nighthawk.DeviceInfoList.Count; i++)
+            {
+                var device = Nighthawk.DeviceInfoList[i];
+
+                // check for all the neccessary params
+                if(device.IP != "0.0.0.0" && device.GatewayIP != null)
+                {
+                    CInterface.SelectedIndex = i;
+                    break;
+                }
+            }
         }
 
         // get selected ARP targets
@@ -242,7 +263,7 @@ namespace Nighthawk
 
                 // update GUI
                 BStartSniffer.Content = "Stop sniffer";
-                SHStartSniffer.Color = EnabledColor;
+                SHStartSniffer.Fill = new SolidColorBrush(EnabledColor);
                 SBSniffer.Enabled = true;
                 CHExcludeSnifferLocalIP.IsEnabled = false;
             }
@@ -252,7 +273,7 @@ namespace Nighthawk
 
                 // update GUI
                 BStartSniffer.Content = "Start sniffer";
-                SHStartSniffer.Color = DisabledColor;
+                SHStartSniffer.Fill = new SolidColorBrush(DisabledColor);
                 SBSniffer.Enabled = false;
                 CHExcludeSnifferLocalIP.IsEnabled = true;
             }
@@ -294,7 +315,7 @@ namespace Nighthawk
                     // update GUI
                     BStartARP.Content = "Stop ARP spoofing";
                     CHBlockPPTP.IsEnabled = false;
-                    SHStartARP.Color = EnabledColor;
+                    SHStartARP.Fill = new SolidColorBrush(EnabledColor);
                     SBArp.Enabled = true;
                 }
                 else
@@ -314,7 +335,7 @@ namespace Nighthawk
                 // update GUI
                 BStartARP.Content = "Start ARP spoofing";
                 CHBlockPPTP.IsEnabled = true;
-                SHStartARP.Color = DisabledColor;
+                SHStartARP.Fill = new SolidColorBrush(DisabledColor);
                 SBArp.Enabled = false;
             }
         }
@@ -352,7 +373,7 @@ namespace Nighthawk
 
                     // update GUI
                     BStartND.Content = "Stop ND spoofing";
-                    SHStartND.Color = EnabledColor;
+                    SHStartND.Fill = new SolidColorBrush(EnabledColor);
                     SBNd.Enabled = true;
                 }
                 else
@@ -372,7 +393,7 @@ namespace Nighthawk
 
                 // update GUI
                 BStartND.Content = "Start ND spoofing";
-                SHStartND.Color = DisabledColor;
+                SHStartND.Fill = new SolidColorBrush(DisabledColor);
                 SBNd.Enabled = false;
             }
         }
@@ -399,7 +420,7 @@ namespace Nighthawk
 
                 // update GUI
                 BStartSSLstrip.Content = "Stop SSL stripping";
-                SHStartSSLstrip.Color = EnabledColor;
+                SHStartSSLstrip.Fill = new SolidColorBrush(EnabledColor);
                 SBSsl.Enabled = true;
                 CHStripCookies.IsEnabled = false;
             }
@@ -409,7 +430,7 @@ namespace Nighthawk
 
                 // update GUI
                 BStartSSLstrip.Content = "Start SSL stripping";
-                SHStartSSLstrip.Color = DisabledColor;
+                SHStartSSLstrip.Fill = new SolidColorBrush(DisabledColor);
                 SBSsl.Enabled = false;
                 CHStripCookies.IsEnabled = true;
             }
