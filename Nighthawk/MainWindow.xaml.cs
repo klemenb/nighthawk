@@ -77,6 +77,10 @@ namespace Nighthawk
             // do startup things in the background
             var startupThread = new Thread(new ThreadStart(Startup));
             startupThread.Start();
+
+            // windows 8 sniffert notification
+            if (Environment.OSVersion.Version.Major == 6 && Environment.OSVersion.Version.Major > 1)
+                RCTSnifferUpdated.Margin = new Thickness(122, RCTSnifferUpdated.Margin.Top, RCTSnifferUpdated.Margin.Right, RCTSnifferUpdated.Margin.Bottom);
         }
 
         private void Startup()
