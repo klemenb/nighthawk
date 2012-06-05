@@ -182,11 +182,6 @@ namespace Nighthawk
             return string.Empty;
         }
 
-        void p_OutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         // worker function for sending RA packets
         public void WorkerSender()
         {

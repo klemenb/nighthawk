@@ -153,7 +153,7 @@ namespace Nighthawk
         private static Regex regexCode = new Regex(@"HTTP\/1\.(0|1) (.*?) ", RegexOptions.Compiled | RegexOptions.Singleline);
         private static Regex regexPath = new Regex(@"(GET|POST) (.*?) HTTP\/1\.(0|1)", RegexOptions.Compiled | RegexOptions.Singleline);
         private static Regex regexHost = new Regex(@"Host: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
-        private static Regex regexAuth = new Regex(@"Authorization: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
+        private static Regex regexAuth = new Regex(@"Authorization: (.*?)(\r\n|$)", RegexOptions.Compiled | RegexOptions.Singleline);
         private static Regex regexType = new Regex(@"Content-Type: (.*?)\r\n", RegexOptions.Compiled | RegexOptions.Singleline);
 
         public HttpHeader(string header)
