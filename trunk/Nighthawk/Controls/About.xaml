@@ -5,7 +5,7 @@
 	x:Class="Nighthawk.About"
 	x:Name="Window"
 	Title="About Nighthawk"
-	Width="400" Height="288" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterOwner" Icon="/Nighthawk;component/Icons/HelpIcon.png" ShowInTaskbar="False" Loaded="Window_Loaded">
+	Width="410" Height="295" ResizeMode="NoResize" Topmost="True" WindowStartupLocation="CenterOwner" Icon="/Nighthawk;component/Icons/HelpIcon.png" ShowInTaskbar="False" Loaded="Window_Loaded">
 
 	<Grid x:Name="LayoutRoot">
 		<Rectangle Margin="0" VerticalAlignment="Bottom" Height="32" d:LayoutOverrides="VerticalAlignment">
@@ -18,8 +18,8 @@
 			</Rectangle.Fill>
 		</Rectangle>
 		<TextBlock Height="42.166" Margin="45,8,0,0" TextWrapping="Wrap" FontSize="24" FontFamily="Segoe UI Semibold" VerticalAlignment="Top"><Run Language="sl-si" Text="Nighthawk"/></TextBlock>
-        <TextBlock Height="179" Margin="8,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF838383" FontSize="10.667"><Run Foreground="#FF313131" Text="ARP/ND spoofing, simple SSL stripping and password sniffing for Windows"/><LineBreak/><Run/><LineBreak/><Run Text="Copyright © 2011 - Klemen Bratec"/><LineBreak/><Run Text="This software is released under the terms of the GNU General Public License (v3)."/><LineBreak/><Run/><LineBreak/><Run Language="sl-si" Text="Development:"/><LineBreak/><Run Language="sl-si" Text="- http://code.google.com/p/nighthawk/"/><LineBreak/><LineBreak/><Run Text="Parts from other open source projects:"/><LineBreak/><Run Text="- Tango Icon Library (http://tango.freedesktop.org/Tango_Icon_Library)"/><LineBreak/><Run Text="- SharpPcap (http://sourceforge.net/projects/sharppcap/)"/><LineBreak/><Run Text="- NBug (http://nbug.codeplex.com/)"/></TextBlock>
-		<Image Margin="8,8,0,0" RenderOptions.BitmapScalingMode="Fant" Source="/Nighthawk;component/Graphics/Nighthawk.png" Stretch="Fill" Width="32" Height="32" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBlock Height="179" Margin="8,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF838383" FontSize="10.667"><Run Foreground="#FF313131" Text="ARP/ND spoofing, simple SSL stripping and password sniffing for Windows"/><LineBreak/><Run/><LineBreak/><Run Text="Copyright © 2011"/><Run Language="sl-si" Text=", 2012"/><Run Text=" - Klemen Bratec"/><LineBreak/><Run Text="This software is released under the terms of the GNU General Public License (v3)."/><LineBreak/><Run/><LineBreak/><Run Language="sl-si" Text="Development:"/><LineBreak/><Run Language="sl-si" Text="- http://code.google.com/p/nighthawk/"/><LineBreak/><LineBreak/><Run Text="Parts from other open source projects:"/><LineBreak/><Run Text="- Tango Icon Library (http://tango.freedesktop.org/Tango_Icon_Library)"/><LineBreak/><Run Text="- SharpPcap (http://sourceforge.net/projects/sharppcap/)"/><LineBreak/><Run Text="- NBug (http://nbug.codeplex.com/)"/></TextBlock>
+        <Image Margin="8,8,0,0" RenderOptions.BitmapScalingMode="Fant" Source="/Nighthawk;component/Graphics/Nighthawk.png" Stretch="Fill" Width="32" Height="32" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 		<TextBlock x:Name="VersionString" Height="18.367" Margin="168.332,20.966,144.335,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="#FF707070"><Run Language="sl-si" Text="0.3 (alpha)"/></TextBlock>
 		<Button Content="OK" HorizontalAlignment="Right" Height="22" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="80" Click="Button_Click" />
 	</Grid>
