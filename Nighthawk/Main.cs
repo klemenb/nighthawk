@@ -16,7 +16,7 @@ using SharpPcap.WinPcap;
 
 /**
 Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
-Copyright (C) 2011  Klemen Bratec
+Copyright (C) 2011, 2012  Klemen Bratec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -80,13 +80,10 @@ namespace Nighthawk
             }
 
             if(error) {
-                MessageBox.Show("WinPcap not installed or no devices detected!", "Nighthawk error",
+                MessageBox.Show("WinPcap not installed or no devices detected!", "Error",
                             MessageBoxButton.OK, MessageBoxImage.Error);
 
-                Window.Dispatcher.BeginInvoke(new UI(delegate
-                {
-                    Application.Current.Shutdown();
-                }));
+                return new List<string>();
             }
             //
 
@@ -135,7 +132,9 @@ namespace Nighthawk
 
                 if (address != string.Empty && address != "0.0.0.0")
                 {
-                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), GatewayIP = device.Interface.GatewayAddress.ToString(), IP = address, IPv6 = address6, IPv6List = address6List, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
+                    var gateway = device.Interface.GatewayAddress != null ? device.Interface.GatewayAddress.ToString() : "";
+
+                    DeviceInfoList.Add(new DeviceInfo { Device = device, CIDR = (int)Network.MaskToCIDR(subnet), GatewayIP = gateway, IP = address, IPv6 = address6, IPv6List = address6List, LinkLocal = linkLocal, Mask = subnet, Broadcast = broadcast });
                     devices.Add(description + " (IPv4: " + address + "/" + Network.MaskToCIDR(subnet) + (address6 != string.Empty ? ", IPv6: " + address6 + ", " + linkLocal : "") + ")");
                 }
                 else
@@ -193,9 +192,6 @@ namespace Nighthawk
 
             Device.OnPacketArrival += new PacketArrivalEventHandler(device_OnPacketArrival);
             Device.StartCapture();
-
-            // start WCF remote service
-            if (!RemoteService.Started) RemoteService.Start(DeviceInfo.IP);
         }
 
         // stop listening on a device
@@ -376,9 +372,6 @@ namespace Nighthawk
                 if (Window.SnifferResultList.Count == 0 || (Window.SnifferResultList.Last().CompareString() != result.CompareString()))
                 {
                     Window.SnifferResultList.Add(result);
-
-                    // add to shared data
-                    SharedData.Add(new[] {url, username, password});
 
                     // notify user (blinking green line on the "Sniffer" tab, Win7 taskbar));
                     if (Window.TCTabs.SelectedIndex != 1)
