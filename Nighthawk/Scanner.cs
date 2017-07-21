@@ -11,6 +11,7 @@ using System.Threading;
 using PacketDotNet;
 using PacketDotNet.Utils;
 using SharpPcap.WinPcap;
+using System.Windows.Forms;
 
 /**
 Nighthawk - ARP/ND spoofing, simple SSL stripping and password sniffing for Windows
@@ -144,35 +145,86 @@ namespace Nighthawk
 
             return ethernetPacket;
         }
+        private static DialogResult ShowInputDialog(ref string input)
+        {
+            System.Drawing.Size size = new System.Drawing.Size(200, 70);
+            Form inputBox = new Form();
 
+            inputBox.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            inputBox.ClientSize = size;
+            inputBox.Text = "Name";
+
+            System.Windows.Forms.TextBox textBox = new TextBox();
+            textBox.Size = new System.Drawing.Size(size.Width - 10, 23);
+            textBox.Location = new System.Drawing.Point(5, 5);
+            textBox.Text = input;
+            inputBox.Controls.Add(textBox);
+
+            Button okButton = new Button();
+            okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(75, 23);
+            okButton.Text = "&OK";
+            okButton.Location = new System.Drawing.Point(size.Width - 80 - 80, 39);
+            inputBox.Controls.Add(okButton);
+
+            Button cancelButton = new Button();
+            cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            cancelButton.Name = "cancelButton";
+            cancelButton.Size = new System.Drawing.Size(75, 23);
+            cancelButton.Text = "&Cancel";
+            cancelButton.Location = new System.Drawing.Point(size.Width - 80, 39);
+            inputBox.Controls.Add(cancelButton);
+
+            inputBox.AcceptButton = okButton;
+            inputBox.CancelButton = cancelButton;
+
+            DialogResult result = inputBox.ShowDialog();
+            input = textBox.Text;
+            return result;
+        }
         // worker function for sending ARP requests
         private void WorkerSender()
         {
             // get start/end IP
+            if(deviceInfo.Mask=="0.0.0.0")
+            {
+                deviceInfo.Mask = "255.255.255.0";
+                ShowInputDialog(ref deviceInfo.Mask);
+            }
             long[] range = Network.MaskToStartEnd(deviceInfo.IP, deviceInfo.Mask);
 
             long startIP = range[0];
-            long endIP = range[1];
+            long tot_endIP = range[1];
             long currentIP = startIP;
+            int chunkSize = 16;
 
-            var possibilities = (int)endIP - (int)startIP;
-
-            var sendQueue = new SendQueue(possibilities * 80);
-            var deviceIP = IPAddress.Parse(deviceInfo.IP);
-
-            // create ARP requests for all the hosts in our subnet);
-            while (currentIP <= endIP)
+            while (currentIP <= tot_endIP)
             {
-                sendQueue.Add(GenerateARPRequest(Network.LongToIP(currentIP), deviceIP).Bytes);
+                var possibilities = Math.Min((int)tot_endIP - (int)currentIP, chunkSize);
+                var endIP = currentIP + possibilities;
+                var sendQueue = new SendQueue(possibilities * 80);
 
-                currentIP++;
+                // There are still losses in arp, try to send packet in chunks
+
+                var deviceIP = IPAddress.Parse(deviceInfo.IP);
+
+                // create ARP requests for all the hosts in our subnet);
+                while (currentIP <= endIP)
+                {
+                    sendQueue.Add(GenerateARPRequest(Network.LongToIP(currentIP), deviceIP).Bytes);
+
+                    currentIP++;
+                }
+
+                // send our queue
+                //sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
+                // There are losses in ARP part, not sure why, try different timing for better accuracy
+                sendQueue.Transmit(device, SendQueueTransmitModes.Synchronized);
+
+                Thread.Sleep(1000);
             }
-
-            // send our queue
-            sendQueue.Transmit(device, SendQueueTransmitModes.Normal);
-
             Thread.Sleep(3000);
-
             // stop other threads and stop scanning
             Started = false;
 
