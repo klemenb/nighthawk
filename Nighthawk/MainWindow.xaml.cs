@@ -232,7 +232,8 @@ namespace Nighthawk
                 Nighthawk.StartDevice(CInterface.SelectedIndex);
             }
 
-            TargetList.Clear();
+            //Sometimes there's losses in the scan, multiple scans can increase number of detected hosts
+            //TargetList.Clear();
 
             // reset lists and clear filters
             LArpTargets1List.ItemsSource = TargetList;

@@ -106,8 +106,8 @@ namespace Nighthawk
                         if (addr.Addr.ipAddress.AddressFamily == AddressFamily.InterNetwork)
                         {
                             address = addr.Addr.ipAddress.ToString();
-                            subnet = addr.Netmask.ipAddress.ToString();
-                            broadcast = addr.Broadaddr.ipAddress.ToString();
+                            subnet = (addr.Netmask.ipAddress != null)? addr.Netmask.ipAddress.ToString() : "0.0.0.0";
+                            broadcast = addr.Broadaddr.ipAddress != null ? addr.Broadaddr.ipAddress.ToString() : "0.0.0.0";
                         }
                         
                         // get IPv6 addresses
@@ -144,7 +144,19 @@ namespace Nighthawk
                 }
 
                 // parse interface ID from WinPcap device "Name"
-                var id = Regex.Split(device.Name, "NPF_")[1];
+                string id;
+                try
+                {
+                    id = Regex.Split(device.Name, "NPF_")[1];
+                }
+                catch
+                {
+                    //System.Uri uri = new System.Uri(device.Name);
+                    //id = uri.Host;
+                    // Copying and pasting from stackOverflow, o`rally.. ^_^ https://stackoverflow.com/questions/2245442/c-sharp-split-a-string-by-another-string
+                    id = device.Name.Split(new string[] { "//" }, StringSplitOptions.None)[1];
+                    ///id = String.Split(device.Name, "//")[1];
+                }
 
                 // get and set mac address, gateway and windows name (DeviceInfo)
                 foreach (var iface in NetworkInterface.GetAllNetworkInterfaces())
